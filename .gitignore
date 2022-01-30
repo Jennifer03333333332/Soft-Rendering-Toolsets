@@ -42,3 +42,4 @@ build/
 # Useless files
 .DS_STORE
 *.swp
+*.pdf
