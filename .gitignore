@@ -1,5 +1,6 @@
 #Lecutres
 *.pdf
+*/Lecture/*
 
 # Prerequisites
 *.d
