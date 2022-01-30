@@ -1,0 +1,11 @@
+gcc version 7.5.0 (Ubuntu 7.5.0-3ubuntu1~18.04) 
+cmake version 3.10.2
+
+make[2]: *** No rule to make target '../src/reference/libdrawsvgref.a', needed by 'drawsvg'.  Stop.
+make[2]: *** Waiting for unfinished jobs....
+[ 97%] Building CXX object src/CMakeFiles/drawsvg.dir/main.cpp.o
+CMakeFiles/Makefile2:334: recipe for target 'src/CMakeFiles/drawsvg.dir/all' failed
+make[1]: *** [src/CMakeFiles/drawsvg.dir/all] Error 2
+Makefile:129: recipe for target 'all' failed
+make: *** [all] Error 2
+
