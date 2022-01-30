@@ -1,3 +1,6 @@
+#Lecutres
+*.pdf
+
 # Prerequisites
 *.d
 
@@ -30,3 +33,11 @@
 *.exe
 *.out
 *.app
+
+# from drawsvg gitignore
+# Build directory
+build/
+
+# Useless files
+.DS_STORE
+*.swp
