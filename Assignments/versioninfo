@@ -9,3 +9,5 @@ make[1]: *** [src/CMakeFiles/drawsvg.dir/all] Error 2
 Makefile:129: recipe for target 'all' failed
 make: *** [all] Error 2
 
+${CMAKE_CURRENT_SOURCE_DIR}/reference/libdrawsvgref.a)
+
