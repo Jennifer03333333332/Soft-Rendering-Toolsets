@@ -11,3 +11,20 @@ make: *** [all] Error 2
 
 ${CMAKE_CURRENT_SOURCE_DIR}/reference/libdrawsvgref.a)
 
+#build
+mkdir build
+cd build
+cmake ..
+make -j5
+
+#build 2
+mkdir build
+cd build
+cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo ..
+make -j4
+
+#Run
+./drawsvg ../svg/<path>/image.svg
+./Scotty3D 
+
+Run ./Scotty3D -h to discover command line arguments.
