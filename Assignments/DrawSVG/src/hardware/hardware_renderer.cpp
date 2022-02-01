@@ -241,7 +241,8 @@ void HardwareRenderer::rasterize_point(float x, float y, Color color) {
   
   // Task 1: 
   // Implement point rasterization
-
+  glBegin(GL_POINTS);
+  glEnd();
 }
 
 void HardwareRenderer::rasterize_line(float x0, float y0,
