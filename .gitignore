@@ -1,6 +1,7 @@
 #Lecutres
 *.pdf
-*/Lecture/*
+Lecture/
+.vs/
 
 # from drawsvg gitignore
 # Build directory
