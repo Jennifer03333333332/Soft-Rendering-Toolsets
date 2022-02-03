@@ -118,7 +118,10 @@ class SoftwareRendererImp : public SoftwareRenderer {
   void rasterize_line( float x0, float y0,
                        float x1, float y1,
                        Color color);
-
+  //Using Bresenham's algorithm to rasterize a line
+  void rasterize_line_Bresenham( float x0, float y0,
+                       float x1, float y1,
+                       Color color);
   // rasterize a triangle
   void rasterize_triangle( float x0, float y0,
                            float x1, float y1,

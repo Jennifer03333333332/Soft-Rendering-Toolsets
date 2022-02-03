@@ -244,7 +244,38 @@ void SoftwareRendererImp::rasterize_line( float x0, float y0,
 
   // Task 2: 
   // Implement line rasterization
+  // Requires 1 deal with non-int 2 any slope 3 based on length of line
+  rasterize_line_Bresenham(x0,y0,x1,y1,color);
 }
+void SoftwareRendererImp::rasterize_line_Bresenham( float x0, float y0,
+                                          float x1, float y1,
+                                          Color color) {
+    //Get the screen coordinate
+    int sx0 = (int)floor(x0);      
+    int sx1 = (int)floor(x1);    
+    int sy0 = (int)floor(y0);      
+    int sy1 = (int)floor(y1);  
+    //No gurantee for x1>x0
+    int dx = sx1 - sx0;
+    int dy = sy1 - sy0;
+    int eps = 0;
+
+    if (dx >= 0 && dy >= 0 && dx >= dy){
+      for(int x = sx0;x<=sx1;x++){
+          // fill sample - NOT doing alpha blending!
+          render_target[4 * (x + sy * target_w)    ] = (uint8_t) (color.r * 255);
+          render_target[4 * (x + sy * target_w) + 1] = (uint8_t) (color.g * 255);
+          render_target[4 * (x + sy * target_w) + 2] = (uint8_t) (color.b * 255);
+          render_target[4 * (x + sy * target_w) + 3] = (uint8_t) (color.a * 255);
+
+      }
+    }
+
+
+
+
+}
+
 
 void SoftwareRendererImp::rasterize_triangle( float x0, float y0,
                                               float x1, float y1,
