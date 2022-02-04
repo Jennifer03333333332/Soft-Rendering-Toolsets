@@ -122,8 +122,8 @@ class SoftwareRendererImp : public SoftwareRenderer {
   void rasterize_line_Bresenham( float x0, float y0,
                        float x1, float y1,
                        Color color);
-  //render one point withoutAlpha
-  void render_one_point_withoutAlpha( int x, int y, Color &color);
+  //Judge if a point is inside the triangle
+  bool inside_triangle(const Vector2D& pointP, const std::vector<Vector2D>& Triangle);
 
   // rasterize a triangle
   void rasterize_triangle( float x0, float y0,

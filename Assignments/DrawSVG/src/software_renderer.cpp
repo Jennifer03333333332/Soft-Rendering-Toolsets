@@ -248,12 +248,12 @@ void SoftwareRendererImp::rasterize_line( float x0, float y0,
   rasterize_line_Bresenham(x0,y0,x1,y1,color);
 }
 
-void SoftwareRendererImp::render_one_point_withoutAlpha( int x, int y, Color& color){
-        render_target[4 * (x + y * target_w)    ] = (uint8_t) (color.r * 255);
-        render_target[4 * (x + y * target_w) + 1] = (uint8_t) (color.g * 255);
-        render_target[4 * (x + y * target_w) + 2] = (uint8_t) (color.b * 255);
-        render_target[4 * (x + y * target_w) + 3] = (uint8_t) (color.a * 255);
-}
+// void SoftwareRendererImp::render_one_point_withoutAlpha( int x, int y, Color& color){
+//         render_target[4 * (x + y * target_w)    ] = (uint8_t) (color.r * 255);
+//         render_target[4 * (x + y * target_w) + 1] = (uint8_t) (color.g * 255);
+//         render_target[4 * (x + y * target_w) + 2] = (uint8_t) (color.b * 255);
+//         render_target[4 * (x + y * target_w) + 3] = (uint8_t) (color.a * 255);
+// }
 
 void SoftwareRendererImp::rasterize_line_Bresenham( float x0, float y0,
                                           float x1, float y1,
@@ -271,7 +271,7 @@ void SoftwareRendererImp::rasterize_line_Bresenham( float x0, float y0,
 
 
     while(true) {
-        render_one_point_withoutAlpha(sx0,sy0,color);
+        rasterize_point(sx0,sy0,color);
         if (sx0 == sx1 && sy0 == sy1) break;//draw line ends
         error_tmp = error;
         if (error_tmp > -dx) { error -= dy; sx0 += sx; }
@@ -279,47 +279,48 @@ void SoftwareRendererImp::rasterize_line_Bresenham( float x0, float y0,
     }
 }
 
-
+//already screen coordinates
 void SoftwareRendererImp::rasterize_triangle( float x0, float y0,
                                               float x1, float y1,
                                               float x2, float y2,
                                               Color color ) {
   // Task 3: 
   // Implement triangle rasterization
+    //Build an array to store the triangle's vertices
+    std::vector<Vector2D> Triangle; 
+    Triangle.push_back(Vector2D((double)x0, (double)y0));
+    Triangle.push_back(Vector2D((double)x1, (double)y1));
+    Triangle.push_back(Vector2D((double)x2, (double)y2));
     //Simple solution: a big 2D-bounding box
-    int xmin = (int)std::min(x0, std::min(x1, x2));
-    int ymin = (int)std::min(y0, std::min(y1, y2));
-    int xmax = (int)std::max(x0, std::max(x1, x2)) + 1;
-    int ymax = (int)std::max(y0, std::max(y1, y2)) + 1;
-
-    vector<Vector2D> Triangle; 
-    
-    Triangle[0] = Vector2D(x0, y0);
-    Triangle[1] = Vector2D(x1, y1);
-    Triangle[2] = Vector2D(x2, y2);
-    for (float x = xmin; x <= xmax; x++) {
-        for (float y = ymin; y <= ymax; y++) {
-            if (inside_triangle(Vector2D(x, y), Triangle)) {
-                render_one_point_withoutAlpha(x, y, color);
+    float xmin = floor(std::min(x0, std::min(x1, x2)));
+    float ymin = floor(std::min(y0, std::min(y1, y2)));
+    float xmax = ceil(std::max(x0, std::max(x1, x2)));
+    float ymax = ceil(std::max(y0, std::max(y1, y2)));
+    //For each pixel in this bounding box
+    for (double x = xmin; x <= xmax; x++) {
+        for (double y = ymin; y <= ymax; y++) {
+            //center of the pixels: x+0.5,y+0.5
+            if (inside_triangle(Vector2D(x+0.5, y+0.5), Triangle)) {
+                rasterize_point(x,y,color);
             }
         }
     }
 }
 
 
-bool SoftwareRendererImp::inside_triangle(const Vector2D& pointP, const vector<Vector2D>& Triangle) {
+bool SoftwareRendererImp::inside_triangle(const Vector2D& pointP, const std::vector<Vector2D>& Triangle) {
     //Calculate the 3 edges
     Vector2D t0t1 = Triangle[1] - Triangle[0];
     Vector2D t1t2 = Triangle[2] - Triangle[1];
     Vector2D t2t0 = Triangle[0] - Triangle[2];
     //Calculate vectors form the vertex to the point p 
-    Vector2D v0p = pointP - Triangle[0];
-    Vector2D v1p = pointP - Triangle[1];
-    Vector2D v2p = pointP - Triangle[2];
+    Vector2D t0p = pointP - Triangle[0];
+    Vector2D t1p = pointP - Triangle[1];
+    Vector2D t2p = pointP - Triangle[2];
     //Calculate the cross product
-    float cross1 = t0t1[0] * t0p[1] - t0t1[1] * t0p[0];
-    float cross2 = t1t2[0] * t1p[1] - t1t2[1] * t1p[0];
-    float cross3 = t2t0[0] * t2p[1] - t2t0[1] * t2p[0];
+    float cross1 = t0t1.x * t0p.y - t0t1.y * t0p.x;
+    float cross2 = t1t2.x * t1p.y - t1t2.y * t1p.x;
+    float cross3 = t2t0.x * t2p.y - t2t0.y * t2p.x;
     //! a sample point on a triangle edge is covered by the triangle. In this case, cross product would be 0
     //! the vertices may be in counter-clockwise or clockwise order
     bool counter_cw = (cross1 * cross2 >= 0) && (cross2 * cross3 >= 0) && (cross1 * cross3 >= 0);
