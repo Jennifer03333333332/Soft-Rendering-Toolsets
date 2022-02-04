@@ -256,20 +256,35 @@ void SoftwareRendererImp::rasterize_line_Bresenham( float x0, float y0,
     int sy0 = (int)floor(y0);      
     int sy1 = (int)floor(y1);  
     //No gurantee for x1>x0
-    int dx = sx1 - sx0;
-    int dy = sy1 - sy0;
-    int eps = 0;
+    int dx = abs(sx1 - sx0), sx = sx0 < sx1 ? 1 : -1;
+    int dy = abs(sy1 - sy0), sy = sy0 < sy1 ? 1 : -1;
+    int err = (dx > dy ? dx : -dy) / 2;
+    int e2;
 
-    if (dx >= 0 && dy >= 0 && dx >= dy){
-      for(int x = sx0;x<=sx1;x++){
-          // fill sample - NOT doing alpha blending!
-          render_target[4 * (x + sy * target_w)    ] = (uint8_t) (color.r * 255);
-          render_target[4 * (x + sy * target_w) + 1] = (uint8_t) (color.g * 255);
-          render_target[4 * (x + sy * target_w) + 2] = (uint8_t) (color.b * 255);
-          render_target[4 * (x + sy * target_w) + 3] = (uint8_t) (color.a * 255);
 
-      }
+    for (;;) {
+        render_target[4 * (sx0 + sy0 * target_w)] = (uint8_t)(color.r * 255);
+        render_target[4 * (sx0 + sy0 * target_w) + 1] = (uint8_t) (color.g * 255);
+        render_target[4 * (sx0 + sy0 * target_w) + 2] = (uint8_t) (color.b * 255);
+        render_target[4 * (sx0 + sy0 * target_w) + 3] = (uint8_t) (color.a * 255);
+
+        if (sx0 == sx1 && sy0 == sy1) break;
+        e2 = err;
+        if (e2 > -dx) { err -= dy; sx0 += sx; }
+        if (e2 < dy) { err += dx; sy0 += sy; }
     }
+
+    //if (dx >= 0 && dy >= 0 && dx >= dy){
+    //  for(int x = sx0;x<=sx1;x++){
+    //      // For one point - NOT doing alpha blending!
+    //      render_target[4 * (x + sy * target_w)    ] = (uint8_t) (color.r * 255);
+    //      render_target[4 * (x + sy * target_w) + 1] = (uint8_t) (color.g * 255);
+    //      render_target[4 * (x + sy * target_w) + 2] = (uint8_t) (color.b * 255);
+    //      render_target[4 * (x + sy * target_w) + 3] = (uint8_t) (color.a * 255);
+
+    //      eps += dy;
+    //  }
+    //}
 
 
 
