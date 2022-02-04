@@ -286,8 +286,47 @@ void SoftwareRendererImp::rasterize_triangle( float x0, float y0,
                                               Color color ) {
   // Task 3: 
   // Implement triangle rasterization
+    //Simple solution: a big 2D-bounding box
+    int xmin = (int)std::min(x0, std::min(x1, x2));
+    int ymin = (int)std::min(y0, std::min(y1, y2));
+    int xmax = (int)std::max(x0, std::max(x1, x2)) + 1;
+    int ymax = (int)std::max(y0, std::max(y1, y2)) + 1;
 
+    vector<Vector2D> Triangle; 
+    
+    Triangle[0] = Vector2D(x0, y0);
+    Triangle[1] = Vector2D(x1, y1);
+    Triangle[2] = Vector2D(x2, y2);
+    for (float x = xmin; x <= xmax; x++) {
+        for (float y = ymin; y <= ymax; y++) {
+            if (inside_triangle(Vector2D(x, y), Triangle)) {
+                render_one_point_withoutAlpha(x, y, color);
+            }
+        }
+    }
 }
+
+
+bool SoftwareRendererImp::inside_triangle(const Vector2D& pointP, const vector<Vector2D>& Triangle) {
+    //Calculate the 3 edges
+    Vector2D t0t1 = Triangle[1] - Triangle[0];
+    Vector2D t1t2 = Triangle[2] - Triangle[1];
+    Vector2D t2t0 = Triangle[0] - Triangle[2];
+    //Calculate vectors form the vertex to the point p 
+    Vector2D v0p = pointP - Triangle[0];
+    Vector2D v1p = pointP - Triangle[1];
+    Vector2D v2p = pointP - Triangle[2];
+    //Calculate the cross product
+    float cross1 = t0t1[0] * t0p[1] - t0t1[1] * t0p[0];
+    float cross2 = t1t2[0] * t1p[1] - t1t2[1] * t1p[0];
+    float cross3 = t2t0[0] * t2p[1] - t2t0[1] * t2p[0];
+    //! a sample point on a triangle edge is covered by the triangle. In this case, cross product would be 0
+    //! the vertices may be in counter-clockwise or clockwise order
+    bool counter_cw = (cross1 * cross2 >= 0) && (cross2 * cross3 >= 0) && (cross1 * cross3 >= 0);
+    bool cw = (cross1 * cross2 <= 0) && (cross2 * cross3 <= 0) && (cross1 * cross3 <= 0);
+    return counter_cw || cw;
+}
+
 
 void SoftwareRendererImp::rasterize_image( float x0, float y0,
                                            float x1, float y1,
