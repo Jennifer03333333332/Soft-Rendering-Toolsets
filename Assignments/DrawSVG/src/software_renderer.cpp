@@ -247,6 +247,14 @@ void SoftwareRendererImp::rasterize_line( float x0, float y0,
   // Requires 1 deal with non-int 2 any slope 3 based on length of line
   rasterize_line_Bresenham(x0,y0,x1,y1,color);
 }
+
+void SoftwareRendererImp::render_one_point_withoutAlpha( int x, int y, Color& color){
+        render_target[4 * (x + y * target_w)    ] = (uint8_t) (color.r * 255);
+        render_target[4 * (x + y * target_w) + 1] = (uint8_t) (color.g * 255);
+        render_target[4 * (x + y * target_w) + 2] = (uint8_t) (color.b * 255);
+        render_target[4 * (x + y * target_w) + 3] = (uint8_t) (color.a * 255);
+}
+
 void SoftwareRendererImp::rasterize_line_Bresenham( float x0, float y0,
                                           float x1, float y1,
                                           Color color) {
@@ -255,40 +263,20 @@ void SoftwareRendererImp::rasterize_line_Bresenham( float x0, float y0,
     int sx1 = (int)floor(x1);    
     int sy0 = (int)floor(y0);      
     int sy1 = (int)floor(y1);  
-    //No gurantee for x1>x0
+    //Deal with different slope
     int dx = abs(sx1 - sx0), sx = sx0 < sx1 ? 1 : -1;
     int dy = abs(sy1 - sy0), sy = sy0 < sy1 ? 1 : -1;
-    int err = (dx > dy ? dx : -dy) / 2;
-    int e2;
+    int error = (dx > dy ? dx : -dy) / 2;
+    int error_tmp;
 
 
-    for (;;) {
-        render_target[4 * (sx0 + sy0 * target_w)] = (uint8_t)(color.r * 255);
-        render_target[4 * (sx0 + sy0 * target_w) + 1] = (uint8_t) (color.g * 255);
-        render_target[4 * (sx0 + sy0 * target_w) + 2] = (uint8_t) (color.b * 255);
-        render_target[4 * (sx0 + sy0 * target_w) + 3] = (uint8_t) (color.a * 255);
-
-        if (sx0 == sx1 && sy0 == sy1) break;
-        e2 = err;
-        if (e2 > -dx) { err -= dy; sx0 += sx; }
-        if (e2 < dy) { err += dx; sy0 += sy; }
+    while(true) {
+        render_one_point_withoutAlpha(sx0,sy0,color);
+        if (sx0 == sx1 && sy0 == sy1) break;//draw line ends
+        error_tmp = error;
+        if (error_tmp > -dx) { error -= dy; sx0 += sx; }
+        if (error_tmp < dy) { error += dx; sy0 += sy; }
     }
-
-    //if (dx >= 0 && dy >= 0 && dx >= dy){
-    //  for(int x = sx0;x<=sx1;x++){
-    //      // For one point - NOT doing alpha blending!
-    //      render_target[4 * (x + sy * target_w)    ] = (uint8_t) (color.r * 255);
-    //      render_target[4 * (x + sy * target_w) + 1] = (uint8_t) (color.g * 255);
-    //      render_target[4 * (x + sy * target_w) + 2] = (uint8_t) (color.b * 255);
-    //      render_target[4 * (x + sy * target_w) + 3] = (uint8_t) (color.a * 255);
-
-    //      eps += dy;
-    //  }
-    //}
-
-
-
-
 }
 
 
