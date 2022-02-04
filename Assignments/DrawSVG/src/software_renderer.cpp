@@ -248,13 +248,6 @@ void SoftwareRendererImp::rasterize_line( float x0, float y0,
   rasterize_line_Bresenham(x0,y0,x1,y1,color);
 }
 
-// void SoftwareRendererImp::render_one_point_withoutAlpha( int x, int y, Color& color){
-//         render_target[4 * (x + y * target_w)    ] = (uint8_t) (color.r * 255);
-//         render_target[4 * (x + y * target_w) + 1] = (uint8_t) (color.g * 255);
-//         render_target[4 * (x + y * target_w) + 2] = (uint8_t) (color.b * 255);
-//         render_target[4 * (x + y * target_w) + 3] = (uint8_t) (color.a * 255);
-// }
-
 void SoftwareRendererImp::rasterize_line_Bresenham( float x0, float y0,
                                           float x1, float y1,
                                           Color color) {
@@ -307,7 +300,7 @@ void SoftwareRendererImp::rasterize_triangle( float x0, float y0,
     }
 }
 
-
+//Judge if the point is in the triangle
 bool SoftwareRendererImp::inside_triangle(const Vector2D& pointP, const std::vector<Vector2D>& Triangle) {
     //Calculate the 3 edges
     Vector2D t0t1 = Triangle[1] - Triangle[0];
