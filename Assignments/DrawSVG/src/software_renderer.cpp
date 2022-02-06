@@ -57,8 +57,11 @@ void SoftwareRendererImp::set_sample_rate( size_t sample_rate ) {
     //allocate memory for super_sample_buffer, sizeof rgba * number of samples
     //memset(super_sample_buffer, 0, 4 * sizeof(uint8_t) * this->supersample_h * this->supersample_w);
     //this->super_sample_buffer = std::vector<uint8_t>(4 * this->supersample_h * this->supersample_w, 255);
+    
+    
     super_sample_buffer.resize(4*supersample_h * supersample_w);
-    memset(&super_sample_buffer[0],255,4 * supersample_h * supersample_w);
+
+    memset(&super_sample_buffer[0],(float)255,4 * supersample_h * supersample_w*sizeof(float));
 
 }
 
@@ -79,8 +82,9 @@ void SoftwareRendererImp::set_render_target( unsigned char* render_target,
   super_sample_buffer.resize(4*supersample_h * supersample_w);//if 'this' is needed??
   // //construct could take much room
   //this->super_sample_buffer = std::vector<uint8_t>(4 * this->supersample_h * this->supersample_w, 255);
-  memset(&super_sample_buffer[0],255,4 * supersample_h * supersample_w);
+  //memset(&super_sample_buffer[0],255,4 * supersample_h * supersample_w);
   
+  memset(&super_sample_buffer[0], (float)255, 4 * supersample_h * supersample_w * sizeof(float));
 
 
   //super_sample_buffer.resize(4 * this->supersample_h * this->supersample_w);
@@ -396,7 +400,8 @@ void SoftwareRendererImp::resolve( void ) {
     //For each sample
     for (size_t x = 0; x < supersample_w; x += sample_rate) {
         for (size_t y = 0; y < supersample_h; y += sample_rate) {
-            uint8_t r = 0, g = 0, b = 0, a = 0;
+            //uint8_t r = 0, g = 0, b = 0, a = 0;
+            float r = 0, g = 0, b = 0, a = 0;
             //Calculate all samples in the pixel where this sample in
             for (size_t i = 0; i < sample_rate; ++i){
                 for (size_t j = 0; j < sample_rate; ++j){
@@ -425,15 +430,16 @@ void SoftwareRendererImp::resolve( void ) {
 //fill the sample buffer
 //sx,sy are the screen coordinates for ssaa screen
 inline void SoftwareRendererImp::fill_sample(int sx, int sy, const Color& c) {
-    //CMU462::Color4i color_obj(c.r,c.g,c.b,c.a);
-    //super_sample_buffer[sx * sample_rate + sy * supersample_w] = color_obj;
+    //super_sample_buffer[4*(sx + sy * supersample_w)] = (uint8_t)c.r*255;
+    //super_sample_buffer[4*(sx + sy * supersample_w)+1] = (uint8_t)c.g*255;
+    //super_sample_buffer[4*(sx + sy * supersample_w)+2] = (uint8_t)c.b*255;
+    //super_sample_buffer[4*(sx + sy * supersample_w)+3] = (uint8_t)c.a*255;
 
-    super_sample_buffer[4*(sx + sy * supersample_w)] = (uint8_t)c.r*255;
-    super_sample_buffer[4*(sx + sy * supersample_w)+1] = (uint8_t)c.g*255;
-    super_sample_buffer[4*(sx + sy * supersample_w)+2] = (uint8_t)c.b*255;
-    super_sample_buffer[4*(sx + sy * supersample_w)+3] = (uint8_t)c.a*255;
-
-
+    //Method n: try store float
+    super_sample_buffer[4*(sx + sy * supersample_w)] = c.r*255.0;
+    super_sample_buffer[4*(sx + sy * supersample_w)+1] = c.g*255.0;
+    super_sample_buffer[4*(sx + sy * supersample_w)+2] = c.b*255.0;
+    super_sample_buffer[4*(sx + sy * supersample_w)+3] = c.a*255.0;
 } // namespace CMU462
 
 //inline void SoftwareRendererImp::fill_pixel(int x, int y, const CMU462::Color4i& c){

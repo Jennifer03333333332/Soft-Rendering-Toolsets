@@ -157,7 +157,11 @@ class SoftwareRendererImp : public SoftwareRenderer {
   //For Task 4
   //unsigned char* super_sample_buffer;
   //std::vector<unsigned char> super_sample_buffer;
-  std::vector<uint8_t> super_sample_buffer;//intermidate buffer
+  // 
+  // 
+  //std::vector<uint8_t> super_sample_buffer;
+  //try use float
+  std::vector<float> super_sample_buffer;//intermidate buffer
 
 
   size_t supersample_w; size_t supersample_h;
