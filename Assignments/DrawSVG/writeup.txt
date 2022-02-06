@@ -2,15 +2,20 @@ AndrewID: yingxual
 
 Task 1:
     Fully implemented.
-
+    glBegin and glEnd will basically define how vertices made inside of this will be interpreted.
+    glColor3f() mush be put before other actions
 Task 2:
+    Fully implemented.
     Using Bresenham's algorithm to implement drawing lines.
     Code: SoftwareRendererImp::rasterize_line_Bresenham
-    Fully implemented.
+    
 
 Task 3:
-
     Fully implemented.
+    Using SoftwareRendererImp::inside_triangle() to judge if point p is inside the triangle or not. 
+    Using a 2D-bounding box.
+    Could judge counter-clockwise and clockwise for vertices.
+    Covered points on the triangles' edge
 
 Task 4:
 

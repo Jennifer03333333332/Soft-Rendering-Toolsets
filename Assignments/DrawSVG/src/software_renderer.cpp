@@ -40,6 +40,7 @@ void SoftwareRendererImp::draw_svg( SVG& svg ) {
 
 }
 
+//Called when changed sample_rate
 void SoftwareRendererImp::set_sample_rate( size_t sample_rate ) {
 
   // Task 4: 
@@ -48,6 +49,7 @@ void SoftwareRendererImp::set_sample_rate( size_t sample_rate ) {
 
 }
 
+//Called when resizes
 void SoftwareRendererImp::set_render_target( unsigned char* render_target,
                                              size_t width, size_t height ) {
 
@@ -330,12 +332,19 @@ void SoftwareRendererImp::rasterize_image( float x0, float y0,
 
 }
 
+unsigned char* SoftwareRendererImp::super_sample_buffer;
+
 // resolve samples to render target
 void SoftwareRendererImp::resolve( void ) {
 
   // Task 4: 
   // Implement supersampling
   // You may also need to modify other functions marked with "Task 4".
+
+    //Have render_target already. Create a new super_sample_buffer array. the length would be 4 times than render_target
+    
+
+
   return;
 
 }
