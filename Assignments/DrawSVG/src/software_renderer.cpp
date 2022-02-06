@@ -13,16 +13,15 @@ namespace CMU462 {
 
     
 // Implements SoftwareRenderer //
-    struct Color4i {
-        uint8_t r, g, b, a;
-        Color4i(uint8_t mr, uint8_t mg, uint8_t mb, uint8_t ma) :r(mr), g(mg), b(mb), a(ma) {};
-    }
 
 void SoftwareRendererImp::draw_svg( SVG& svg ) {
+  //clear
+  //super_sample_buffer.clear();
+  //memset(render_target,0,sizeof(render_target));
 
   // set top level transformation
   transformation = svg_2_screen;
-
+  super_sample_buffer.clear();
   // draw all elements
   for ( size_t i = 0; i < svg.elements.size(); ++i ) {
     draw_element(svg.elements[i]);
@@ -57,7 +56,7 @@ void SoftwareRendererImp::set_sample_rate( size_t sample_rate ) {
     //allocate memory for super_sample_buffer, sizeof rgba * number of samples
     //memset(super_sample_buffer, 0, 4 * sizeof(uint8_t) * this->supersample_h * this->supersample_w);
     super_sample_buffer.clear();
-    super_sample_buffer.resize(4 * this->supersample_h * this->supersample_w);
+    super_sample_buffer.resize(this->supersample_h * this->supersample_w);
 }
 
 //Called when resizes
@@ -72,9 +71,16 @@ void SoftwareRendererImp::set_render_target( unsigned char* render_target,
 
   this->supersample_h = height * this->sample_rate;
   this->supersample_w = width * this->sample_rate;
+
   super_sample_buffer.clear();
-  super_sample_buffer.resize(4 * this->supersample_h * this->supersample_w);
-  //memset(super_sample_buffer, 0, 4 * sizeof(uint8_t) * this->supersample_h * this->supersample_w);
+  super_sample_buffer.resize(this->supersample_h * this->supersample_w);
+
+
+  //initialize the buffer with white(255)
+
+
+  //super_sample_buffer.resize(4 * this->supersample_h * this->supersample_w);
+  //memset(super_sample_buffer, 255, 4 * this->supersample_h * this->supersample_w*sizeof(Color4i));
 }
 
 void SoftwareRendererImp::draw_element( SVGElement* element ) {
@@ -384,38 +390,38 @@ void SoftwareRendererImp::resolve( void ) {
     for (size_t i = 0; i < target_w;i++) {//[0,target_w-1]
         for (size_t j = 0; j < target_h; j++) {//[0,target_h-1]
             size_t index = i * sample_rate + j * supersample_w;
+            CMU462::Color4i blur_color;
             //for each sample in one pixel
             for (size_t si = 0; si < sample_rate;si++) {
                 for (size_t sj = 0; sj < sample_rate; sj++) {
-                    
+                    blur_color = blur_color + super_sample_buffer[index+si+sj*target_w];
                 }
             }
-
-            uint8_t r = super_sample_buffer[4 * (i * sample_rate + j * supersample_w)];
-
+            blur_color = blur_color / (sample_rate*sample_rate);
+            //uint8_t r = super_sample_buffer[4 * (i * sample_rate + j * supersample_w)];
+            fill_pixel(i,j,blur_color);
         }
     }
 
 
     //Box Blur
-    //render_target[4 * (sx + sy * target_w)] = (uint8_t)(color.r * 255);
-    //render_target[4 * (sx + sy * target_w) + 1] = (uint8_t)(color.g * 255);
-    //render_target[4 * (sx + sy * target_w) + 2] = (uint8_t)(color.b * 255);
-    //render_target[4 * (sx + sy * target_w) + 3] = (uint8_t)(color.a * 255);
 
     return;
 
 }
 
 //fill the sample buffer
-//sx,sy still the screen coordinate?
-void SoftwareRendererImp::fill_sample(int sx, int sy, const Color& c) {
-    super_sample_buffer[4 * (sx * sample_rate + sy * supersample_w)] = (uint8_t)(color.r * 255);
-    super_sample_buffer[4 * (sx * sample_rate + sy * supersample_w) + 1] = (uint8_t)(color.g * 255);
-    super_sample_buffer[4 * (sx * sample_rate + sy * supersample_w) + 2] = (uint8_t)(color.b * 255);
-    super_sample_buffer[4 * (sx * sample_rate + sy * supersample_w) + 3] = (uint8_t)(color.a * 255);
+//sx,sy are the screen coordinates for ssaa screen
+inline void SoftwareRendererImp::fill_sample(int sx, int sy, const Color& c) {
+    CMU462::Color4i color_obj(c.r,c.g,c.b,c.a);
+    super_sample_buffer[sx * sample_rate + sy * supersample_w] = color_obj;
+} // namespace CMU462
+
+inline void SoftwareRendererImp::fill_pixel(int x, int y, const CMU462::Color4i& c){
+    render_target[4 * (x + y * target_w)] = (uint8_t)c.r*255;
+    render_target[4 * (x + y * target_w) + 1] = (uint8_t)c.g*255;
+    render_target[4 * (x + y * target_w) + 2] = (uint8_t)c.b*255;
+    render_target[4 * (x + y * target_w) + 3] = (uint8_t)c.a*255;
 }
 
-
-
-} // namespace CMU462
+}
