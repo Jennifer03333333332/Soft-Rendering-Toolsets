@@ -55,8 +55,8 @@ void SoftwareRendererImp::set_sample_rate( size_t sample_rate ) {
     this->supersample_w = this->target_w * sample_rate;
     //allocate memory for super_sample_buffer, sizeof rgba * number of samples
     //memset(super_sample_buffer, 0, 4 * sizeof(uint8_t) * this->supersample_h * this->supersample_w);
-    super_sample_buffer.clear();
-    super_sample_buffer.resize(this->supersample_h * this->supersample_w);
+    this->super_sample_buffer = std::vector<uint8_t>(4 * this->supersample_h * this->supersample_w, 255);
+
 }
 
 //Called when resizes
@@ -71,12 +71,12 @@ void SoftwareRendererImp::set_render_target( unsigned char* render_target,
 
   this->supersample_h = height * this->sample_rate;
   this->supersample_w = width * this->sample_rate;
-
-  super_sample_buffer.clear();
-  super_sample_buffer.resize(this->supersample_h * this->supersample_w);
-
-
   //initialize the buffer with white(255)
+  this->super_sample_buffer.clear();
+  this->super_sample_buffer.resize(4*this->supersample_h * this->supersample_w);//if 'this' is needed??
+  //construct could take much room
+  this->super_sample_buffer = std::vector<uint8_t>(4 * this->supersample_h * this->supersample_w, 255);
+  
 
 
   //super_sample_buffer.resize(4 * this->supersample_h * this->supersample_w);
@@ -243,7 +243,7 @@ void SoftwareRendererImp::draw_group( Group& group ) {
 
 // The input arguments in the rasterization functions 
 // below are all defined in screen space coordinates
-
+// after I changed rasterize_triangle, x,y turn to sample position in a screen
 void SoftwareRendererImp::rasterize_point( float x, float y, Color color ) {
 
   // fill in the nearest pixel
@@ -387,24 +387,30 @@ void SoftwareRendererImp::resolve( void ) {
     //Resolve it to render_target
 
     //For each pixel, project the super_sample_buffer to it. samplerate*samplerate -> 1
-    for (size_t i = 0; i < target_w;i++) {//[0,target_w-1]
-        for (size_t j = 0; j < target_h; j++) {//[0,target_h-1]
-            size_t index = i * sample_rate + j * supersample_w;
-            CMU462::Color4i blur_color;
-            //for each sample in one pixel
-            for (size_t si = 0; si < sample_rate;si++) {
-                for (size_t sj = 0; sj < sample_rate; sj++) {
-                    blur_color = blur_color + super_sample_buffer[index+si+sj*target_w];
+
+
+    //For each sample
+    for (size_t x = 0; x < supersample_w; x += sample_rate) {
+        for (size_t y = 0; y < supersample_h; y += sample_rate) {
+            uint8_t r = 0, g = 0, b = 0, a = 0;
+            //Calculate all samples in the pixel where this sample in
+            for (size_t i = 0; i < sample_rate; ++i){
+                for (size_t j = 0; j < sample_rate; ++j){
+                    size_t samplePos = 4 * (x + i + (y + j) * supersample_w);
+                    r += super_sample_buffer[samplePos]/(sample_rate * sample_rate);//Could change
+                    g += super_sample_buffer[samplePos + 1] / (sample_rate * sample_rate);
+                    b += super_sample_buffer[samplePos + 2] / (sample_rate * sample_rate);
+                    a += super_sample_buffer[samplePos + 3] / (sample_rate * sample_rate);
                 }
             }
-            blur_color = blur_color / (sample_rate*sample_rate);
-            //uint8_t r = super_sample_buffer[4 * (i * sample_rate + j * supersample_w)];
-            fill_pixel(i,j,blur_color);
+            //SSAABuffer position to pixel position. (x,y) is the left-buttom sample of this pixel
+            size_t pixelPos = 4 * ((x / sample_rate) + (y / sample_rate) * target_w);
+            render_target[pixelPos] = (uint8_t)(r);
+            render_target[pixelPos + 1] = (uint8_t)(g);
+            render_target[pixelPos + 2] = (uint8_t)(b);
+            render_target[pixelPos + 3] = (uint8_t)(a);
         }
     }
-
-
-    //Box Blur
 
     return;
 
@@ -413,15 +419,22 @@ void SoftwareRendererImp::resolve( void ) {
 //fill the sample buffer
 //sx,sy are the screen coordinates for ssaa screen
 inline void SoftwareRendererImp::fill_sample(int sx, int sy, const Color& c) {
-    CMU462::Color4i color_obj(c.r,c.g,c.b,c.a);
-    super_sample_buffer[sx * sample_rate + sy * supersample_w] = color_obj;
+    //CMU462::Color4i color_obj(c.r,c.g,c.b,c.a);
+    //super_sample_buffer[sx * sample_rate + sy * supersample_w] = color_obj;
+
+    super_sample_buffer[4*(sx + sy * supersample_w)] = (uint8_t)c.r;
+    super_sample_buffer[4*(sx + sy * supersample_w)+1] = (uint8_t)c.g;
+    super_sample_buffer[4*(sx + sy * supersample_w)+2] = (uint8_t)c.b;
+    super_sample_buffer[4*(sx + sy * supersample_w)+3] = (uint8_t)c.a;
+
+
 } // namespace CMU462
 
-inline void SoftwareRendererImp::fill_pixel(int x, int y, const CMU462::Color4i& c){
-    render_target[4 * (x + y * target_w)] = (uint8_t)c.r*255;
-    render_target[4 * (x + y * target_w) + 1] = (uint8_t)c.g*255;
-    render_target[4 * (x + y * target_w) + 2] = (uint8_t)c.b*255;
-    render_target[4 * (x + y * target_w) + 3] = (uint8_t)c.a*255;
-}
+//inline void SoftwareRendererImp::fill_pixel(int x, int y, const CMU462::Color4i& c){
+//    render_target[4 * (x + y * target_w)] = (uint8_t)c.r*255;
+//    render_target[4 * (x + y * target_w) + 1] = (uint8_t)c.g*255;
+//    render_target[4 * (x + y * target_w) + 2] = (uint8_t)c.b*255;
+//    render_target[4 * (x + y * target_w) + 3] = (uint8_t)c.a*255;
+//}
 
 }

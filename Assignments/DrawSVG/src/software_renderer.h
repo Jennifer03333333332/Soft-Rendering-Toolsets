@@ -10,17 +10,17 @@
 
 namespace CMU462 { // CMU462
 
-    struct Color4i {
-        float r, g, b, a;
-        Color4i(){r=0,g=0,b=0,a=0;}
-        Color4i(float mr, float mg, float mb, float ma) :r(mr), g(mg), b(mb), a(ma) {}
-        Color4i operator+(Color4i& other){
-          return Color4i(r+other.r,g+other.g,b+other.b,a+other.a);
-        }
-        Color4i operator/(int nums){
-          return Color4i(r/nums,g/nums,b/nums,a/nums);
-        }
-    };
+    //struct Color4i {
+    //    float r, g, b, a;
+    //    Color4i(){r=0,g=0,b=0,a=0;}
+    //    Color4i(float mr, float mg, float mb, float ma) :r(mr), g(mg), b(mb), a(ma) {}
+    //    Color4i operator+(Color4i& other){
+    //      return Color4i(r+other.r,g+other.g,b+other.b,a+other.a);
+    //    }
+    //    Color4i operator/(int nums){
+    //      return Color4i(r/nums,g/nums,b/nums,a/nums);
+    //    }
+    //};
 
 class SoftwareRenderer : public SVGRenderer {
  public:
@@ -157,12 +157,12 @@ class SoftwareRendererImp : public SoftwareRenderer {
   //For Task 4
   //unsigned char* super_sample_buffer;
   //std::vector<unsigned char> super_sample_buffer;
-  std::vector<CMU462::Color4i> super_sample_buffer;//intermidate buffer
+  std::vector<uint8_t> super_sample_buffer;//intermidate buffer
 
 
   size_t supersample_w; size_t supersample_h;
   inline void fill_sample(int sx, int sy, const Color& c);
-  inline void fill_pixel(int x, int y, const CMU462::Color4i& c);
+  //inline void fill_pixel(int x, int y, const CMU462::Color4i& c);
 
 
 }; // class SoftwareRendererImp
