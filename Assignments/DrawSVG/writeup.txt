@@ -20,6 +20,8 @@ Task 3:
 Task 4:
 
     Fully implemented.
+    SuperSampling Anti-Aliasing(SSAA)
+
 
 Task 5:
 

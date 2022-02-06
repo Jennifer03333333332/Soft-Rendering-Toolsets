@@ -138,6 +138,16 @@ class SoftwareRendererImp : public SoftwareRenderer {
 
   // resolve samples to render target
   void resolve( void );
+  //For Task 4
+  //unsigned char* super_sample_buffer;
+  //std::vector<unsigned char> super_sample_buffer;
+  std::vector<CMU462::Color4i> super_sample_buffer;//intermidate buffer
+
+
+  size_t supersample_w; size_t supersample_h;
+  void fill_sample(int sx, int sy, const Color& c);
+  void fill_pixel(int x, int y, const Color& c);
+
 
 }; // class SoftwareRendererImp
 

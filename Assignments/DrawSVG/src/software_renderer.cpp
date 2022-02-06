@@ -11,8 +11,12 @@ using namespace std;
 
 namespace CMU462 {
 
-
+    
 // Implements SoftwareRenderer //
+    struct Color4i {
+        uint8_t r, g, b, a;
+        Color4i(uint8_t mr, uint8_t mg, uint8_t mb, uint8_t ma) :r(mr), g(mg), b(mb), a(ma) {};
+    }
 
 void SoftwareRendererImp::draw_svg( SVG& svg ) {
 
@@ -40,13 +44,20 @@ void SoftwareRendererImp::draw_svg( SVG& svg ) {
 
 }
 
-//Called when changed sample_rate
+//Called when changed sample_rate(- and =)
 void SoftwareRendererImp::set_sample_rate( size_t sample_rate ) {
 
   // Task 4: 
   // You may want to modify this for supersampling support
-  this->sample_rate = sample_rate;
 
+    if (this->sample_rate == sample_rate)return;
+    this->sample_rate = sample_rate;
+    this->supersample_h = this->target_h * sample_rate;
+    this->supersample_w = this->target_w * sample_rate;
+    //allocate memory for super_sample_buffer, sizeof rgba * number of samples
+    //memset(super_sample_buffer, 0, 4 * sizeof(uint8_t) * this->supersample_h * this->supersample_w);
+    super_sample_buffer.clear();
+    super_sample_buffer.resize(4 * this->supersample_h * this->supersample_w);
 }
 
 //Called when resizes
@@ -59,6 +70,11 @@ void SoftwareRendererImp::set_render_target( unsigned char* render_target,
   this->target_w = width;
   this->target_h = height;
 
+  this->supersample_h = height * this->sample_rate;
+  this->supersample_w = width * this->sample_rate;
+  super_sample_buffer.clear();
+  super_sample_buffer.resize(4 * this->supersample_h * this->supersample_w);
+  //memset(super_sample_buffer, 0, 4 * sizeof(uint8_t) * this->supersample_h * this->supersample_w);
 }
 
 void SoftwareRendererImp::draw_element( SVGElement* element ) {
@@ -232,12 +248,15 @@ void SoftwareRendererImp::rasterize_point( float x, float y, Color color ) {
   if ( sx < 0 || sx >= target_w ) return;
   if ( sy < 0 || sy >= target_h ) return;
 
-  // fill sample - NOT doing alpha blending!
-  render_target[4 * (sx + sy * target_w)    ] = (uint8_t) (color.r * 255);
-  render_target[4 * (sx + sy * target_w) + 1] = (uint8_t) (color.g * 255);
-  render_target[4 * (sx + sy * target_w) + 2] = (uint8_t) (color.b * 255);
-  render_target[4 * (sx + sy * target_w) + 3] = (uint8_t) (color.a * 255);
+  //For super-sample
 
+  // fill sample - NOT doing alpha blending!
+  //render_target[4 * (sx + sy * target_w)    ] = (uint8_t) (color.r * 255);
+  //render_target[4 * (sx + sy * target_w) + 1] = (uint8_t) (color.g * 255);
+  //render_target[4 * (sx + sy * target_w) + 2] = (uint8_t) (color.b * 255);
+  //render_target[4 * (sx + sy * target_w) + 3] = (uint8_t) (color.a * 255);
+
+  fill_sample(x, y, color);
 }
 
 void SoftwareRendererImp::rasterize_line( float x0, float y0,
@@ -291,15 +310,31 @@ void SoftwareRendererImp::rasterize_triangle( float x0, float y0,
     float ymin = floor(std::min(y0, std::min(y1, y2)));
     float xmax = ceil(std::max(x0, std::max(x1, x2)));
     float ymax = ceil(std::max(y0, std::max(y1, y2)));
-    //For each pixel in this bounding box
-    for (double x = xmin; x <= xmax; x++) {
-        for (double y = ymin; y <= ymax; y++) {
-            //center of the pixels: x+0.5,y+0.5
-            if (inside_triangle(Vector2D(x+0.5, y+0.5), Triangle)) {
-                rasterize_point(x,y,color);
+    
+    //Seperate the normal implementation and the SSAA implementation just to show the difference
+    if (sample_rate == 1) {
+        //For each pixel in this bounding box
+        for (double x = xmin; x <= xmax; x++) {
+            for (double y = ymin; y <= ymax; y++) {
+                //center of the pixels: x+0.5,y+0.5
+                if (inside_triangle(Vector2D(x + 0.5, y + 0.5), Triangle)) {
+                    rasterize_point(x, y, color);
+                }
             }
         }
     }
+    //SSAA
+    else {
+        for (double x = xmin; x <= xmax; x += 1.0/ sample_rate ) {
+            for (double y = ymin; y <= ymax; y += 1.0 / sample_rate) {
+                //center of the samples x + 0.5 / sample_rate,y+0.5 / sample_rate
+                if (inside_triangle(Vector2D(x + 0.5 / sample_rate, y + 0.5 / sample_rate), Triangle)) {
+                    rasterize_point(x, y, color);
+                }
+            }
+        }
+    }
+
 }
 
 //Judge if the point is in the triangle
@@ -332,7 +367,6 @@ void SoftwareRendererImp::rasterize_image( float x0, float y0,
 
 }
 
-unsigned char* SoftwareRendererImp::super_sample_buffer;
 
 // resolve samples to render target
 void SoftwareRendererImp::resolve( void ) {
@@ -341,13 +375,47 @@ void SoftwareRendererImp::resolve( void ) {
   // Implement supersampling
   // You may also need to modify other functions marked with "Task 4".
 
-    //Have render_target already. Create a new super_sample_buffer array. the length would be 4 times than render_target
-    
+
+    //1 Have render_target already. Create a new super_sample_buffer. the length would be 2*2 times than render_target
+    //2 Rasterize based on super_sample_buffer
+    //Resolve it to render_target
+
+    //For each pixel, project the super_sample_buffer to it. samplerate*samplerate -> 1
+    for (size_t i = 0; i < target_w;i++) {//[0,target_w-1]
+        for (size_t j = 0; j < target_h; j++) {//[0,target_h-1]
+            size_t index = i * sample_rate + j * supersample_w;
+            //for each sample in one pixel
+            for (size_t si = 0; si < sample_rate;si++) {
+                for (size_t sj = 0; sj < sample_rate; sj++) {
+                    
+                }
+            }
+
+            uint8_t r = super_sample_buffer[4 * (i * sample_rate + j * supersample_w)];
+
+        }
+    }
 
 
-  return;
+    //Box Blur
+    //render_target[4 * (sx + sy * target_w)] = (uint8_t)(color.r * 255);
+    //render_target[4 * (sx + sy * target_w) + 1] = (uint8_t)(color.g * 255);
+    //render_target[4 * (sx + sy * target_w) + 2] = (uint8_t)(color.b * 255);
+    //render_target[4 * (sx + sy * target_w) + 3] = (uint8_t)(color.a * 255);
+
+    return;
 
 }
+
+//fill the sample buffer
+//sx,sy still the screen coordinate?
+void SoftwareRendererImp::fill_sample(int sx, int sy, const Color& c) {
+    super_sample_buffer[4 * (sx * sample_rate + sy * supersample_w)] = (uint8_t)(color.r * 255);
+    super_sample_buffer[4 * (sx * sample_rate + sy * supersample_w) + 1] = (uint8_t)(color.g * 255);
+    super_sample_buffer[4 * (sx * sample_rate + sy * supersample_w) + 2] = (uint8_t)(color.b * 255);
+    super_sample_buffer[4 * (sx * sample_rate + sy * supersample_w) + 3] = (uint8_t)(color.a * 255);
+}
+
 
 
 } // namespace CMU462
