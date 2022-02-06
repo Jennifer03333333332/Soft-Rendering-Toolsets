@@ -92,7 +92,8 @@ class SoftwareRendererImp : public SoftwareRenderer {
   
   inline void clear_target() {
     memset(render_target, 255, 4 * target_w * target_h);
-    super_sample_buffer.clear();
+    super_sample_buffer.resize(4*supersample_h * supersample_w);
+    memset(&super_sample_buffer[0], (float)255, 4 * supersample_h * supersample_w * sizeof(float));
   }
  private:
 

@@ -16,12 +16,10 @@ namespace CMU462 {
 
 void SoftwareRendererImp::draw_svg( SVG& svg ) {
   //clear
-  //super_sample_buffer.clear();
-  //memset(render_target,0,sizeof(render_target));
-
+  clear_target();
   // set top level transformation
   transformation = svg_2_screen;
-  this->super_sample_buffer = std::vector<uint8_t>(4 * this->supersample_h * this->supersample_w, 255);
+  //this->super_sample_buffer = std::vector<uint8_t>(4 * this->supersample_h * this->supersample_w, 255);
 
   // draw all elements
   for ( size_t i = 0; i < svg.elements.size(); ++i ) {
