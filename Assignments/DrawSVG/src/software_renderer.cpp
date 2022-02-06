@@ -21,7 +21,8 @@ void SoftwareRendererImp::draw_svg( SVG& svg ) {
 
   // set top level transformation
   transformation = svg_2_screen;
-  super_sample_buffer.clear();
+  this->super_sample_buffer = std::vector<uint8_t>(4 * this->supersample_h * this->supersample_w, 255);
+
   // draw all elements
   for ( size_t i = 0; i < svg.elements.size(); ++i ) {
     draw_element(svg.elements[i]);
@@ -51,11 +52,13 @@ void SoftwareRendererImp::set_sample_rate( size_t sample_rate ) {
 
     if (this->sample_rate == sample_rate)return;
     this->sample_rate = sample_rate;
-    this->supersample_h = this->target_h * sample_rate;
-    this->supersample_w = this->target_w * sample_rate;
+    supersample_h = target_h * sample_rate;
+    supersample_w = target_w * sample_rate;
     //allocate memory for super_sample_buffer, sizeof rgba * number of samples
     //memset(super_sample_buffer, 0, 4 * sizeof(uint8_t) * this->supersample_h * this->supersample_w);
-    this->super_sample_buffer = std::vector<uint8_t>(4 * this->supersample_h * this->supersample_w, 255);
+    //this->super_sample_buffer = std::vector<uint8_t>(4 * this->supersample_h * this->supersample_w, 255);
+    super_sample_buffer.resize(4*supersample_h * supersample_w);
+    memset(&super_sample_buffer[0],255,4 * supersample_h * supersample_w);
 
 }
 
@@ -66,16 +69,17 @@ void SoftwareRendererImp::set_render_target( unsigned char* render_target,
   // Task 4: 
   // You may want to modify this for supersampling support
   this->render_target = render_target;
-  this->target_w = width;
-  this->target_h = height;
+  target_w = width;
+  target_h = height;
 
-  this->supersample_h = height * this->sample_rate;
-  this->supersample_w = width * this->sample_rate;
+  supersample_h = height * sample_rate;
+  supersample_w = width * sample_rate;
   //initialize the buffer with white(255)
-  this->super_sample_buffer.clear();
-  this->super_sample_buffer.resize(4*this->supersample_h * this->supersample_w);//if 'this' is needed??
-  //construct could take much room
-  this->super_sample_buffer = std::vector<uint8_t>(4 * this->supersample_h * this->supersample_w, 255);
+  // this->super_sample_buffer.clear();
+  super_sample_buffer.resize(4*supersample_h * supersample_w);//if 'this' is needed??
+  // //construct could take much room
+  //this->super_sample_buffer = std::vector<uint8_t>(4 * this->supersample_h * this->supersample_w, 255);
+  memset(&super_sample_buffer[0],255,4 * supersample_h * supersample_w);
   
 
 
@@ -397,12 +401,13 @@ void SoftwareRendererImp::resolve( void ) {
             for (size_t i = 0; i < sample_rate; ++i){
                 for (size_t j = 0; j < sample_rate; ++j){
                     size_t samplePos = 4 * (x + i + (y + j) * supersample_w);
-                    r += super_sample_buffer[samplePos]/(sample_rate * sample_rate);//Could change
-                    g += super_sample_buffer[samplePos + 1] / (sample_rate * sample_rate);
-                    b += super_sample_buffer[samplePos + 2] / (sample_rate * sample_rate);
-                    a += super_sample_buffer[samplePos + 3] / (sample_rate * sample_rate);
+                    r += super_sample_buffer[samplePos];//(sample_rate * sample_rate);lost precision
+                    g += super_sample_buffer[samplePos + 1];
+                    b += super_sample_buffer[samplePos + 2];
+                    a += super_sample_buffer[samplePos + 3];
                 }
             }
+            r/=sample_rate * sample_rate;g/=sample_rate * sample_rate;b/=sample_rate * sample_rate;a/=sample_rate * sample_rate;
             //SSAABuffer position to pixel position. (x,y) is the left-buttom sample of this pixel
             size_t pixelPos = 4 * ((x / sample_rate) + (y / sample_rate) * target_w);
             render_target[pixelPos] = (uint8_t)(r);
@@ -411,7 +416,8 @@ void SoftwareRendererImp::resolve( void ) {
             render_target[pixelPos + 3] = (uint8_t)(a);
         }
     }
-
+    //this->super_sample_buffer = std::vector<uint8_t>(4 * this->supersample_h * this->supersample_w, 255);
+    //memset(&super_sample_buffer[0],255,4 * this->supersample_h * this->supersample_w);
     return;
 
 }
@@ -422,10 +428,10 @@ inline void SoftwareRendererImp::fill_sample(int sx, int sy, const Color& c) {
     //CMU462::Color4i color_obj(c.r,c.g,c.b,c.a);
     //super_sample_buffer[sx * sample_rate + sy * supersample_w] = color_obj;
 
-    super_sample_buffer[4*(sx + sy * supersample_w)] = (uint8_t)c.r;
-    super_sample_buffer[4*(sx + sy * supersample_w)+1] = (uint8_t)c.g;
-    super_sample_buffer[4*(sx + sy * supersample_w)+2] = (uint8_t)c.b;
-    super_sample_buffer[4*(sx + sy * supersample_w)+3] = (uint8_t)c.a;
+    super_sample_buffer[4*(sx + sy * supersample_w)] = (uint8_t)c.r*255;
+    super_sample_buffer[4*(sx + sy * supersample_w)+1] = (uint8_t)c.g*255;
+    super_sample_buffer[4*(sx + sy * supersample_w)+2] = (uint8_t)c.b*255;
+    super_sample_buffer[4*(sx + sy * supersample_w)+3] = (uint8_t)c.a*255;
 
 
 } // namespace CMU462
