@@ -339,6 +339,101 @@ namespace CMU462
     }
   }
 
+  
+  
+  void SoftwareRendererImp::rasterize_line_xiaolinwu(float x0, float y0,float x1, float y1,Color color) {
+      //Convert to sample buffer coordinates
+      x0 *= sample_rate;x1 *= sample_rate;y0 *= sample_rate;y1 *= sample_rate;
+
+      bool steep = abs(x1 - x0) < abs(y1 - y0);
+      if (steep)
+      { // abs(slope) > 1
+          swap(x0, y0);
+          swap(x1, y1);
+      }
+
+      if (x0 > x1)
+      {
+          swap(x0, x1);
+          swap(y0, y1);
+      }
+
+      float dx = x1 - x0;
+      float dy = y1 - y0;
+      float gradient;
+      if (dx == 0.0f)
+          gradient = 1.0;
+      else
+          gradient = dy / dx;
+
+      // handle first endpoint
+      float xend = round(x0);
+      float yend = y0 + gradient * (xend - x0);
+      float xgap = rfpart(x0 + 0.5f);
+      float xpxl1 = xend; // this will be used in the main loop
+      float ypxl1 = ipart(yend);
+
+      if (steep)
+      {
+          color.a = rfpart(yend) * xgap;
+          fill_sample(ypxl1, xpxl1, color);
+          color.a = fpart(yend) * xgap;
+          fill_sample(ypxl1 + 1, xpxl1, color);
+      }
+      else
+      {
+          color.a = rfpart(yend) * xgap;
+          fill_sample(xpxl1, ypxl1, color);
+          color.a = fpart(yend) * xgap;
+          fill_sample(xpxl1, ypxl1 + 1, color);
+      }
+
+      float intery = yend + gradient; // first y-intersection for the main loop
+
+      // handle first endpoint
+      xend = round(x1);
+      yend = y1 + gradient * (xend - x1);
+      xgap = fpart(x1 + 0.5f);
+      float xpxl2 = xend; // this will be used in the main loop
+      float ypxl2 = ipart(yend);
+      if (steep)
+      {
+          color.a = rfpart(yend) * xgap;
+          fill_sample(ypxl2, xpxl2, color);
+          color.a = fpart(yend) * xgap;
+          fill_sample(ypxl2 + 1, xpxl2, color);
+      }
+      else
+      {
+          color.a = rfpart(yend) * xgap;
+          fill_sample(xpxl2, ypxl2, color);
+          color.a = fpart(yend) * xgap;
+          fill_sample(xpxl2, ypxl2 + 1, color);
+      }
+
+      if (steep)
+      {
+          for (float x = xpxl1 + 1; x <= xpxl2 - 1 * sample_rate; ++x)
+          {
+              color.a = rfpart(intery);
+              fill_sample(ipart(intery), x, color);
+              color.a = fpart(intery);
+              fill_sample(ipart(intery) + 1, x, color);
+              intery += gradient;
+          }
+      }
+      else
+      {
+          for (float x = xpxl1 + 1; x <= xpxl2 - 1 * sample_rate; ++x)
+          {
+              color.a = rfpart(intery);
+              fill_sample(x, ipart(intery), color);
+              color.a = fpart(intery);
+              fill_sample(x, ipart(intery) + 1, color);
+              intery += gradient;
+          }
+      }
+  }
   //already screen coordinates
   void SoftwareRendererImp::rasterize_triangle(float x0, float y0,
                                                float x1, float y1,
