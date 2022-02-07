@@ -268,7 +268,7 @@ void SoftwareRendererImp::rasterize_point( float x, float y, Color color ) {
   //render_target[4 * (sx + sy * target_w) + 2] = (uint8_t) (color.b * 255);
   //render_target[4 * (sx + sy * target_w) + 3] = (uint8_t) (color.a * 255);
 
-  fill_sample(x, y, color);
+  fill_sample(x*sample_rate, y * sample_rate, color);
 }
 
 void SoftwareRendererImp::rasterize_line( float x0, float y0,
