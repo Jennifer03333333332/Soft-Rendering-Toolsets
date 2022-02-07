@@ -301,7 +301,12 @@ namespace CMU462
     // Task 2:
     // Implement line rasterization
     // Requires 1 deal with non-int 2 any slope 3 based on length of line
+    //Q: When SSAA, lines get thinner
+    //Convert to sample buffer coordinates
+    //x0 *= sample_rate;x1 *= sample_rate;y0 *= sample_rate;y1 *= sample_rate;
+
     rasterize_line_Bresenham(x0, y0, x1, y1, color);
+    //rasterize_line_xiaolinwu(x0, y0, x1, y1, color);
   }
 
   //Works only on non SSAA and int type pixel coordinates
@@ -338,13 +343,19 @@ namespace CMU462
       }
     }
   }
+  //inline functions for xiaolinwu
 
-  
-  
+  inline float ipart(float x){
+    return floor(x);
+  }
+  inline float fpart(float x){
+    return x - floor(x);
+  }
+  inline float rfpart(float x){
+    return 1-fpart(x);
+  }
+  //Based on the xiaolinwu algorhitm on wiki
   void SoftwareRendererImp::rasterize_line_xiaolinwu(float x0, float y0,float x1, float y1,Color color) {
-      //Convert to sample buffer coordinates
-      x0 *= sample_rate;x1 *= sample_rate;y0 *= sample_rate;y1 *= sample_rate;
-
       bool steep = abs(x1 - x0) < abs(y1 - y0);
       if (steep)
       { // abs(slope) > 1
