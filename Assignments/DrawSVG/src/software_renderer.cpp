@@ -64,11 +64,7 @@ namespace CMU462
     supersample_h = target_h * sample_rate;
     supersample_w = target_w * sample_rate;
     //allocate memory for super_sample_buffer, sizeof rgba * number of samples
-    //memset(super_sample_buffer, 0, 4 * sizeof(uint8_t) * this->supersample_h * this->supersample_w);
-    //this->super_sample_buffer = std::vector<uint8_t>(4 * this->supersample_h * this->supersample_w, 255);
-
     super_sample_buffer.resize(4 * supersample_h * supersample_w);
-
     memset(&super_sample_buffer[0], (float)255, 4 * supersample_h * supersample_w * sizeof(float));
   }
 
@@ -76,26 +72,20 @@ namespace CMU462
   void SoftwareRendererImp::set_render_target(unsigned char *render_target,
                                               size_t width, size_t height)
   {
-
     // Task 4:
     // You may want to modify this for supersampling support
     this->render_target = render_target;
     target_w = width;
     target_h = height;
 
-    supersample_h = height * sample_rate;
-    supersample_w = width * sample_rate;
-    //initialize the buffer with white(255)
-    // this->super_sample_buffer.clear();
-    super_sample_buffer.resize(4 * supersample_h * supersample_w); //if 'this' is needed??
-    // //construct could take much room
-    //this->super_sample_buffer = std::vector<uint8_t>(4 * this->supersample_h * this->supersample_w, 255);
-    //memset(&super_sample_buffer[0],255,4 * supersample_h * supersample_w);
-
-    memset(&super_sample_buffer[0], (float)255, 4 * supersample_h * supersample_w * sizeof(float));
-
-    //super_sample_buffer.resize(4 * this->supersample_h * this->supersample_w);
-    //memset(super_sample_buffer, 255, 4 * this->supersample_h * this->supersample_w*sizeof(Color4i));
+    if (SSAA) {
+        supersample_h = height * sample_rate;
+        supersample_w = width * sample_rate;
+        //initialize the buffer with white(255)
+        super_sample_buffer.resize(4 * supersample_h * supersample_w);
+        //construct could take much room
+        memset(&super_sample_buffer[0], (float)255, 4 * supersample_h * supersample_w * sizeof(float));
+    }
   }
 
   void SoftwareRendererImp::draw_element(SVGElement *element)
@@ -273,7 +263,8 @@ namespace CMU462
   // after I changed rasterize_triangle, x,y turn to sample position in a screen. eg.(0,0)(0.5,0)
   void SoftwareRendererImp::rasterize_point(double x, double y, const Color &color)
   {
-    if (sample_rate == 1)
+      //Store a backup for non SSAA
+    if (!SSAA)
     {
       // fill in the nearest pixel
       int sx = (int)floor(x);
@@ -443,7 +434,10 @@ namespace CMU462
     //Resolve it to render_target
 
     //For each pixel, project the super_sample_buffer to it. samplerate*samplerate -> 1
+      if (!SSAA) {
 
+          return;
+      }
     //For each sample
     for (size_t x = 0; x < supersample_w; x += sample_rate)
     {
