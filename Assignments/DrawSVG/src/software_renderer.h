@@ -129,7 +129,7 @@ class SoftwareRendererImp : public SoftwareRenderer {
   // Rasterization //
 
   // rasterize a point
-  void rasterize_point( float x, float y, Color color );
+  void rasterize_point(double x, double y, const Color& color);
 
   // rasterize a line
   void rasterize_line( float x0, float y0,
