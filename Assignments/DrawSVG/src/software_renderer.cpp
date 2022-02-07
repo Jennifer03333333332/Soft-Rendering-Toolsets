@@ -249,26 +249,29 @@ void SoftwareRendererImp::draw_group( Group& group ) {
 
 // The input arguments in the rasterization functions 
 // below are all defined in screen space coordinates
-// after I changed rasterize_triangle, x,y turn to sample position in a screen
-void SoftwareRendererImp::rasterize_point( float x, float y, Color color ) {
+// after I changed rasterize_triangle, x,y turn to sample position in a screen. eg.(0,0)(0.5,0)
+void SoftwareRendererImp::rasterize_point( double x, double y, Color color ) {
+    if (sample_rate == 1) {
+        // fill in the nearest pixel
+        int sx = (int)floor(x);
+        int sy = (int)floor(y);
 
-  // fill in the nearest pixel
-  int sx = (int) floor(x);
-  int sy = (int) floor(y);
-
-  // check bounds
-  if ( sx < 0 || sx >= target_w ) return;
-  if ( sy < 0 || sy >= target_h ) return;
-
-  //For super-sample
-
-  // fill sample - NOT doing alpha blending!
-  //render_target[4 * (sx + sy * target_w)    ] = (uint8_t) (color.r * 255);
-  //render_target[4 * (sx + sy * target_w) + 1] = (uint8_t) (color.g * 255);
-  //render_target[4 * (sx + sy * target_w) + 2] = (uint8_t) (color.b * 255);
-  //render_target[4 * (sx + sy * target_w) + 3] = (uint8_t) (color.a * 255);
-
-  fill_sample(x*sample_rate, y * sample_rate, color);
+        // check bounds
+        if (sx < 0 || sx >= target_w) return;
+        if (sy < 0 || sy >= target_h) return;
+        // fill sample - NOT doing alpha blending!
+        render_target[4 * (sx + sy * target_w)    ] = (uint8_t) (color.r * 255);
+        render_target[4 * (sx + sy * target_w) + 1] = (uint8_t) (color.g * 255);
+        render_target[4 * (sx + sy * target_w) + 2] = (uint8_t) (color.b * 255);
+        render_target[4 * (sx + sy * target_w) + 3] = (uint8_t) (color.a * 255);
+    }
+    //For super-sample
+    else {
+        // check bounds
+        if (x < 0 || x >= target_w) return;
+        if (y < 0 || y >= target_h) return;
+        fill_sample(x * sample_rate, y * sample_rate, color);//implicit type cast to int
+    }
 }
 
 void SoftwareRendererImp::rasterize_line( float x0, float y0,
@@ -281,6 +284,7 @@ void SoftwareRendererImp::rasterize_line( float x0, float y0,
   rasterize_line_Bresenham(x0,y0,x1,y1,color);
 }
 
+//Works only on non SSAA and int type pixel coordinates
 void SoftwareRendererImp::rasterize_line_Bresenham( float x0, float y0,
                                           float x1, float y1,
                                           Color color) {
