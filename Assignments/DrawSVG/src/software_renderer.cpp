@@ -465,7 +465,7 @@ namespace CMU462
     float ymax = ceil(std::max(y0, std::max(y1, y2)));
 
     //Seperate the normal implementation and the SSAA implementation just to show the difference
-    if (sample_rate == 1)
+    if (!SSAA)
     {
       //For each pixel in this bounding box
       for (double x = xmin; x <= xmax; x++)
@@ -535,10 +535,6 @@ namespace CMU462
     // Implement supersampling
     // You may also need to modify other functions marked with "Task 4".
 
-    //1 Have render_target already. Create a new super_sample_buffer. the length would be 2*2 times than render_target
-    //2 Rasterize based on super_sample_buffer
-    //Resolve it to render_target
-
     //For each pixel, project the super_sample_buffer to it. samplerate*samplerate -> 1
       if (!SSAA) {
 
@@ -557,7 +553,7 @@ namespace CMU462
           for (size_t j = 0; j < sample_rate; ++j)
           {
             size_t samplePos = 4 * (x + i + (y + j) * supersample_w);
-            r += super_sample_buffer[samplePos]; //(sample_rate * sample_rate);lost precision
+            r += super_sample_buffer[samplePos]; //(sample_rate * sample_rate); lost precision
             g += super_sample_buffer[samplePos + 1];
             b += super_sample_buffer[samplePos + 2];
             a += super_sample_buffer[samplePos + 3];
@@ -575,20 +571,14 @@ namespace CMU462
         render_target[pixelPos + 3] = (uint8_t)(a);
       }
     }
-    //this->super_sample_buffer = std::vector<uint8_t>(4 * this->supersample_h * this->supersample_w, 255);
-    //memset(&super_sample_buffer[0],255,4 * this->supersample_h * this->supersample_w);
     return;
   }
 
+  //use inline to make running process faster
   //fill the sample buffer
   //sx,sy are the screen coordinates for ssaa screen
   inline void SoftwareRendererImp::fill_sample(int sx, int sy, const Color &c)
   {
-    //super_sample_buffer[4*(sx + sy * supersample_w)] = (uint8_t)c.r*255;
-    //super_sample_buffer[4*(sx + sy * supersample_w)+1] = (uint8_t)c.g*255;
-    //super_sample_buffer[4*(sx + sy * supersample_w)+2] = (uint8_t)c.b*255;
-    //super_sample_buffer[4*(sx + sy * supersample_w)+3] = (uint8_t)c.a*255;
-
     //Method n: try store float
     super_sample_buffer[4 * (sx + sy * supersample_w)] = c.r * 255.0;
     super_sample_buffer[4 * (sx + sy * supersample_w) + 1] = c.g * 255.0;
@@ -596,11 +586,11 @@ namespace CMU462
     super_sample_buffer[4 * (sx + sy * supersample_w) + 3] = c.a * 255.0;
   } // namespace CMU462
 
-  //inline void SoftwareRendererImp::fill_pixel(int x, int y, const CMU462::Color4i& c){
-  //    render_target[4 * (x + y * target_w)] = (uint8_t)c.r*255;
-  //    render_target[4 * (x + y * target_w) + 1] = (uint8_t)c.g*255;
-  //    render_target[4 * (x + y * target_w) + 2] = (uint8_t)c.b*255;
-  //    render_target[4 * (x + y * target_w) + 3] = (uint8_t)c.a*255;
-  //}
+  inline void SoftwareRendererImp::fill_pixel(int x, int y, const Color& c){
+      render_target[4 * (x + y * target_w)] = (uint8_t)c.r*255;
+      render_target[4 * (x + y * target_w) + 1] = (uint8_t)c.g*255;
+      render_target[4 * (x + y * target_w) + 2] = (uint8_t)c.b*255;
+      render_target[4 * (x + y * target_w) + 3] = (uint8_t)c.a*255;
+  }
 
 }

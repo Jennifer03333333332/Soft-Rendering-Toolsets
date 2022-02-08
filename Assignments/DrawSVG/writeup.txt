@@ -6,8 +6,8 @@ Task 1:
     glColor3f() mush be put before other actions
 Task 2:
     Fully implemented.
-    Using Bresenham's algorithm to implement drawing lines.
-    Code: SoftwareRendererImp::rasterize_line_Bresenham
+    Using Bresenham's algorithm to implement drawing lines, then usexiaolinwu algorhitm based on the code in wiki
+    Code: SoftwareRendererImp::rasterize_line_Bresenham() and SoftwareRendererImp::rasterize_line_xiaolinwu()
     
 
 Task 3:
@@ -21,7 +21,12 @@ Task 4:
 
     Fully implemented.
     SuperSampling Anti-Aliasing(SSAA)
-
+    Faced with many problems with float type and uint8_t type precision
+    Change the data structure a lot, super_sample_buffer from unsigned char array to vector<uint8_t>, then to vector<float>
+    Steps:
+    //1 Have render_target already. Create a new super_sample_buffer. the length would be rate*rate times than render_target
+    //2 Rasterize based on super_sample_buffer
+    //3 Resolve it to render_target
 
 Task 5:
 
