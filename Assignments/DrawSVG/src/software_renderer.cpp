@@ -263,29 +263,33 @@ namespace CMU462
   // after I changed rasterize_triangle, x,y turn to sample position in a screen. eg.(0,0)(0.5,0)
   void SoftwareRendererImp::rasterize_point(double x, double y, const Color &color)
   {
+      //Use rasterize_point only in pointOrLine situation
       //Store a backup for non SSAA
-    if (!SSAA)
-    {
-      // fill in the nearest pixel
-      int sx = (int)floor(x);
-      int sy = (int)floor(y);
+    //if (!SSAA)
+    //{
+    //  // fill in the nearest pixel
+    //  int sx = (int)floor(x);
+    //  int sy = (int)floor(y);
 
-      // check bounds
-      if (sx < 0 || sx >= target_w)
-        return;
-      if (sy < 0 || sy >= target_h)
-        return;
-      // fill sample - NOT doing alpha blending!
-      render_target[4 * (sx + sy * target_w)] = (uint8_t)(color.r * 255);
-      render_target[4 * (sx + sy * target_w) + 1] = (uint8_t)(color.g * 255);
-      render_target[4 * (sx + sy * target_w) + 2] = (uint8_t)(color.b * 255);
-      render_target[4 * (sx + sy * target_w) + 3] = (uint8_t)(color.a * 255);
-    }
+    //  // check bounds
+    //  if (sx < 0 || sx >= target_w)
+    //    return;
+    //  if (sy < 0 || sy >= target_h)
+    //    return;
+    //  // fill sample - NOT doing alpha blending!
+    //  render_target[4 * (sx + sy * target_w)] = (uint8_t)(color.r * 255);
+    //  render_target[4 * (sx + sy * target_w) + 1] = (uint8_t)(color.g * 255);
+    //  render_target[4 * (sx + sy * target_w) + 2] = (uint8_t)(color.b * 255);
+    //  render_target[4 * (sx + sy * target_w) + 3] = (uint8_t)(color.a * 255);
+    //  return;
+    //}
     //For super-sample
-    else
-    {
-      fill_sample(x * sample_rate, y * sample_rate, color); //implicit type cast to int
-    }
+      //Try to fix when SSAA lines get thinner
+      for (int i = 0; i < sample_rate; i++) {
+          for (int j = 0; j < sample_rate; j++) {
+              fill_sample(x * sample_rate + i, y * sample_rate + j, color); //implicit type cast to int
+          }
+      }
   }
 
   void SoftwareRendererImp::rasterize_line(float x0, float y0,
@@ -299,7 +303,7 @@ namespace CMU462
     // 
     //Q: When SSAA, lines get thinner
     //Convert to sample buffer coordinates
-    x0 *= sample_rate;x1 *= sample_rate;y0 *= sample_rate;y1 *= sample_rate;
+    //x0 *= sample_rate;x1 *= sample_rate;y0 *= sample_rate;y1 *= sample_rate;
 
     //rasterize_line_Bresenham(x0, y0, x1, y1, color);
     rasterize_line_xiaolinwu(x0, y0, x1, y1, color);
@@ -382,16 +386,16 @@ namespace CMU462
       if (steep)
       {
           color.a = rfpart(yend) * xgap;
-          fill_sample(ypxl1, xpxl1, color);
+          rasterize_point(ypxl1, xpxl1, color);
           color.a = fpart(yend) * xgap;
-          fill_sample(ypxl1 + 1, xpxl1, color);
+          rasterize_point(ypxl1 + 1, xpxl1, color);
       }
       else
       {
           color.a = rfpart(yend) * xgap;
-          fill_sample(xpxl1, ypxl1, color);
+          rasterize_point(xpxl1, ypxl1, color);
           color.a = fpart(yend) * xgap;
-          fill_sample(xpxl1, ypxl1 + 1, color);
+          rasterize_point(xpxl1, ypxl1 + 1, color);
       }
 
       float intery = yend + gradient; // first y-intersection for the main loop
@@ -405,16 +409,16 @@ namespace CMU462
       if (steep)
       {
           color.a = rfpart(yend) * xgap;
-          fill_sample(ypxl2, xpxl2, color);
+          rasterize_point(ypxl2, xpxl2, color);
           color.a = fpart(yend) * xgap;
-          fill_sample(ypxl2 + 1, xpxl2, color);
+          rasterize_point(ypxl2 + 1, xpxl2, color);
       }
       else
       {
           color.a = rfpart(yend) * xgap;
-          fill_sample(xpxl2, ypxl2, color);
+          rasterize_point(xpxl2, ypxl2, color);
           color.a = fpart(yend) * xgap;
-          fill_sample(xpxl2, ypxl2 + 1, color);
+          rasterize_point(xpxl2, ypxl2 + 1, color);
       }
 
       if (steep)
@@ -422,9 +426,9 @@ namespace CMU462
           for (float x = xpxl1 + 1; x <= xpxl2 - 1 * sample_rate; ++x)
           {
               color.a = rfpart(intery);
-              fill_sample(ipart(intery), x, color);
+              rasterize_point(ipart(intery), x, color);
               color.a = fpart(intery);
-              fill_sample(ipart(intery) + 1, x, color);
+              rasterize_point(ipart(intery) + 1, x, color);
               intery += gradient;
           }
       }
@@ -433,9 +437,9 @@ namespace CMU462
           for (float x = xpxl1 + 1; x <= xpxl2 - 1 * sample_rate; ++x)
           {
               color.a = rfpart(intery);
-              fill_sample(x, ipart(intery), color);
+              rasterize_point(x, ipart(intery), color);
               color.a = fpart(intery);
-              fill_sample(x, ipart(intery) + 1, color);
+              rasterize_point(x, ipart(intery) + 1, color);
               intery += gradient;
           }
       }
