@@ -258,14 +258,13 @@ namespace CMU462
 
   // Rasterization //
 
+  //Not doing SSAA to points and lines
   // The input arguments in the rasterization functions
   // below are all defined in screen space coordinates
   // after I changed rasterize_triangle, x,y turn to sample position in a screen. eg.(0,0)(0.5,0)
   void SoftwareRendererImp::rasterize_point(double x, double y, const Color &color)
   {
-      //Store a backup for non SSAA
-    if (!SSAA)
-    {
+      //For point and lines, not SSAA
       // fill in the nearest pixel
       int sx = (int)floor(x);
       int sy = (int)floor(y);
@@ -280,17 +279,11 @@ namespace CMU462
       render_target[4 * (sx + sy * target_w) + 1] = (uint8_t)(color.g * 255);
       render_target[4 * (sx + sy * target_w) + 2] = (uint8_t)(color.b * 255);
       render_target[4 * (sx + sy * target_w) + 3] = (uint8_t)(color.a * 255);
-    }
-    //For super-sample
-    else
-    {
-      // check bounds
-      if (x < 0 || x >= target_w)
-        return;
-      if (y < 0 || y >= target_h)
-        return;
-      fill_sample(x * sample_rate, y * sample_rate, color); //implicit type cast to int
-    }
+
+    //else
+    //{
+    //  fill_sample(x * sample_rate, y * sample_rate, color); //implicit type cast to int
+    //}
   }
 
   void SoftwareRendererImp::rasterize_line(float x0, float y0,
@@ -304,7 +297,7 @@ namespace CMU462
     // 
     //Q: When SSAA, lines get thinner
     //Convert to sample buffer coordinates
-    x0 *= sample_rate;x1 *= sample_rate;y0 *= sample_rate;y1 *= sample_rate;
+    //x0 *= sample_rate;x1 *= sample_rate;y0 *= sample_rate;y1 *= sample_rate;
 
     //rasterize_line_Bresenham(x0, y0, x1, y1, color);
     rasterize_line_xiaolinwu(x0, y0, x1, y1, color);
@@ -328,7 +321,7 @@ namespace CMU462
 
     while (true)
     {
-      rasterize_point(sx0, sy0, color);
+        fill_pixel(sx0, sy0, color);
       if (sx0 == sx1 && sy0 == sy1)
         break; //draw line ends
       error_tmp = error;
@@ -387,16 +380,16 @@ namespace CMU462
       if (steep)
       {
           color.a = rfpart(yend) * xgap;
-          fill_sample(ypxl1, xpxl1, color);
+          fill_pixel(ypxl1, xpxl1, color);
           color.a = fpart(yend) * xgap;
-          fill_sample(ypxl1 + 1, xpxl1, color);
+          fill_pixel(ypxl1 + 1, xpxl1, color);
       }
       else
       {
           color.a = rfpart(yend) * xgap;
-          fill_sample(xpxl1, ypxl1, color);
+          fill_pixel(xpxl1, ypxl1, color);
           color.a = fpart(yend) * xgap;
-          fill_sample(xpxl1, ypxl1 + 1, color);
+          fill_pixel(xpxl1, ypxl1 + 1, color);
       }
 
       float intery = yend + gradient; // first y-intersection for the main loop
@@ -410,16 +403,16 @@ namespace CMU462
       if (steep)
       {
           color.a = rfpart(yend) * xgap;
-          fill_sample(ypxl2, xpxl2, color);
+          fill_pixel(ypxl2, xpxl2, color);
           color.a = fpart(yend) * xgap;
-          fill_sample(ypxl2 + 1, xpxl2, color);
+          fill_pixel(ypxl2 + 1, xpxl2, color);
       }
       else
       {
           color.a = rfpart(yend) * xgap;
-          fill_sample(xpxl2, ypxl2, color);
+          fill_pixel(xpxl2, ypxl2, color);
           color.a = fpart(yend) * xgap;
-          fill_sample(xpxl2, ypxl2 + 1, color);
+          fill_pixel(xpxl2, ypxl2 + 1, color);
       }
 
       if (steep)
@@ -427,9 +420,9 @@ namespace CMU462
           for (float x = xpxl1 + 1; x <= xpxl2 - 1 * sample_rate; ++x)
           {
               color.a = rfpart(intery);
-              fill_sample(ipart(intery), x, color);
+              fill_pixel(ipart(intery), x, color);
               color.a = fpart(intery);
-              fill_sample(ipart(intery) + 1, x, color);
+              fill_pixel(ipart(intery) + 1, x, color);
               intery += gradient;
           }
       }
@@ -438,9 +431,9 @@ namespace CMU462
           for (float x = xpxl1 + 1; x <= xpxl2 - 1 * sample_rate; ++x)
           {
               color.a = rfpart(intery);
-              fill_sample(x, ipart(intery), color);
+              fill_pixel(x, ipart(intery), color);
               color.a = fpart(intery);
-              fill_sample(x, ipart(intery) + 1, color);
+              fill_pixel(x, ipart(intery) + 1, color);
               intery += gradient;
           }
       }
@@ -475,7 +468,7 @@ namespace CMU462
           //center of the pixels: x+0.5,y+0.5
           if (inside_triangle(Vector2D(x + 0.5, y + 0.5), Triangle))
           {
-            rasterize_point(x, y, color);
+            fill_pixel(x, y, color);
           }
         }
       }
@@ -490,7 +483,7 @@ namespace CMU462
           //center of the samples x + 0.5 / sample_rate,y+0.5 / sample_rate
           if (inside_triangle(Vector2D(x + 0.5 / sample_rate, y + 0.5 / sample_rate), Triangle))
           {
-            rasterize_point(x, y, color);
+            fill_sample(x*sample_rate, y * sample_rate, color);
           }
         }
       }
@@ -528,6 +521,7 @@ namespace CMU462
   }
 
   // resolve samples to render target
+  // For the whole svg 
   void SoftwareRendererImp::resolve(void)
   {
 
@@ -579,6 +573,11 @@ namespace CMU462
   //sx,sy are the screen coordinates for ssaa screen
   inline void SoftwareRendererImp::fill_sample(int sx, int sy, const Color &c)
   {
+      // check bounds
+      if (sx < 0 || sx >= supersample_w)
+          return;
+      if (sy < 0 || sy >= supersample_h)
+          return;
     //Method n: try store float
     super_sample_buffer[4 * (sx + sy * supersample_w)] = c.r * 255.0;
     super_sample_buffer[4 * (sx + sy * supersample_w) + 1] = c.g * 255.0;
@@ -587,6 +586,11 @@ namespace CMU462
   } 
   //Not using now
   inline void SoftwareRendererImp::fill_pixel(int x, int y, const Color& c){
+      // check bounds
+      if (x < 0 || y >= target_w)
+          return;
+      if (x < 0 || y >= target_h)
+          return;
       render_target[4 * (x + y * target_w)] = (uint8_t)c.r*255;
       render_target[4 * (x + y * target_w) + 1] = (uint8_t)c.g*255;
       render_target[4 * (x + y * target_w) + 2] = (uint8_t)c.b*255;
