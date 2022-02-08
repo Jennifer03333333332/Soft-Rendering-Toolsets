@@ -284,11 +284,6 @@ namespace CMU462
     //For super-sample
     else
     {
-      // check bounds
-      if (x < 0 || x >= target_w)
-        return;
-      if (y < 0 || y >= target_h)
-        return;
       fill_sample(x * sample_rate, y * sample_rate, color); //implicit type cast to int
     }
   }
@@ -465,24 +460,23 @@ namespace CMU462
     float ymax = ceil(std::max(y0, std::max(y1, y2)));
 
     //Seperate the normal implementation and the SSAA implementation just to show the difference
-    if (!SSAA)
-    {
-      //For each pixel in this bounding box
-      for (double x = xmin; x <= xmax; x++)
-      {
-        for (double y = ymin; y <= ymax; y++)
-        {
-          //center of the pixels: x+0.5,y+0.5
-          if (inside_triangle(Vector2D(x + 0.5, y + 0.5), Triangle))
-          {
-            rasterize_point(x, y, color);
-          }
-        }
-      }
-    }
+    //if (!SSAA)
+    //{
+    //  //For each pixel in this bounding box
+    //  for (double x = xmin; x <= xmax; x++)
+    //  {
+    //    for (double y = ymin; y <= ymax; y++)
+    //    {
+    //      //center of the pixels: x+0.5,y+0.5
+    //      if (inside_triangle(Vector2D(x + 0.5, y + 0.5), Triangle))
+    //      {
+    //        rasterize_point(x, y, color);
+    //      }
+    //    }
+    //  }
+    // return;
+    //}
     //SSAA
-    else
-    {
       for (double x = xmin; x <= xmax; x += 1.0 / sample_rate)
       {
         for (double y = ymin; y <= ymax; y += 1.0 / sample_rate)
@@ -490,11 +484,10 @@ namespace CMU462
           //center of the samples x + 0.5 / sample_rate,y+0.5 / sample_rate
           if (inside_triangle(Vector2D(x + 0.5 / sample_rate, y + 0.5 / sample_rate), Triangle))
           {
-            rasterize_point(x, y, color);
+            fill_sample(x * sample_rate, y * sample_rate, color);
           }
         }
       }
-    }
   }
 
   //Judge if the point is in the triangle
@@ -536,10 +529,10 @@ namespace CMU462
     // You may also need to modify other functions marked with "Task 4".
 
     //For each pixel, project the super_sample_buffer to it. samplerate*samplerate -> 1
-      if (!SSAA) {
+      //if (!SSAA) {
 
-          return;
-      }
+      //    return;
+      //}
     //For each sample
     for (size_t x = 0; x < supersample_w; x += sample_rate)
     {
@@ -579,6 +572,11 @@ namespace CMU462
   //sx,sy are the screen coordinates for ssaa screen
   inline void SoftwareRendererImp::fill_sample(int sx, int sy, const Color &c)
   {
+      // check bounds
+      if (sx < 0 || sx >= supersample_w)
+          return;
+      if (sy < 0 || sy >= supersample_h)
+          return;
     //Method n: try store float
     super_sample_buffer[4 * (sx + sy * supersample_w)] = c.r * 255.0;
     super_sample_buffer[4 * (sx + sy * supersample_w) + 1] = c.g * 255.0;
@@ -587,6 +585,7 @@ namespace CMU462
   } 
   //Not using now
   inline void SoftwareRendererImp::fill_pixel(int x, int y, const Color& c){
+
       render_target[4 * (x + y * target_w)] = (uint8_t)c.r*255;
       render_target[4 * (x + y * target_w) + 1] = (uint8_t)c.g*255;
       render_target[4 * (x + y * target_w) + 2] = (uint8_t)c.b*255;
