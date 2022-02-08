@@ -1,16 +1,14 @@
 AndrewID: yingxual
 
-*In command lines, when I use './drawsvg ../svg/basic' to observe all the svg,
-when I press'1', it shows test2.svg, when I press '2' or '3' it shows test6.svg and test7.svg. I don't know what's going on.
 Task 1:
     Fully implemented.
     glBegin and glEnd will basically define how vertices made inside of this will be interpreted.
     glColor3f() mush be put before other actions
-
 Task 2:
     Fully implemented.
     Using Bresenham's algorithm to implement drawing lines, then usexiaolinwu algorhitm based on the code in wiki
     Code: SoftwareRendererImp::rasterize_line_Bresenham() and SoftwareRendererImp::rasterize_line_xiaolinwu()
+    
 
 Task 3:
     Fully implemented.
