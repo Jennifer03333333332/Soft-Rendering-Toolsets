@@ -305,8 +305,8 @@ namespace CMU462
     //Convert to sample buffer coordinates
     //x0 *= sample_rate;x1 *= sample_rate;y0 *= sample_rate;y1 *= sample_rate;
 
-    rasterize_line_Bresenham(x0, y0, x1, y1, color);
-    //rasterize_line_xiaolinwu(x0, y0, x1, y1, color);
+    //rasterize_line_Bresenham(x0, y0, x1, y1, color);
+    rasterize_line_xiaolinwu(x0, y0, x1, y1, color);
   }
 
   //Works only on non SSAA and int type pixel coordinates
@@ -584,8 +584,8 @@ namespace CMU462
     super_sample_buffer[4 * (sx + sy * supersample_w) + 1] = c.g * 255.0;
     super_sample_buffer[4 * (sx + sy * supersample_w) + 2] = c.b * 255.0;
     super_sample_buffer[4 * (sx + sy * supersample_w) + 3] = c.a * 255.0;
-  } // namespace CMU462
-
+  } 
+  //Not using now
   inline void SoftwareRendererImp::fill_pixel(int x, int y, const Color& c){
       render_target[4 * (x + y * target_w)] = (uint8_t)c.r*255;
       render_target[4 * (x + y * target_w) + 1] = (uint8_t)c.g*255;
@@ -593,4 +593,4 @@ namespace CMU462
       render_target[4 * (x + y * target_w) + 3] = (uint8_t)c.a*255;
   }
 
-}
+}// namespace CMU462
