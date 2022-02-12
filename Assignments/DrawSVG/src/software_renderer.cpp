@@ -93,7 +93,10 @@ namespace CMU462
 
     // Task 5 (part 1):
     // Modify this to implement the transformation stack
-
+      // need to apply element->transform to * element
+      //transformation is from SVGRenderer, it transform object coordinate to screen coordinate
+      //Before this transform we need to do model transform
+      transformation = transformation * element->transform;
     switch (element->type)
     {
     case POINT:
@@ -123,6 +126,8 @@ namespace CMU462
     default:
       break;
     }
+        //Roll back to initial transform
+    transformation = transformation * element->transform.inv();
   }
 
   // Primitive Drawing //
