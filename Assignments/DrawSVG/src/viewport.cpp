@@ -24,14 +24,14 @@ void ViewportImp::set_viewbox( float centerX, float centerY, float vspan ) {
   //svg_2_norm is row-major
   //first move to origin, then scale, then translate to (0.5,0.5)
   Matrix3x3 Torigin = Matrix3x3::identity();
-  Torigin[0][2] = 0 - centerX;
-  Torigin[1][2] = 0 - centerY;
+  Torigin[2][0] = 0 - centerX;
+  Torigin[2][1] = 0 - centerY;
   Matrix3x3 Scale = Matrix3x3::identity();
   Scale[0][0] = 0.5 / centerX;
   Scale[1][1] = 0.5 / centerY;
   Matrix3x3 Thalfhalf = Matrix3x3::identity();
-  Thalfhalf[0][2] = 0.5;
-  Thalfhalf[1][2] = 0.5;
+  Thalfhalf[2][0] = 0.5;
+  Thalfhalf[2][1] = 0.5;
   svg_2_norm = Thalfhalf * Scale * Torigin;
 }
 //    float dx = (x - cursor_x) / width  * tabs[current_tab]->width;
