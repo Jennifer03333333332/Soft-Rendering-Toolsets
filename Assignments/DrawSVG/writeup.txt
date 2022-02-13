@@ -38,6 +38,11 @@ Task 4:
 Task 5:
 
     Fully implemented.
+    5a:
+    SVGRenderer.transformation transform object coordinate to screen coordinate
+    Before this transform we need to do model transform
+    Implement in draw_element()
+    5b:
 
 Task 6:
 

@@ -96,7 +96,7 @@ namespace CMU462
       // need to apply element->transform to * element
       //transformation is from SVGRenderer, it transform object coordinate to screen coordinate
       //Before this transform we need to do model transform
-      transformation = transformation * element->transform;
+        transformation = transformation * element->transform;
     switch (element->type)
     {
     case POINT:
@@ -127,7 +127,7 @@ namespace CMU462
       break;
     }
         //Roll back to initial transform
-    transformation = transformation * element->transform.inv();
+        transformation = transformation * element->transform.inv();
   }
 
   // Primitive Drawing //
