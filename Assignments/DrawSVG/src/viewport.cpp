@@ -25,22 +25,22 @@ void ViewportImp::set_viewbox( float centerX, float centerY, float vspan ) {
   //first move to origin, then scale, then translate to (0.5,0.5)
 
   //my code
-  //Matrix3x3 Torigin = Matrix3x3::identity();
-  //Torigin[2][0] = 0 - centerX;
-  //Torigin[2][1] = 0 - centerY;
-  //Matrix3x3 Scale = Matrix3x3::identity();
-  //Scale[0][0] = 0.5 / centerX;
-  //Scale[1][1] = 0.5 / centerY;
-  //Matrix3x3 Thalfhalf = Matrix3x3::identity();
-  //Thalfhalf[2][0] = 0.5;
-  //Thalfhalf[2][1] = 0.5;
-  //svg_2_norm = Thalfhalf * Scale * Torigin;
+  Matrix3x3 Torigin = Matrix3x3::identity();
+  Torigin[2][0] = 0 - centerX;
+  Torigin[2][1] = 0 - centerY;
+  Matrix3x3 Scale = Matrix3x3::identity();
+  Scale[0][0] = 0.5 / vspan;//equals to y scaling
+  Scale[1][1] = 0.5 / vspan;//error from 2*vspan -> 1
+  Matrix3x3 Thalfhalf = Matrix3x3::identity();
+  Thalfhalf[2][0] = 0.5;
+  Thalfhalf[2][1] = 0.5;
+  svg_2_norm = Thalfhalf * Scale * Torigin;
 
-  svg_2_norm = Matrix3x3::identity();
-  svg_2_norm[0][0] = 0.5 / vspan;
-  svg_2_norm[1][1] = 0.5 / vspan;
-  svg_2_norm[2][0] = 0.5 - 0.5 * centerX / vspan;
-  svg_2_norm[2][1] = 0.5 - 0.5 * centerY / vspan;
+  //svg_2_norm = Matrix3x3::identity();
+  //svg_2_norm[0][0] = 0.5 / vspan;
+  //svg_2_norm[1][1] = 0.5 / vspan;
+  //svg_2_norm[2][0] = 0.5 - 0.5 * centerX / vspan;
+  //svg_2_norm[2][1] = 0.5 - 0.5 * centerY / vspan;
 
 }
 //    
