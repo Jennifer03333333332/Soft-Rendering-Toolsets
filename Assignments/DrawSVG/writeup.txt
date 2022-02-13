@@ -43,6 +43,8 @@ Task 5:
     Before this transform we need to do model transform
     Implement in draw_element()
     5b:
+    This function should construct a Matrix3x3 object (Homogenous coordinate for 2D) that transforms the viewport area to normalized screen space.
+    first move to origin, then scale, then translate to (0.5,0.5)
 
 Task 6:
 
