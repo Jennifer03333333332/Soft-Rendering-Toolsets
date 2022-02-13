@@ -23,23 +23,31 @@ void ViewportImp::set_viewbox( float centerX, float centerY, float vspan ) {
   //SVG coordinate to normalized display coordinates
   //svg_2_norm is row-major
   //first move to origin, then scale, then translate to (0.5,0.5)
-  Matrix3x3 Torigin = Matrix3x3::identity();
-  Torigin[2][0] = 0 - centerX;
-  Torigin[2][1] = 0 - centerY;
-  Matrix3x3 Scale = Matrix3x3::identity();
-  Scale[0][0] = 0.5 / centerX;
-  Scale[1][1] = 0.5 / centerY;
-  Matrix3x3 Thalfhalf = Matrix3x3::identity();
-  Thalfhalf[2][0] = 0.5;
-  Thalfhalf[2][1] = 0.5;
-  svg_2_norm = Thalfhalf * Scale * Torigin;
+
+  //my code
+  //Matrix3x3 Torigin = Matrix3x3::identity();
+  //Torigin[2][0] = 0 - centerX;
+  //Torigin[2][1] = 0 - centerY;
+  //Matrix3x3 Scale = Matrix3x3::identity();
+  //Scale[0][0] = 0.5 / centerX;
+  //Scale[1][1] = 0.5 / centerY;
+  //Matrix3x3 Thalfhalf = Matrix3x3::identity();
+  //Thalfhalf[2][0] = 0.5;
+  //Thalfhalf[2][1] = 0.5;
+  //svg_2_norm = Thalfhalf * Scale * Torigin;
+
+  svg_2_norm = Matrix3x3::identity();
+  svg_2_norm[0][0] = 0.5 / vspan;
+  svg_2_norm[1][1] = 0.5 / vspan;
+  svg_2_norm[2][0] = 0.5 - 0.5 * centerX / vspan;
+  svg_2_norm[2][1] = 0.5 - 0.5 * centerY / vspan;
+
 }
-//    float dx = (x - cursor_x) / width  * tabs[current_tab]->width;
-//    float dy = (y - cursor_y) / height * tabs[current_tab]->height;
+//    
 void ViewportImp::update_viewbox( float dx, float dy, float scale ) { 
   
-  this->centerX -= dx;
-  this->centerY -= dy;
+  this->centerX -= dx;//float dx = (x - cursor_x) / width  * tabs[current_tab]->width;
+  this->centerY -= dy;//    float dy = (y - cursor_y) / height * tabs[current_tab]->height;
   this->vspan *= scale;
   set_viewbox( centerX, centerY, vspan );
 }
