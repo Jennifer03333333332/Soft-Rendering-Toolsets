@@ -91,10 +91,10 @@ Color Sampler2DImp::sample_nearest(Texture& tex,
   int sx = (int)floor(u * tex.mipmap[level].width);
   int sy = (int)floor(v * tex.mipmap[level].height);
   //tex.mipmap[level].texels[] 
-  float r = tex.mipmap[level].texels[4 * (sx + sy * tex.mipmap[level].width)];
-  float g = tex.mipmap[level].texels[4 * (sx + sy * tex.mipmap[level].width) + 1];
-  float b = tex.mipmap[level].texels[4 * (sx + sy * tex.mipmap[level].width) + 2];
-  float a = tex.mipmap[level].texels[4 * (sx + sy * tex.mipmap[level].width) + 3];
+  float r = tex.mipmap[level].texels[4 * (sx + sy * tex.mipmap[level].width)] / 255.0;
+  float g = tex.mipmap[level].texels[4 * (sx + sy * tex.mipmap[level].width) + 1] / 255.0;
+  float b = tex.mipmap[level].texels[4 * (sx + sy * tex.mipmap[level].width) + 2] / 255.0;
+  float a = tex.mipmap[level].texels[4 * (sx + sy * tex.mipmap[level].width) + 3] / 255.0;
   return Color(r,g,b,a);
 }
 
