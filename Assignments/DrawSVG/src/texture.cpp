@@ -114,22 +114,22 @@ Color Sampler2DImp::sample_bilinear(Texture& tex,
     //Need other 3 near texels
     //if u,v is on the edge??
     //<0.5
-    float u1, v1;
+    int u1, v1;
     u1 = (round(su) == (int)su) ? ((int)su - 1) : ceil(su);
     v1 = (round(sv) == (int)sv) ? ((int)sv - 1) : ceil(sv);
 
     if (round(su) == (int)su) {
-        u1 = clamp((int)su - 1, 0, tex.mipmap[level].width - 1);//if out of index : constrain
+        u1 = clamp((int)su - 1, 0, (int)tex.mipmap[level].width - 1);//if out of index : constrain
         swap(u1, u0);
     }
-    else { u1 = clamp(ceil(su), 0, tex.mipmap[level].width - 1); }
+    else { u1 = clamp((int)ceil(su), 0, (int)tex.mipmap[level].width - 1); }
     if (round(sv) == (int)sv) {
-        v1 = clamp((int)sv - 1, 0, tex.mipmap[level].height - 1);
+        v1 = clamp((int)sv - 1, 0, (int)tex.mipmap[level].height - 1);
         swap(v1, v0);
     }
-    else { v1 = clamp(ceil(sv), 0, tex.mipmap[level].height - 1); }
+    else { v1 = clamp((int)ceil(sv), 0, (int)tex.mipmap[level].height - 1); }
     //get 4 coordinate: (u0,v0)(u0,v1)(u1,v0)(u1,v1)
-
+    
 
 }
 
@@ -140,7 +140,7 @@ Color Sampler2DImp::sample_trilinear(Texture& tex,
   // Task 7: Implement trilinear filtering
 
   // return magenta for invalid level
-    if (level < 0 || level >= tex.mipmap.size()) return Color(1, 0, 1, 1);//this is magenta
+    //if (level < 0 || level >= tex.mipmap.size()) return Color(1, 0, 1, 1);//this is magenta
 
 
 }
