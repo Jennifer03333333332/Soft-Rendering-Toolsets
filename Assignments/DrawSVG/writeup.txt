@@ -50,9 +50,9 @@ Task 6:
 
     Fully implemented.
     Finish SoftwareRendererImp::rasterize_image, Sampler2DImp::sample_nearest | sample_bilinear | sample_trilinear
-    In rasterize_image(), rasterize the image element to each point, get the color by those sample2dImp functions
+    In rasterize_image(), rasterize the image element to each point, then map it to (u,v), then get the color by those sample2dImp functions
     Using supersampling
-
+    Thoughts: need reading the struct miplevel and texture
 Task 7:
 
     Fully implemented.

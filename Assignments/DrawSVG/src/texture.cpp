@@ -88,10 +88,11 @@ Color Sampler2DImp::sample_nearest(Texture& tex,
   if( level < 0 || level >= tex.mipmap.size()) return Color(1,0,1,1);//this is magenta
   
   //u, v belongs to [0,1], map it to texture's width and height
+  //clamp the edges?
   int sx = (int)floor(u * tex.mipmap[level].width);
   int sy = (int)floor(v * tex.mipmap[level].height);
-  //tex.mipmap[level].texels[] 
-  float r = tex.mipmap[level].texels[4 * (sx + sy * tex.mipmap[level].width)] / 255.0;
+  
+  float r = tex.mipmap[level].texels[4 * (sx + sy * tex.mipmap[level].width)] / 255.0;//error forget/255.0
   float g = tex.mipmap[level].texels[4 * (sx + sy * tex.mipmap[level].width) + 1] / 255.0;
   float b = tex.mipmap[level].texels[4 * (sx + sy * tex.mipmap[level].width) + 2] / 255.0;
   float a = tex.mipmap[level].texels[4 * (sx + sy * tex.mipmap[level].width) + 3] / 255.0;
@@ -105,7 +106,30 @@ Color Sampler2DImp::sample_bilinear(Texture& tex,
   // Task 6: Implement bilinear filtering
 
   // return magenta for invalid level
-  return Color(1,0,1,1);
+    if (level < 0 || level >= tex.mipmap.size()) return Color(1, 0, 1, 1);
+    float su = u * tex.mipmap[level].width;
+    float sv = v * tex.mipmap[level].height;
+     
+    int u0 = (int)su; int v0 = (int)sv;//floor
+    //Need other 3 near texels
+    //if u,v is on the edge??
+    //<0.5
+    float u1, v1;
+    u1 = (round(su) == (int)su) ? ((int)su - 1) : ceil(su);
+    v1 = (round(sv) == (int)sv) ? ((int)sv - 1) : ceil(sv);
+
+    if (round(su) == (int)su) {
+        u1 = clamp((int)su - 1, 0, tex.mipmap[level].width - 1);//if out of index : constrain
+        swap(u1, u0);
+    }
+    else { u1 = clamp(ceil(su), 0, tex.mipmap[level].width - 1); }
+    if (round(sv) == (int)sv) {
+        v1 = clamp((int)sv - 1, 0, tex.mipmap[level].height - 1);
+        swap(v1, v0);
+    }
+    else { v1 = clamp(ceil(sv), 0, tex.mipmap[level].height - 1); }
+    //get 4 coordinate: (u0,v0)(u0,v1)(u1,v0)(u1,v1)
+
 
 }
 
@@ -116,7 +140,8 @@ Color Sampler2DImp::sample_trilinear(Texture& tex,
   // Task 7: Implement trilinear filtering
 
   // return magenta for invalid level
-  return Color(1,0,1,1);
+    if (level < 0 || level >= tex.mipmap.size()) return Color(1, 0, 1, 1);//this is magenta
+
 
 }
 

@@ -528,10 +528,9 @@ namespace CMU462
     // Task 6:
     // Implement image rasterization
 
-      
       //SoftwareRenderer.h has Sampler2D* sampler
       //For now, just use mipmap[0]
-      int level = 0;
+      int level = 0;//need to computer the level
       for (double x = x0; x <= x1; x += 1.0 / sample_rate)//sample's x interval
       {
           for (double y = y0; y <= y1; y += 1.0 / sample_rate)//sample's y interval
