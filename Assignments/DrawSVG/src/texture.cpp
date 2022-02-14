@@ -99,6 +99,19 @@ Color Sampler2DImp::sample_nearest(Texture& tex,
   return Color(r,g,b,a);
 }
 
+template<typename T>
+Color lerpColor(T x, Color start, Color ends){
+  return start + x * ( ends - start);
+}
+
+inline Color GetColorFromTexure(Texture& tex, int level, int x, int y){
+  float r = tex.mipmap[level].texels[4 * (x + y * tex.mipmap[level].width)]/ 255.0;
+  float g = tex.mipmap[level].texels[4 * (x + y * tex.mipmap[level].width) + 1]/ 255.0;
+  float b = tex.mipmap[level].texels[4 * (x + y * tex.mipmap[level].width) + 2]/ 255.0;
+  float a = tex.mipmap[level].texels[4 * (x + y * tex.mipmap[level].width) + 3]/ 255.0;
+  return Color(r,g,b,a);
+}
+
 Color Sampler2DImp::sample_bilinear(Texture& tex, 
                                     float u, float v, 
                                     int level) {
@@ -129,9 +142,16 @@ Color Sampler2DImp::sample_bilinear(Texture& tex,
     }
     else { v1 = clamp((int)ceil(sv), 0, (int)tex.mipmap[level].height - 1); }
     //get 4 coordinate: (u0,v0)(u0,v1)(u1,v0)(u1,v1)
-    
-
+    //float lerp_u0 = lerp(su, (float)u0, (float)u1);
+    //Color u00 = GetColorFromTexure(tex, level, u0, v0);
+    //Color u10 = GetColorFromTexure(tex, level, u1, v0);
+    Color lerpHorizontal1 = lerpColor((su-u0)/(u1-u0), GetColorFromTexure(tex, level, u0, v0), GetColorFromTexure(tex, level, u1, v0));
+    Color lerpHorizontal2 = lerpColor((su-u0)/(u1-u0), GetColorFromTexure(tex, level, u0, v1), GetColorFromTexure(tex, level, u1, v1));
+    Color lerpVertical = lerpColor((sv-v0)/(v1-v0), lerpHorizontal1, lerpHorizontal2);
+    return lerpVertical;
 }
+
+
 
 Color Sampler2DImp::sample_trilinear(Texture& tex, 
                                      float u, float v, 
