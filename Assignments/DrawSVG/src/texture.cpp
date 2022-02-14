@@ -85,6 +85,7 @@ Color Sampler2DImp::sample_nearest(Texture& tex,
   // Task 6: Implement nearest neighbour interpolation
   
   // return magenta for invalid level
+    
   return Color(1,0,1,1);
 
 }
