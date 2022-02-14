@@ -537,7 +537,7 @@ namespace CMU462
           for (double y = y0; y <= y1; y += 1.0 / sample_rate)//sample's y interval
           {
               //center of the samples x + 0.5 / sample_rate, y + 0.5 / sample_rate
-              float u = (x + 0.5 / sample_rate) / (x1 - x0);
+              float u = (x + 0.5 / sample_rate) / (x1 - x0);//u,v should belong to [0,1]
               float v = (y + 0.5 / sample_rate) / (y1 - y0);
               Color c = sampler->sample_nearest(tex, u, v, level);
               fill_sample(x * sample_rate, y * sample_rate, c);
