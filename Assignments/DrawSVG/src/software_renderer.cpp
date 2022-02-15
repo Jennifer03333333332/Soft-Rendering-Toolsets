@@ -532,23 +532,42 @@ namespace CMU462
       //For now, just use mipmap[0]
       int level = 0;//need to computer the level
       //Should x be equal to x1? 
-      //Try don't 
-      for (double x = x0; x <= x1; x += 1.0 / (double)sample_rate)//sample's x interval
+      //add center 0.5
+
+      //Version 1
+      //for (double x = x0; x <= x1; x += 1.0 / (double)sample_rate)//sample's x interval
+      //{
+      //    for (double y = y0; y <= y1; y += 1.0 / (double)sample_rate)//sample's y interval
+      //    {
+      //        //center of the samples x + 0.5 / sample_rate, y + 0.5 / sample_rate
+      //        float u = (x + 0.5 / (double)sample_rate - x0) / (x1 - x0);//u,v should belong to [0,1]
+      //        float v = (y + 0.5 / (double)sample_rate - y0) / (y1 - y0);
+      //        //Color c = sampler->sample_nearest(tex, u, v, level);
+      //        Color c = sampler->sample_bilinear(tex, u, v, level);
+      //        //Color c = sampler->sample_trilinear(tex, u, v, uscale, vscale);
+      //        fill_sample(x * sample_rate, y * sample_rate, c);
+      //    }
+      //}
+
+
+
+      //Version 2: use sample coordinate 
+      x0 *= sample_rate; x1 *= sample_rate; y0 *= sample_rate; y1 *= sample_rate;
+      for (int x = x0; x <= x1; x++)
       {
-          for (double y = y0; y <= y1; y += 1.0 / (double)sample_rate)//sample's y interval
+          for (int y = y0; y <= y1; y++)
           {
               //center of the samples x + 0.5 / sample_rate, y + 0.5 / sample_rate
-              float u = (x + 0.5 / (double)sample_rate - x0) / (x1 - x0);//u,v should belong to [0,1]
-              float v = (y + 0.5 / (double)sample_rate - y0) / (y1 - y0);
+              float u = (x + 0.5 - x0) / (x1 - x0 + 1);//u,v should belong to [0,1]
+              float v = (y + 0.5 - y0) / (y1 - y0 + 1);
               //Color c = sampler->sample_nearest(tex, u, v, level);
               Color c = sampler->sample_bilinear(tex, u, v, level);
               //Color c = sampler->sample_trilinear(tex, u, v, uscale, vscale);
-
-              fill_sample(x * sample_rate, y * sample_rate, c);
+              fill_sample(x, y, c);
           }
       }
 
-      //Version 2: use sample coordinate 
+
   }
 
   // resolve samples to render target
