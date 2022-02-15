@@ -100,7 +100,7 @@ Color Sampler2DImp::sample_nearest(Texture& tex,
 }
 
 template<typename T>
-Color lerpColor(T ratio, Color& start, Color& ends){
+inline Color lerpColor(T ratio, Color start, Color ends){
   return start + ratio * ( ends + (-1)*start);
 }
 
