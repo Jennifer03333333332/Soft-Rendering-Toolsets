@@ -532,7 +532,7 @@ namespace CMU462
       //For now, just use mipmap[0]
       int level = 0;//need to computer the level
       //Should x be equal to x1? 
-      //
+      //Try don't 
       for (double x = x0; x <= x1; x += 1.0 / sample_rate)//sample's x interval
       {
           for (double y = y0; y <= y1; y += 1.0 / sample_rate)//sample's y interval
