@@ -89,8 +89,8 @@ Color Sampler2DImp::sample_nearest(Texture& tex,
   
   //u, v belongs to [0,1], map it to texture's width and height
   //try clamp the edges
-  int sx = (int)floor(clamp(u, 0f, 1f) * tex.mipmap[level].width);
-  int sy = (int)floor(clamp(v, 0f, 1f) * tex.mipmap[level].height);
+  int sx = (int)floor(clamp(u, 0.0f, 0.9999f) * tex.mipmap[level].width);
+  int sy = (int)floor(clamp(v, 0.0f, 0.9999f) * tex.mipmap[level].height);
   
   float r = tex.mipmap[level].texels[4 * (sx + sy * tex.mipmap[level].width)] / 255.0;//error forget/255.0
   float g = tex.mipmap[level].texels[4 * (sx + sy * tex.mipmap[level].width) + 1] / 255.0;
@@ -120,8 +120,8 @@ Color Sampler2DImp::sample_bilinear(Texture& tex,
 
   // return magenta for invalid level
     if (level < 0 || level >= tex.mipmap.size()) return Color(1, 0, 1, 1);
-    float su = u * tex.mipmap[level].width;
-    float sv = v * tex.mipmap[level].height;
+    float su = clamp(u, 0.0f, 0.99999f) * tex.mipmap[level].width;
+    float sv = clamp(v, 0.0f, 0.99999f) * tex.mipmap[level].height;
      
     int u0 = (int)su; int v0 = (int)sv;//floor
     //Need other 3 near texels

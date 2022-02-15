@@ -538,8 +538,8 @@ namespace CMU462
               //center of the samples x + 0.5 / sample_rate, y + 0.5 / sample_rate
               float u = (x + 0.5 / sample_rate - x0) / (x1 - x0);//u,v should belong to [0,1]
               float v = (y + 0.5 / sample_rate - y0) / (y1 - y0);
-              Color c = sampler->sample_nearest(tex, u, v, level);
-              //Color c = sampler->sample_bilinear(tex, u, v, level);
+              //Color c = sampler->sample_nearest(tex, u, v, level);
+              Color c = sampler->sample_bilinear(tex, u, v, level);
               //Color c = sampler->sample_trilinear(tex, u, v, uscale, vscale);
 
               fill_sample(x * sample_rate, y * sample_rate, c);
