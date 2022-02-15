@@ -53,6 +53,29 @@ Task 6:
     In rasterize_image(), rasterize the image element to each point, then map it to (u,v), then get the color by those sample2dImp functions
     Using supersampling
     Thoughts: need reading the struct miplevel and texture
+    Color Sampler2DImp::sample_bilinear(Texture& tex, float u, float v, int level) {
+    if (level < 0 || level >= tex.mipmap.size()) return Color(1, 0, 1, 1); 
+    float su = clamp(u, 0.0f, 0.99f) * tex.mipmap[level].width; 
+    float sv = clamp(v, 0.0f, 0.99f) * tex.mipmap[level].height;
+
+    float u0 = floor(su) + 0.5f; float v0 = floor(sv) + 0.5f;
+    float u1, v1;
+    if (round(su) == (int)su) {//su-(int)su <0.5
+        u1 = clamp<float>(floor(su) - 1.0 + 0.5f, 0.0, tex.mipmap[level].width);//if out of range : constrain
+        swap(u1, u0);
+    }
+    else { u1 = clamp<float>(ceil(su) + 0.5f, 0.0, tex.mipmap[level].width); }
+    if (round(sv) == floor(sv) - 1.0 + 0.5f) {
+        v1 = clamp<float>((int)sv - 1, 0.0, tex.mipmap[level].height);
+        swap(v1, v0);
+    }
+    else { v1 = clamp<float>(ceil(sv) + 0.5f, 0, tex.mipmap[level].height); }
+    Color lerpHorizontal1 = lerpColor((su - u0) / (u1 - u0), GetColorFromTexure(tex, level, u0, v0), GetColorFromTexure(tex, level, u1, v0)); 
+    Color lerpHorizontal2 = lerpColor((su - u0) / (u1 - u0), GetColorFromTexure(tex, level, u0, v1), GetColorFromTexure(tex, level, u1, v1)); 
+    Color lerpVertical = lerpColor((sv - v0) / (v1 - v0), lerpHorizontal1, lerpHorizontal2);
+    return lerpVertical;
+}
+
 Task 7:
 
     Fully implemented.

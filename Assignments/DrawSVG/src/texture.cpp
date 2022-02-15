@@ -116,47 +116,31 @@ inline Color GetColorFromTexure(Texture& tex, const int& level, const int& x, co
 Color Sampler2DImp::sample_bilinear(Texture& tex,
     float u, float v,
     int level) {
-    // Task 6: Implement bilinear filtering
-
-    // return magenta for invalid level
-    if (level >= tex.mipmap.size())
+    if (level >= tex.mipmap.size()) {
         return Color(1, 0, 1, 1);
-
-    float tu = clamp(u, 0.0f, 0.99999f) * tex.mipmap[level].width;
-    float tv = clamp(v, 0.0f, 0.99999f) * tex.mipmap[level].height;
-
-    int su[2];
-    su[0] = clamp<int>(round(tu) - 1, 0, tex.mipmap[level].width - 1);
-    su[1] = clamp<int>(su[0] + 1, 0, tex.mipmap[level].width - 1);
-    float du = tu - 0.5f - su[0];
-    if (du < 0) su[1] = su[0];
-
-    int sv[2];
-    sv[0] = clamp<int>(round(tv) - 1, 0, tex.mipmap[level].height - 1);
-    sv[1] = clamp<int>(sv[0] + 1, 0, tex.mipmap[level].height - 1);
-    float dv = tv - 0.5f - sv[0];
-    if (dv < 0) sv[1] = sv[0];
-
-    Color mix = Color(0, 0, 0, 0);
-    for (int i = 0; i < 2; i++) {
-        for (int j = 0; j < 2; j++) {
-            float r = tex.mipmap[level].texels[4 * (su[i] + sv[j] * tex.mipmap[level].width)] / 255.0f;
-            float g = tex.mipmap[level].texels[4 * (su[i] + sv[j] * tex.mipmap[level].width) + 1] / 255.0f;
-            float b = tex.mipmap[level].texels[4 * (su[i] + sv[j] * tex.mipmap[level].width) + 2] / 255.0f;
-            float a = tex.mipmap[level].texels[4 * (su[i] + sv[j] * tex.mipmap[level].width) + 3] / 255.0f;
-            Color c = Color(r * a, g * a, b * a, a);
-            mix += (i * du + (1 - i) * (1 - du)) * (j * dv + (1 - j) * (1 - dv)) * c;
-        }
     }
 
-    if (mix.a != 0) {
-        mix.r /= mix.a;
-        mix.g /= mix.a;
-        mix.b /= mix.a;
-    }
-    return mix;
+    MipLevel& mip = tex.mipmap[level];
+    u = u * mip.width - 0.5f;
+    v = v * mip.height - 0.5f;
+    size_t x = floor(u);
+    size_t y = floor(v);
+
+    float u_ratio = u - x;
+    float v_ratio = v - y;
+    float u_opposite = 1 - u_ratio;
+    float v_opposite = 1 - v_ratio;
+
+    Color c1, c2, c3, c4;
+    uint8_to_float(&c1.r, &mip.texels[4 * (x + mip.width * y)]);
+    uint8_to_float(&c2.r, &mip.texels[4 * (x + 1 + mip.width * y)]);
+    uint8_to_float(&c3.r, &mip.texels[4 * (x + mip.width * (y + 1))]);
+    uint8_to_float(&c4.r, &mip.texels[4 * (x + 1 + mip.width * (y + 1))]);
+
+    Color f = (c1 * u_opposite + c2 * u_ratio) * v_opposite +
+        (c3 * u_opposite + c4 * u_ratio) * v_ratio;
+    return f;
 }
-
 
 Color Sampler2DImp::sample_trilinear(Texture& tex, 
                                      float u, float v, 
