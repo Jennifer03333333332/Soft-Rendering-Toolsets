@@ -100,11 +100,11 @@ Color Sampler2DImp::sample_nearest(Texture& tex,
 }
 
 template<typename T>
-Color lerpColor(T x, Color start, Color ends){
-  return start + x * ( ends + (-1)*start);
+Color lerpColor(T ratio, Color& start, Color& ends){
+  return start + ratio * ( ends + (-1)*start);
 }
 
-inline Color GetColorFromTexure(Texture& tex, int level, int x, int y){
+inline Color GetColorFromTexure(Texture& tex, const int& level, const int& x, const int& y){
   float r = tex.mipmap[level].texels[4 * (x + y * tex.mipmap[level].width)]/ 255.0;
   float g = tex.mipmap[level].texels[4 * (x + y * tex.mipmap[level].width) + 1]/ 255.0;
   float b = tex.mipmap[level].texels[4 * (x + y * tex.mipmap[level].width) + 2]/ 255.0;
@@ -128,10 +128,10 @@ Color Sampler2DImp::sample_bilinear(Texture& tex,
     //if u,v is on the edge??
     //<0.5
     int u1, v1;
-    u1 = (round(su) == (int)su) ? ((int)su - 1) : ceil(su);
-    v1 = (round(sv) == (int)sv) ? ((int)sv - 1) : ceil(sv);
+    //u1 = (round(su) == (int)su) ? ((int)su - 1) : ceil(su);
+    //v1 = (round(sv) == (int)sv) ? ((int)sv - 1) : ceil(sv);
 
-    if (round(su) == (int)su) {
+    if (round(su) == (int)su) {//su-(int)su <0.5
         u1 = clamp((int)su - 1, 0, (int)tex.mipmap[level].width - 1);//if out of index : constrain
         swap(u1, u0);
     }
