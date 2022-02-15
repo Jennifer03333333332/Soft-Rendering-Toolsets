@@ -554,9 +554,9 @@ namespace CMU462
       //Version 2: use sample coordinate 
       x0 *= sample_rate; x1 *= sample_rate; y0 *= sample_rate; y1 *= sample_rate;
       //Haven't guarantee x0...are int
-      for (int x = x0; x <= x1; x++)
+      for (float x = x0; x <= x1; x++)
       {
-          for (int y = y0; y <= y1; y++)
+          for (float y = y0; y <= y1; y++)
           {
               //center of the samples x + 0.5 / sample_rate, y + 0.5 / sample_rate
               float u = (x + 0.5 - x0) / (x1 - x0);//u,v should belong to [0,1]
