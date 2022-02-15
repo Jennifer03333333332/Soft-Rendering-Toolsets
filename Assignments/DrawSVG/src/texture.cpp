@@ -128,27 +128,30 @@ Color Sampler2DImp::sample_bilinear(Texture& tex,
     //if u,v is on the edge??
     float u1, v1;
     if (round(su) == (int)su) {//su-(int)su <0.5
-        u1 = clamp(floor(su) - 1.0 + 0.5f, 0, (int)tex.mipmap[level].width);//if out of range : constrain
+        u1 = clamp<float>(floor(su) - 1.0 + 0.5f, 0.0, tex.mipmap[level].width);//if out of range : constrain
         swap(u1, u0);
     }
-    else { u1 = clamp(ceil(su)+0.5f, 0, (int)tex.mipmap[level].width); }
+    else { u1 = clamp<float>(ceil(su)+0.5f, 0.0, tex.mipmap[level].width); }
     if (round(sv) == floor(sv) - 1.0 + 0.5f) {
-        v1 = clamp((int)sv - 1, 0, (int)tex.mipmap[level].height);
+        v1 = clamp<float>((int)sv - 1, 0.0, tex.mipmap[level].height);
         swap(v1, v0);
     }
-    else { v1 = clamp(ceil(sv) + 0.5f, 0, (int)tex.mipmap[level].height); }
+    else { v1 = clamp<float>(ceil(sv) + 0.5f, 0, tex.mipmap[level].height); }
     //Error maybe I should use texel's center?
     
 
 
     //get 4 coordinate: (u0,v0)(u0,v1)(u1,v0)(u1,v1)
-    //float lerp_u0 = lerp(su, (float)u0, (float)u1);
-    //Color u00 = GetColorFromTexure(tex, level, u0, v0);
-    //Color u10 = GetColorFromTexure(tex, level, u1, v0);
-    Color lerpHorizontal1 = lerpColor((su-u0)/(u1-u0), GetColorFromTexure(tex, level, u0, v0), GetColorFromTexure(tex, level, u1, v0));
-    Color lerpHorizontal2 = lerpColor((su-u0)/(u1-u0), GetColorFromTexure(tex, level, u0, v1), GetColorFromTexure(tex, level, u1, v1));
-    Color lerpVertical = lerpColor((sv-v0)/(v1-v0), lerpHorizontal1, lerpHorizontal2);
-    return lerpVertical;
+    // Color lerpHorizontal1 = lerpColor((su-u0)/(u1-u0), GetColorFromTexure(tex, level, u0, v0), GetColorFromTexure(tex, level, u1, v0));
+    // Color lerpHorizontal2 = lerpColor((su-u0)/(u1-u0), GetColorFromTexure(tex, level, u0, v1), GetColorFromTexure(tex, level, u1, v1));
+    // Color lerpVertical = lerpColor((sv-v0)/(v1-v0), lerpHorizontal1, lerpHorizontal2);
+    
+    //try use the bilinear identical 
+    float t = (su-u0)/(u1-u0), s = (sv-v0)/(v1-v0);
+    Color bilinear = (1-t)*((1-s)*GetColorFromTexure(tex, level, u0, v0)+s*GetColorFromTexure(tex, level, u1, v0))
+      +t*((1-s)*GetColorFromTexure(tex, level, u0, v1)+s*GetColorFromTexure(tex, level, u1, v1));
+
+    return bilinear;
 }
 
 
