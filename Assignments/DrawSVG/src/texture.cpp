@@ -123,24 +123,24 @@ Color Sampler2DImp::sample_bilinear(Texture& tex,
     float su = clamp(u, 0.0f, 0.99999f) * tex.mipmap[level].width;
     float sv = clamp(v, 0.0f, 0.99999f) * tex.mipmap[level].height;
      
-    int u0 = (int)su; int v0 = (int)sv;//floor
+    float u0 = floor(su)+0.5f; float v0 = floor(sv) + 0.5f;
     //Need other 3 near texels
     //if u,v is on the edge??
-    //<0.5
-    int u1, v1;
-    //u1 = (round(su) == (int)su) ? ((int)su - 1) : ceil(su);
-    //v1 = (round(sv) == (int)sv) ? ((int)sv - 1) : ceil(sv);
-
+    float u1, v1;
     if (round(su) == (int)su) {//su-(int)su <0.5
-        u1 = clamp((int)su - 1, 0, (int)tex.mipmap[level].width - 1);//if out of index : constrain
+        u1 = clamp(floor(su) - 1.0 + 0.5f, 0, (int)tex.mipmap[level].width);//if out of range : constrain
         swap(u1, u0);
     }
-    else { u1 = clamp((int)ceil(su), 0, (int)tex.mipmap[level].width - 1); }
-    if (round(sv) == (int)sv) {
-        v1 = clamp((int)sv - 1, 0, (int)tex.mipmap[level].height - 1);
+    else { u1 = clamp(ceil(su)+0.5f, 0, (int)tex.mipmap[level].width); }
+    if (round(sv) == floor(sv) - 1.0 + 0.5f) {
+        v1 = clamp((int)sv - 1, 0, (int)tex.mipmap[level].height);
         swap(v1, v0);
     }
-    else { v1 = clamp((int)ceil(sv), 0, (int)tex.mipmap[level].height - 1); }
+    else { v1 = clamp(ceil(sv) + 0.5f, 0, (int)tex.mipmap[level].height); }
+    //Error maybe I should use texel's center?
+    
+
+
     //get 4 coordinate: (u0,v0)(u0,v1)(u1,v0)(u1,v1)
     //float lerp_u0 = lerp(su, (float)u0, (float)u1);
     //Color u00 = GetColorFromTexure(tex, level, u0, v0);
