@@ -531,13 +531,15 @@ namespace CMU462
       //SoftwareRenderer.h has Sampler2D* sampler
       //For now, just use mipmap[0]
       int level = 0;//need to computer the level
+      //Should x be equal to x1? 
+      //
       for (double x = x0; x <= x1; x += 1.0 / sample_rate)//sample's x interval
       {
           for (double y = y0; y <= y1; y += 1.0 / sample_rate)//sample's y interval
           {
               //center of the samples x + 0.5 / sample_rate, y + 0.5 / sample_rate
-              float u = (x + 0.5 / sample_rate - x0) / (x1 - x0);//u,v should belong to [0,1]
-              float v = (y + 0.5 / sample_rate - y0) / (y1 - y0);
+              float u = (x + 0.5 / (double)sample_rate - x0) / (x1 - x0);//u,v should belong to [0,1]
+              float v = (y + 0.5 / (double)sample_rate - y0) / (y1 - y0);
               //Color c = sampler->sample_nearest(tex, u, v, level);
               Color c = sampler->sample_bilinear(tex, u, v, level);
               //Color c = sampler->sample_trilinear(tex, u, v, uscale, vscale);
@@ -599,7 +601,7 @@ namespace CMU462
   //sx,sy are the screen coordinates for ssaa screen
   inline void SoftwareRendererImp::fill_sample(int sx, int sy, const Color &c)
   {
-      // check bounds
+      // check bounds [0,w][0,h]
       if (sx < 0 || sx >= supersample_w)
           return;
       if (sy < 0 || sy >= supersample_h)
