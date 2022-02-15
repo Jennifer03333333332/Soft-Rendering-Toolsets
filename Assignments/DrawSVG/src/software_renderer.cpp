@@ -533,9 +533,9 @@ namespace CMU462
       int level = 0;//need to computer the level
       //Should x be equal to x1? 
       //Try don't 
-      for (double x = x0; x <= x1; x += 1.0 / sample_rate)//sample's x interval
+      for (double x = x0; x <= x1; x += 1.0 / (double)sample_rate)//sample's x interval
       {
-          for (double y = y0; y <= y1; y += 1.0 / sample_rate)//sample's y interval
+          for (double y = y0; y <= y1; y += 1.0 / (double)sample_rate)//sample's y interval
           {
               //center of the samples x + 0.5 / sample_rate, y + 0.5 / sample_rate
               float u = (x + 0.5 / (double)sample_rate - x0) / (x1 - x0);//u,v should belong to [0,1]
@@ -547,6 +547,8 @@ namespace CMU462
               fill_sample(x * sample_rate, y * sample_rate, c);
           }
       }
+
+      //Version 2: use sample coordinate 
   }
 
   // resolve samples to render target
