@@ -106,7 +106,7 @@ inline Color lerpColor(T ratio, Color start, Color ends){
 }
 //x,y are texture's coordinates
 inline Color GetColorFromTexure(Texture& tex, const int& level, const int& x, const int& y){
-  float r = tex.mipmap[level].texels[4 * (x + y * tex.mipmap[level].width)]/ 255.0f
+  float r = tex.mipmap[level].texels[4 * (x + y * tex.mipmap[level].width)]/ 255.0f;
   float g = tex.mipmap[level].texels[4 * (x + y * tex.mipmap[level].width) + 1]/ 255.0f;
   float b = tex.mipmap[level].texels[4 * (x + y * tex.mipmap[level].width) + 2]/ 255.0f;
   float a = tex.mipmap[level].texels[4 * (x + y * tex.mipmap[level].width) + 3]/ 255.0f;
