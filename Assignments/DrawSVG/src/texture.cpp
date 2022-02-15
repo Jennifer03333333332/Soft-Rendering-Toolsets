@@ -88,9 +88,9 @@ Color Sampler2DImp::sample_nearest(Texture& tex,
   if( level < 0 || level >= tex.mipmap.size()) return Color(1,0,1,1);//this is magenta
   
   //u, v belongs to [0,1], map it to texture's width and height
-  //clamp the edges?
-  int sx = (int)floor(u * tex.mipmap[level].width);
-  int sy = (int)floor(v * tex.mipmap[level].height);
+  //try clamp the edges
+  int sx = (int)floor(clamp(u, 0f, 1f) * tex.mipmap[level].width);
+  int sy = (int)floor(clamp(v, 0f, 1f) * tex.mipmap[level].height);
   
   float r = tex.mipmap[level].texels[4 * (sx + sy * tex.mipmap[level].width)] / 255.0;//error forget/255.0
   float g = tex.mipmap[level].texels[4 * (sx + sy * tex.mipmap[level].width) + 1] / 255.0;
