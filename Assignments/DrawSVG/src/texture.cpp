@@ -120,8 +120,8 @@ Color Sampler2DImp::sample_bilinear(Texture& tex,
 
   // return magenta for invalid level
     if (level < 0 || level >= tex.mipmap.size()) return Color(1, 0, 1, 1);
-    float su = clamp(u, 0.0f, 0.99999f) * tex.mipmap[level].width;
-    float sv = clamp(v, 0.0f, 0.99999f) * tex.mipmap[level].height;
+    float su = clamp(u, 0.0f, 0.99f) * tex.mipmap[level].width;
+    float sv = clamp(v, 0.0f, 0.99f) * tex.mipmap[level].height;
      
     
     //Need other 3 near texels
