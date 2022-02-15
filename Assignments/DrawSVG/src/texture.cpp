@@ -113,63 +113,49 @@ inline Color GetColorFromTexure(Texture& tex, const int& level, const int& x, co
   return Color(r,g,b,a);
 }
 
-Color Sampler2DImp::sample_bilinear(Texture& tex, 
-                                    float u, float v, 
-                                    int level) {
-  
-  // Task 6: Implement bilinear filtering
+Color Sampler2DImp::sample_bilinear(Texture& tex,
+    float u, float v,
+    int level) {
+    // Task 6: Implement bilinear filtering
 
-  // return magenta for invalid level
-    if (level < 0 || level >= tex.mipmap.size()) return Color(1, 0, 1, 1);
-    float su = clamp(u, 0.0f, 0.99f) * tex.mipmap[level].width;
-    float sv = clamp(v, 0.0f, 0.99f) * tex.mipmap[level].height;
-     
-    
-    //Need other 3 near texels
-    //if u,v is on the edge??
-    //Error maybe I should use texel's center?
+    // return magenta for invalid level
+    if (level >= tex.mipmap.size())
+        return Color(1, 0, 1, 1);
 
-    //Version one: u0u1v1v0 is the texel's center
-    float u0 = floor(su)+0.5f; float v0 = floor(sv) + 0.5f;
-    float u1, v1;
-    if (round(su) == (int)su) {//su-(int)su <0.5
-       u1 = clamp<float>(floor(su) - 1.0 + 0.5f, 0.0, tex.mipmap[level].width);//if out of range : constrain
-       swap(u1, u0);
+    float tu = clamp(u, 0.0f, 0.99999f) * tex.mipmap[level].width;
+    float tv = clamp(v, 0.0f, 0.99999f) * tex.mipmap[level].height;
+
+    int su[2];
+    su[0] = clamp<int>(round(tu) - 1, 0, tex.mipmap[level].width - 1);
+    su[1] = clamp<int>(su[0] + 1, 0, tex.mipmap[level].width - 1);
+    float du = tu - 0.5f - su[0];
+    if (du < 0) su[1] = su[0];
+
+    int sv[2];
+    sv[0] = clamp<int>(round(tv) - 1, 0, tex.mipmap[level].height - 1);
+    sv[1] = clamp<int>(sv[0] + 1, 0, tex.mipmap[level].height - 1);
+    float dv = tv - 0.5f - sv[0];
+    if (dv < 0) sv[1] = sv[0];
+
+    Color mix = Color(0, 0, 0, 0);
+    for (int i = 0; i < 2; i++) {
+        for (int j = 0; j < 2; j++) {
+            float r = tex.mipmap[level].texels[4 * (su[i] + sv[j] * tex.mipmap[level].width)] / 255.0f;
+            float g = tex.mipmap[level].texels[4 * (su[i] + sv[j] * tex.mipmap[level].width) + 1] / 255.0f;
+            float b = tex.mipmap[level].texels[4 * (su[i] + sv[j] * tex.mipmap[level].width) + 2] / 255.0f;
+            float a = tex.mipmap[level].texels[4 * (su[i] + sv[j] * tex.mipmap[level].width) + 3] / 255.0f;
+            Color c = Color(r * a, g * a, b * a, a);
+            mix += (i * du + (1 - i) * (1 - du)) * (j * dv + (1 - j) * (1 - dv)) * c;
+        }
     }
-    else { u1 = clamp<float>(ceil(su)+0.5f, 0.0, tex.mipmap[level].width); }
-    if (round(sv) == floor(sv) - 1.0 + 0.5f) {
-       v1 = clamp<float>((int)sv - 1, 0.0, tex.mipmap[level].height);
-       swap(v1, v0);
+
+    if (mix.a != 0) {
+        mix.r /= mix.a;
+        mix.g /= mix.a;
+        mix.b /= mix.a;
     }
-    else { v1 = clamp<float>(ceil(sv) + 0.5f, 0, tex.mipmap[level].height); }
-    
-    //Version 2:  u0u1v1v0 is the texel's coordinates
-    // int v0 = (int)sv; int u0 = (int)su;
-    // int u1, v1;
-    // if (round(su) == (int)su) {//su-(int)su <0.5
-    //     u1 = clamp((int)su - 1, 0, (int)tex.mipmap[level].width - 1);//if out of index : constrain
-    //     swap(u1, u0);
-    // }
-    // else { u1 = clamp((int)ceil(su), 0, (int)tex.mipmap[level].width - 1); }
-    // if (round(sv) == (int)sv) {
-    //     v1 = clamp((int)sv - 1, 0, (int)tex.mipmap[level].height - 1);
-    //     swap(v1, v0);
-    // }
-    // else { v1 = clamp((int)ceil(sv), 0, (int)tex.mipmap[level].height - 1); }
-
-    //get 4 coordinate: (u0,v0)(u0,v1)(u1,v0)(u1,v1)
-    Color lerpHorizontal1 = lerpColor((su-u0)/(u1-u0), GetColorFromTexure(tex, level, u0, v0), GetColorFromTexure(tex, level, u1, v0));
-    Color lerpHorizontal2 = lerpColor((su-u0)/(u1-u0), GetColorFromTexure(tex, level, u0, v1), GetColorFromTexure(tex, level, u1, v1));
-    Color lerpVertical = lerpColor((sv-v0)/(v1-v0), lerpHorizontal1, lerpHorizontal2);
-    
-    //try use the bilinear identical 
-    // float t = (su-u0)/(u1-u0), s = (sv-v0)/(v1-v0);
-    // Color bilinear = (1-t)*((1-s)*GetColorFromTexure(tex, level, u0, v0)+s*GetColorFromTexure(tex, level, u1, v0))
-    //   +t*((1-s)*GetColorFromTexure(tex, level, u0, v1)+s*GetColorFromTexure(tex, level, u1, v1));
-
-    return lerpVertical;
+    return mix;
 }
-
 
 
 Color Sampler2DImp::sample_trilinear(Texture& tex, 
