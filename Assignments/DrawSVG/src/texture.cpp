@@ -136,7 +136,7 @@ Color Sampler2DImp::sample_nearest(Texture& tex,
 
 
 //u,v are [0,1] coordinates
-Color Sampler2DImp::sample_bilinear(Texture& tex, const float &u, const float &v, const int &level) {
+Color Sampler2DImp::sample_bilinear(Texture& tex, float u, float v, int level) {
     if (level < 0 || level >= tex.mipmap.size()) return Color(1, 0, 1, 1);
     float su = clamp(u, 0.0f, 0.9999f) * tex.mipmap[level].width;//clamp the edges
     float sv = clamp(v, 0.0f, 0.9999f) * tex.mipmap[level].height;
@@ -168,7 +168,8 @@ Color Sampler2DImp::sample_trilinear(Texture& tex,
 
   // return magenta for invalid level
   // 1 Calculate the level. u_scale v_scale means dx, dy; tex.width, tex.height means du,dv
-    float L = std::max(sqrt(pow(tex.width/u_scale,2) + pow(tex.height / u_scale, 2)), pow(tex.width / v_scale, 2) + pow(tex.height / v_scale, 2)));
+    float L = std::max(sqrt(pow(tex.width/u_scale,2) + pow(tex.height / u_scale, 2)),
+          sqrt(pow(tex.width / v_scale, 2) + pow(tex.height / v_scale, 2)));
     float level = log2f(L);
     if (level < 0 || level >= tex.mipmap.size()) return Color(1, 0, 1, 1);//this is magenta
     //Trilinear interpolation
