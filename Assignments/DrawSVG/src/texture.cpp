@@ -16,12 +16,19 @@ namespace CMU462 {
         return (1 - ratio) * start + ratio * ends;
     }
     //x,y are texture's coordinates
-    inline Color GetColorFromTexure(Texture& tex, const int& level, const int& x, const int& y) {
+    inline Color GetColorFromTexture(Texture& tex, const int& level, const int& x, const int& y) {
         float r = tex.mipmap[level].texels[4 * (x + y * tex.mipmap[level].width)] / 255.0f;
         float g = tex.mipmap[level].texels[4 * (x + y * tex.mipmap[level].width) + 1] / 255.0f;
         float b = tex.mipmap[level].texels[4 * (x + y * tex.mipmap[level].width) + 2] / 255.0f;
         float a = tex.mipmap[level].texels[4 * (x + y * tex.mipmap[level].width) + 3] / 255.0f;
         return Color(r, g, b, a);
+    }
+    inline void SetColorToTexture(Texture& tex, const int& level, const int& x, const int& y, const Color &c) {
+        tex.mipmap[level].texels[4 * (x + y * tex.mipmap[level].width)] = c.r*255.0f;
+        tex.mipmap[level].texels[4 * (x + y * tex.mipmap[level].width) + 1] = c.g*255.0f;
+        tex.mipmap[level].texels[4 * (x + y * tex.mipmap[level].width) + 2] = c.b*255.0f;
+        tex.mipmap[level].texels[4 * (x + y * tex.mipmap[level].width) + 3] = c.a*255.0f;
+        return;
     }
     inline Color average4Colors() {
 
@@ -91,13 +98,12 @@ void Sampler2DImp::generate_mips(Texture& tex, int startLevel) {
     for (int x = 0; x < mip.width; x++) {
         for (int y = 0; y < mip.height; y++) {
             Color sum = Color(0, 0, 0, 0);
-            for (int j = 0; j < 4; j++) {
-                static const int d[4][2] = {
-                        {0, 0}, {0, 1}, {1, 0}, {1, 1}
-                };
-                //Concentrate from the i-1 level. 4 -> 1
-                Color c = GetColorFromTexure(tex, i - 1, 2 * x + d[j][0], 2 * (2 * y + d[j][1]));
-                sum += c;//Color(r * a, g * a, b * a, a);
+            //Concentrate from the i-1 level. 4 -> 1
+            for (int i = 0; i < 2; i++) {
+                for (int j = 0; j < 2; j++) {
+                    Color c = GetColorFromTexture(tex, i - 1, 2 * x + i, 2 * y + j));
+                    sum += c;//Color(r * a, g * a, b * a, a);
+                }
             }
             sum *= 0.25f;
             //if (sum.a != 0) {
@@ -105,7 +111,8 @@ void Sampler2DImp::generate_mips(Texture& tex, int startLevel) {
             //    sum.g /= sum.a;
             //    sum.b /= sum.a;
             //}
-            float_to_uint8(&mip.texels[4 * (x + y * width)], &sum.r);
+            SetColorToTexture(tex, i, x, y, sum);
+            //float_to_uint8(&mip.texels[4 * (x + y * width)], &sum.r);
         }
     }
   }
@@ -154,8 +161,8 @@ Color Sampler2DImp::sample_bilinear(Texture& tex, float u, float v, int level) {
     }
     else { v1 = clamp<float>(v0+1, 0, tex.mipmap[level].height); }
     //Bilinear interpolate the color
-    Color lerpHorizontal1 = lerpColor((su - u0) / (u1 - u0), GetColorFromTexure(tex, level, u0, v0), GetColorFromTexure(tex, level, u1, v0));
-    Color lerpHorizontal2 = lerpColor((su - u0) / (u1 - u0), GetColorFromTexure(tex, level, u0, v1), GetColorFromTexure(tex, level, u1, v1));
+    Color lerpHorizontal1 = lerpColor((su - u0) / (u1 - u0), GetColorFromTexture(tex, level, u0, v0), GetColorFromTexture(tex, level, u1, v0));
+    Color lerpHorizontal2 = lerpColor((su - u0) / (u1 - u0), GetColorFromTexture(tex, level, u0, v1), GetColorFromTexture(tex, level, u1, v1));
     Color lerpVertical = lerpColor((sv - v0) / (v1 - v0), lerpHorizontal1, lerpHorizontal2);
     return lerpVertical;
 }
