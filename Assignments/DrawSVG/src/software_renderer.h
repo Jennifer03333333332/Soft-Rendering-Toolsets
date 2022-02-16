@@ -168,7 +168,7 @@ class SoftwareRendererImp : public SoftwareRenderer {
   std::vector<float> super_sample_buffer;//intermidate buffer
   size_t supersample_w; size_t supersample_h;
   inline void fill_sample(int sx, int sy, const Color& c);
-  inline void fill_pixel(int x, int y, const Color& c);
+  //inline void fill_pixel(int x, int y, const Color& c);
 }; // class SoftwareRendererImp
 
 

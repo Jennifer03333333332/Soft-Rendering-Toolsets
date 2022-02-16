@@ -55,6 +55,8 @@ Task 6:
     Thoughts: need reading the struct miplevel and texture
     In bilinear() I find that we need the nearest 4 texel's center coordinates, not the bottom-left coordinates
     Write some inline functions to clear the code structure.(lerpColor,GetColorFromTexure)
+    You can change t
+
 Task 7:
 
     Fully implemented.
