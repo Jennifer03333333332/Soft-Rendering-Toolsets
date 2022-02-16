@@ -101,7 +101,7 @@ void Sampler2DImp::generate_mips(Texture& tex, int startLevel) {
             //Concentrate from the i-1 level. 4 -> 1
             for (int i = 0; i < 2; i++) {
                 for (int j = 0; j < 2; j++) {
-                    Color c = GetColorFromTexture(tex, i - 1, 2 * x + i, 2 * y + j));
+                    Color c = GetColorFromTexture(tex, i - 1, 2 * x + i, (2 * y + j)*2);
                     sum += c;//Color(r * a, g * a, b * a, a);
                 }
             }
@@ -111,8 +111,8 @@ void Sampler2DImp::generate_mips(Texture& tex, int startLevel) {
             //    sum.g /= sum.a;
             //    sum.b /= sum.a;
             //}
-            SetColorToTexture(tex, i, x, y, sum);
-            //float_to_uint8(&mip.texels[4 * (x + y * width)], &sum.r);
+            //SetColorToTexture(tex, i, x, y, sum);
+            float_to_uint8(&mip.texels[4 * (x + y * width)], &sum.r);
         }
     }
   }
