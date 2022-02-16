@@ -66,8 +66,11 @@ Task 7:
 Task 8:
 
     To Do
+
 Task 9:
-	Draw the picture in AI
+	For task9.svg, write the xml codes in text editor
+
+
 Extra credit:
 
     I completed the following extra credit work... (or N/A)
