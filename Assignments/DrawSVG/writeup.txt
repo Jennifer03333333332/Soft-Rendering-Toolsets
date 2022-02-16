@@ -53,8 +53,8 @@ Task 6:
     In rasterize_image(), rasterize the image element to each point, then map it to (u,v), then get the color by those sample2dImp functions
     Using supersampling
     Thoughts: need reading the struct miplevel and texture
-    
-
+    In bilinear() I find that we need the nearest 4 texel's center coordinates, not the bottom-left coordinates
+    Write some inline functions to clear the code structure.(lerpColor,GetColorFromTexure)
 Task 7:
 
     Fully implemented.

@@ -50,6 +50,7 @@ void Sampler2DImp::generate_mips(Texture& tex, int startLevel) {
 
   int width  = baseWidth;
   int height = baseHeight;
+  //Initialize each mipmap level
   for (int i = 1; i <= numSubLevels; i++) {
 
     MipLevel& level = tex.mipmap[startLevel + i];
@@ -116,18 +117,18 @@ inline Color GetColorFromTexure(Texture& tex, const int& level, const int& x, co
 //u,v are [0,1] coordinates
 Color Sampler2DImp::sample_bilinear(Texture& tex, float u, float v, int level) {
     if (level < 0 || level >= tex.mipmap.size()) return Color(1, 0, 1, 1);
-    float su = clamp(u, 0.0f, 0.99f) * tex.mipmap[level].width;//clamp the edges
-    float sv = clamp(v, 0.0f, 0.99f) * tex.mipmap[level].height;
-    //texel's center
+    float su = clamp(u, 0.0f, 0.9999f) * tex.mipmap[level].width;//clamp the edges
+    float sv = clamp(v, 0.0f, 0.9999f) * tex.mipmap[level].height;
+    //texel's center. Calculate the nearest 4 texel's center:
     float u0 = floor(su) + 0.5f; float v0 = floor(sv) + 0.5f;
     float u1, v1;
     if (su - (int)su < 0.5f) {//
-        u1 = clamp<float>(u0-1, 0.0, tex.mipmap[level].width);//if out of range : constrain
+        u1 = clamp<float>(u0 - 1, 0.0, tex.mipmap[level].width);//if out of range : constrain
         swap(u1, u0);
     }
-    else { u1 = clamp<float>(u0+1, 0.0, tex.mipmap[level].width); }
+    else { u1 = clamp<float>(u0 + 1, 0.0, tex.mipmap[level].width); }
     if (sv - (int)sv < 0.5f) {
-        v1 = clamp<float>(v0-1, 0.0, tex.mipmap[level].height);
+        v1 = clamp<float>(v0 - 1, 0.0, tex.mipmap[level].height);
         swap(v1, v0);
     }
     else { v1 = clamp<float>(v0+1, 0, tex.mipmap[level].height); }

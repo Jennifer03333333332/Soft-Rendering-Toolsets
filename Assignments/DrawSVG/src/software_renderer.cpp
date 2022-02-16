@@ -534,7 +534,7 @@ namespace CMU462
       //Should x be equal to x1? 
       //add center 0.5
 
-      //Version 1
+      //Version 1 use screen vector
       //for (double x = x0; x <= x1; x += 1.0 / (double)sample_rate)//sample's x interval
       //{
       //    for (double y = y0; y <= y1; y += 1.0 / (double)sample_rate)//sample's y interval
@@ -551,7 +551,7 @@ namespace CMU462
 
 
 
-      //Version 2: use sample coordinate 
+      //Version 2: use sample coordinates
       x0 *= sample_rate; x1 *= sample_rate; y0 *= sample_rate; y1 *= sample_rate;
       //Haven't guarantee x0...are int
       for (float x = x0; x <= x1; x++)
