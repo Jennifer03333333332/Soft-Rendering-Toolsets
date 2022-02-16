@@ -171,7 +171,7 @@ Color Sampler2DImp::sample_trilinear(Texture& tex,
     float L = std::max(sqrt(pow(tex.width/u_scale,2) + pow(tex.height / u_scale, 2)),
           sqrt(pow(tex.width / v_scale, 2) + pow(tex.height / v_scale, 2)));
     float level = log2f(L);
-    if (level < 0 || level >= tex.mipmap.size()) return Color(1, 0, 1, 1);//this is magenta
+    if (level >= tex.mipmap.size()) return Color(1, 0, 1, 1);//this is magenta
     //Trilinear interpolation
     int lowLevel = (int)floor(level);
     int highLevel = (int)round(level);
