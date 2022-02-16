@@ -581,7 +581,7 @@ namespace CMU462
           for (size_t j = 0; j < sample_rate; ++j)
           {
             size_t samplePos = 4 * (x + i + (y + j) * supersample_w);
-            r += super_sample_buffer[samplePos]; //(sample_rate * sample_rate); lost precision
+            r += super_sample_buffer[samplePos];          //(sample_rate * sample_rate); lost precision
             g += super_sample_buffer[samplePos + 1];
             b += super_sample_buffer[samplePos + 2];
             a += super_sample_buffer[samplePos + 3];
