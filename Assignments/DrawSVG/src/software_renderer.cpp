@@ -592,11 +592,11 @@ namespace CMU462
         b /= sample_rate * sample_rate;
         a /= sample_rate * sample_rate;
         //get final color
-        if (a != 0) {
-           r /= (a * 255.0f);
-           g /= (a * 255.0f);
-           b /= (a * 255.0f);
-        }
+        //if (a != 0) {
+        //   r /= (a * 255.0f);
+        //   g /= (a * 255.0f);
+        //   b /= (a * 255.0f);
+        //}
         //SSAABuffer position to pixel position. (x,y) is the left-buttom sample of this pixel
         size_t pixelPos = 4 * ((x / sample_rate) + (y / sample_rate) * target_w);
         render_target[pixelPos] = (uint8_t)(r);
@@ -612,7 +612,8 @@ namespace CMU462
       buffer[r_index] = (element.r + (1 - element.a) * (buffer[r_index] / 255.0f)) * 255.0f;
       buffer[r_index + 1] = (element.g + (1 - element.a) * (buffer[r_index + 1] / 255.0f)) * 255.0f;
       buffer[r_index + 2] = (element.b + (1 - element.a) * (buffer[r_index + 2] / 255.0f)) * 255.0f;
-      buffer[r_index + 3] =  (element.b + (1 - element.a) * (buffer[r_index + 3] / 255.0f)) * 255.0f;//(1- ((1 - c.a) * (1- (buffer[r_index + 3] / 255.0f)))) * 255.0f;
+      //buffer[r_index + 3] =  (element.b + (1 - element.a) * (buffer[r_index + 3] / 255.0f)) * 255.0f;
+      buffer[r_index + 3] = (1.0f- ((1.0f - c.a) * (1- (buffer[r_index + 3] / 255.0f)))) * 255.0f;
   }
 
   //use inline to make running process faster
