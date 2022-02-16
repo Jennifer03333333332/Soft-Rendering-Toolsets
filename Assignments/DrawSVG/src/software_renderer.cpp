@@ -646,12 +646,12 @@ namespace CMU462
 
   } 
   //Not using now
-  inline void SoftwareRendererImp::fill_pixel(int x, int y, const Color& c){
+  // inline void SoftwareRendererImp::fill_pixel(int x, int y, const Color& c){
 
-      render_target[4 * (x + y * target_w)] = (uint8_t)c.r*255;
-      render_target[4 * (x + y * target_w) + 1] = (uint8_t)c.g*255;
-      render_target[4 * (x + y * target_w) + 2] = (uint8_t)c.b*255;
-      render_target[4 * (x + y * target_w) + 3] = (uint8_t)c.a*255;
-  }
+  //     render_target[4 * (x + y * target_w)] = (uint8_t)c.r*255;
+  //     render_target[4 * (x + y * target_w) + 1] = (uint8_t)c.g*255;
+  //     render_target[4 * (x + y * target_w) + 2] = (uint8_t)c.b*255;
+  //     render_target[4 * (x + y * target_w) + 3] = (uint8_t)c.a*255;
+  // }
 
 }// namespace CMU462
