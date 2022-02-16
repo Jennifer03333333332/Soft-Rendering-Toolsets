@@ -622,13 +622,34 @@ namespace CMU462
       //Change to alpha blending
           //c.a * 255.0;
 
-      super_sample_buffer[4 * (sx + sy * supersample_w)] = 255.0f*((1 - c.a) * super_sample_buffer[4 * (sx + sy * supersample_w)] / 255.0f + c.r * c.a;)
-      //c.r * 255.0;
-      super_sample_buffer[4 * (sx + sy * supersample_w) + 1] = 255.0f*((1 - c.a) * super_sample_buffer[4 * (sx + sy * supersample_w) + 1] / 255.0f + c.g * c.a);
-          //c.g * 255.0;
-      super_sample_buffer[4 * (sx + sy * supersample_w) + 2] = 255.0f*((1 - c.a) * super_sample_buffer[4 * (sx + sy * supersample_w) + 2] / 255.0f + c.b * c.a);
-          //c.b * 255.0;
-      super_sample_buffer[4 * (sx + sy * supersample_w) + 3] = 255.0f*(1 - (1 - c.a) * (1 - super_sample_buffer[4 * (sx + sy * supersample_w) + 3] / 255.0f));
+      //super_sample_buffer[4 * (sx + sy * supersample_w)] = 255.0f*((1 - c.a) * super_sample_buffer[4 * (sx + sy * supersample_w)] / 255.0f + c.r * c.a;)
+      ////c.r * 255.0;
+      //super_sample_buffer[4 * (sx + sy * supersample_w) + 1] = 255.0f*((1 - c.a) * super_sample_buffer[4 * (sx + sy * supersample_w) + 1] / 255.0f + c.g * c.a);
+      //    //c.g * 255.0;
+      //super_sample_buffer[4 * (sx + sy * supersample_w) + 2] = 255.0f*((1 - c.a) * super_sample_buffer[4 * (sx + sy * supersample_w) + 2] / 255.0f + c.b * c.a);
+      //    //c.b * 255.0;
+      //super_sample_buffer[4 * (sx + sy * supersample_w) + 3] = 255.0f*(1 - (1 - c.a) * (1 - super_sample_buffer[4 * (sx + sy * supersample_w) + 3] / 255.0f));
+      // fill sample
+      size_t pos = 4 * (sx + sy * supersample_w);
+
+      Color from = c;
+
+      Color scr;
+      scr.r = super_sample_buffer[pos] / 255.0f;
+      scr.g = super_sample_buffer[pos + 1] / 255.0f;
+      scr.b = super_sample_buffer[pos + 2] / 255.0f;
+      scr.a = super_sample_buffer[pos + 3] / 255.0f;
+
+      Color to;
+      to.r = (1.0f - from.a) * scr.r + from.r * from.a;
+      to.g = (1.0f - from.a) * scr.g + from.g * from.a;
+      to.b = (1.0f - from.a) * scr.b + from.b * from.a;
+      to.a = 1.0f - (1.0f - from.a) * (1.0f - scr.a);
+
+      super_sample_buffer[pos] = (float)(to.r * 255.0);
+      super_sample_buffer[pos + 1] = (float)(to.g * 255.0);
+      super_sample_buffer[pos + 2] = (float)(to.b * 255.0);
+      super_sample_buffer[pos + 3] = (float)(to.a * 255.0);
 
   } 
   //Not using now
