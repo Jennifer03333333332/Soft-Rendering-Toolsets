@@ -596,8 +596,6 @@ namespace CMU462
             g *= 1.0 / a * 255.0f;
             b *= 1.0 / a * 255.0f;
         }
-
-
         //SSAABuffer position to pixel position. (x,y) is the left-buttom sample of this pixel
         size_t pixelPos = 4 * ((x / sample_rate) + (y / sample_rate) * target_w);
         render_target[pixelPos] = (uint8_t)(r);
@@ -610,11 +608,11 @@ namespace CMU462
   }
 
   //dst: canvas
-  static void alpha_blendingForSampleBuffer(const int& r_index, const Color& c) {
-      super_sample_buffer[r_index] = (c.r + (1 - c.a) * (super_sample_buffer[r_index] / 255.0f)) * 255.0f;
-      super_sample_buffer[r_index + 1] = (c.r + (1 - c.a) * (super_sample_buffer[r_index + 1] / 255.0f)) * 255.0f;
-      super_sample_buffer[r_index + 2] = (c.r + (1 - c.a) * (super_sample_buffer[r_index + 2] / 255.0f)) * 255.0f;
-      super_sample_buffer[r_index + 3] = (c.r + (1 - c.a) * (super_sample_buffer[r_index + 3] / 255.0f)) * 255.0f;
+  inline static void alpha_blending(vector<float>& buffer, const int& r_index, const Color& c) {
+      buffer[r_index] = (c.r + (1 - c.a) * (buffer[r_index] / 255.0f)) * 255.0f;
+      buffer[r_index + 1] = (c.r + (1 - c.a) * (buffer[r_index + 1] / 255.0f)) * 255.0f;
+      buffer[r_index + 2] = (c.r + (1 - c.a) * (buffer[r_index + 2] / 255.0f)) * 255.0f;
+      buffer[r_index + 3] = (c.r + (1 - c.a) * (buffer[r_index + 3] / 255.0f)) * 255.0f;
   }
 
   //use inline to make running process faster
@@ -628,7 +626,7 @@ namespace CMU462
       if (sy < 0 || sy >= supersample_h)
           return;
     //try using float as rgba's data structure
-      alpha_blendingForSampleBuffer(4 * (sx + sy * supersample_w), c);
+      alpha_blending(super_sample_buffer,4 * (sx + sy * supersample_w), c);
     //super_sample_buffer[4 * (sx + sy * supersample_w)] = c.r * 255.0;
     //super_sample_buffer[4 * (sx + sy * supersample_w) + 1] = c.g * 255.0;
     //super_sample_buffer[4 * (sx + sy * supersample_w) + 2] = c.b * 255.0;
