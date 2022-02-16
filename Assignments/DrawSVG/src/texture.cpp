@@ -115,11 +115,11 @@ inline Color GetColorFromTexure(Texture& tex, const int& level, const int& x, co
 }
 
 //u,v are [0,1] coordinates
-Color Sampler2DImp::sample_bilinear(Texture& tex, float u, float v, int level) {
+Color Sampler2DImp::sample_bilinear(Texture& tex, const float &u, const float &v, const int &level) {
     if (level < 0 || level >= tex.mipmap.size()) return Color(1, 0, 1, 1);
     float su = clamp(u, 0.0f, 0.9999f) * tex.mipmap[level].width;//clamp the edges
     float sv = clamp(v, 0.0f, 0.9999f) * tex.mipmap[level].height;
-    //texel's center. Calculate the nearest 4 texel's center:
+    //Calculate the nearest 4 texel's center:
     float u0 = floor(su) + 0.5f; float v0 = floor(sv) + 0.5f;
     float u1, v1;
     if (su - (int)su < 0.5f) {//
@@ -132,36 +132,12 @@ Color Sampler2DImp::sample_bilinear(Texture& tex, float u, float v, int level) {
         swap(v1, v0);
     }
     else { v1 = clamp<float>(v0+1, 0, tex.mipmap[level].height); }
+    //Bilinear interpolate the color
     Color lerpHorizontal1 = lerpColor((su - u0) / (u1 - u0), GetColorFromTexure(tex, level, u0, v0), GetColorFromTexure(tex, level, u1, v0));
     Color lerpHorizontal2 = lerpColor((su - u0) / (u1 - u0), GetColorFromTexure(tex, level, u0, v1), GetColorFromTexure(tex, level, u1, v1));
     Color lerpVertical = lerpColor((sv - v0) / (v1 - v0), lerpHorizontal1, lerpHorizontal2);
     return lerpVertical;
 }
-
-//Color Sampler2DImp::sample_bilinear(Texture& tex, float u, float v, int level) {
-//    if (level < 0 || level >= tex.mipmap.size()) {
-//        return Color(1, 0, 1, 1);
-//    }
-//
-//    MipLevel& mip = tex.mipmap[level];
-//    u = u * mip.width - 0.5f;v = v * mip.height - 0.5f;
-//    size_t x = floor(u);size_t y = floor(v);
-//
-//    float u_ratio = u - x;
-//    float v_ratio = v - y;
-//    float u_opposite = 1 - u_ratio;
-//    float v_opposite = 1 - v_ratio;
-//
-//    Color c1, c2, c3, c4;
-//    uint8_to_float(&c1.r, &mip.texels[4 * (x + mip.width * y)]);
-//    uint8_to_float(&c2.r, &mip.texels[4 * (x + 1 + mip.width * y)]);
-//    uint8_to_float(&c3.r, &mip.texels[4 * (x + mip.width * (y + 1))]);
-//    uint8_to_float(&c4.r, &mip.texels[4 * (x + 1 + mip.width * (y + 1))]);
-//
-//    Color f = (c1 * u_opposite + c2 * u_ratio) * v_opposite +
-//        (c3 * u_opposite + c4 * u_ratio) * v_ratio;
-//    return f;
-//}
 
 Color Sampler2DImp::sample_trilinear(Texture& tex, 
                                      float u, float v, 
@@ -170,9 +146,16 @@ Color Sampler2DImp::sample_trilinear(Texture& tex,
   // Task 7: Implement trilinear filtering
 
   // return magenta for invalid level
-    //if (level < 0 || level >= tex.mipmap.size()) return Color(1, 0, 1, 1);//this is magenta
-
-
+  // 1 Calculate the level. u_scale v_scale means dx, dy; tex.width, tex.height means du,dv
+    float L = std::max(sqrt(pow(tex.width/u_scale,2) + pow(tex.height / u_scale, 2)), pow(tex.width / v_scale, 2) + pow(tex.height / v_scale, 2)));
+    float level = log2f(L);
+    if (level < 0 || level >= tex.mipmap.size()) return Color(1, 0, 1, 1);//this is magenta
+    //Trilinear interpolation
+    int lowLevel = (int)floor(level);
+    int highLevel = (int)round(level);
+    Color lowLevelColor = sample_bilinear(tex, u, v, lowLevel);
+    Color highLevelColor = sample_bilinear(tex, u, v, highLevel);
+    return lerpColor((level - (float)lowLevel) / ((float)lowLevel - highLevel), lowLevelColor, highLevelColor);
 }
 
 } // namespace CMU462

@@ -530,7 +530,7 @@ namespace CMU462
 
       //SoftwareRenderer.h has Sampler2D* sampler
       //For now, just use mipmap[0]
-      int level = 0;//need to computer the level
+      
       //Should x be equal to x1? 
       //add center 0.5
 
@@ -549,8 +549,8 @@ namespace CMU462
       //    }
       //}
 
-
-
+      float uscale = x1 - x0, vscale = y1 - y0;
+      int level = 0;//need to computer the level
       //Version 2: use sample coordinates
       x0 *= sample_rate; x1 *= sample_rate; y0 *= sample_rate; y1 *= sample_rate;
       //Haven't guarantee x0...are int
@@ -562,8 +562,8 @@ namespace CMU462
               float u = (x + 0.5 - x0) / (x1 - x0 + 1);//u,v should belong to [0,1]
               float v = (y + 0.5 - y0) / (y1 - y0 + 1);
               //Color c = sampler->sample_nearest(tex, u, v, level);
-              Color c = sampler->sample_bilinear(tex, u, v, level);
-              //Color c = sampler->sample_trilinear(tex, u, v, uscale, vscale);
+              //Color c = sampler->sample_bilinear(tex, u, v, level);
+              Color c = sampler->sample_trilinear(tex, u, v, uscale, vscale);
               fill_sample(x, y, c);
           }
       }
