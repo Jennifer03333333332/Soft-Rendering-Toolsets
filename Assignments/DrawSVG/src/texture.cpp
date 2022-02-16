@@ -99,20 +99,20 @@ void Sampler2DImp::generate_mips(Texture& tex, int startLevel) {
         for (int y = 0; y < mip.height; y++) {
             Color sum = Color(0, 0, 0, 0);
             //Concentrate from the i-1 level. 4 -> 1
-            for (int i = 0; i < 2; i++) {
-                for (int j = 0; j < 2; j++) {
-                    Color c = GetColorFromTexture(tex, i - 1, 2 * x + i, 2 * y + j);
-                    sum += Color(c.r * a, c.g * a, c.b * a, c.a);//sum += c;
+            for (int m = 0; m < 2; m++) {
+                for (int n = 0; n < 2; n++) {
+                    Color c = GetColorFromTexture(tex, i - 1, 2 * x + m, 2 * y + n);
+                    sum += Color(c.r * c.a, c.g * c.a, c.b * c.a, c.a);//sum += c;
                 }
             }
             sum *= 0.25f;
-            if (sum.a != 0) {
-                sum.r /= sum.a;
-                sum.g /= sum.a;
-                sum.b /= sum.a;
-            }
+            // if (sum.a != 0) {
+            //     sum.r /= sum.a;
+            //     sum.g /= sum.a;
+            //     sum.b /= sum.a;
+            // }
             //SetColorToTexture(tex, i, x, y, sum);
-            float_to_uint8(&mip.texels[4 * (x + y * width)], &sum.r);
+            float_to_uint8(&mip.texels[4 * (x + y * mip.width)], &sum.r);
         }
     }
   }
@@ -145,8 +145,8 @@ Color Sampler2DImp::sample_nearest(Texture& tex,
 //u,v are [0,1] coordinates
 Color Sampler2DImp::sample_bilinear(Texture& tex, float u, float v, int level) {
     if (level < 0 || level >= tex.mipmap.size()) return Color(1, 0, 1, 1);
-    float su = clamp(u, 0.0f, 0.9999f) * tex.mipmap[level].width;//clamp the edges
-    float sv = clamp(v, 0.0f, 0.9999f) * tex.mipmap[level].height;
+    float su = clamp(u, 0.0f, 0.99999f) * tex.mipmap[level].width;//clamp the edges
+    float sv = clamp(v, 0.0f, 0.99999f) * tex.mipmap[level].height;
     //Calculate the nearest 4 texel's center:
     float u0 = floor(su) + 0.5f; float v0 = floor(sv) + 0.5f;
     float u1, v1;
@@ -175,16 +175,20 @@ Color Sampler2DImp::sample_trilinear(Texture& tex,
 
   // return magenta for invalid level
   // 1 Calculate the level. u_scale v_scale means dx, dy; tex.width, tex.height means du,dv
-    float L = std::max(sqrt(pow(tex.width/u_scale,2) + pow(tex.height / u_scale, 2)),
-          sqrt(pow(tex.width / v_scale, 2) + pow(tex.height / v_scale, 2)));
-    float level = log2f(L);
+    float Lsquare_x = pow(tex.width / u_scale,2) + pow(tex.height / u_scale, 2);
+    float Lsquare_y = pow(tex.width / v_scale, 2) + pow(tex.height / v_scale, 2);
+    //float L = max(tex.width/u_scale,tex.height/v_scale);
+    float level = log2f(sqrt(max(Lsquare_x,Lsquare_y)));
+    if (level < 0) level = 0.0f;
     if (level >= tex.mipmap.size()) return Color(1, 0, 1, 1);//this is magenta
     //Trilinear interpolation
     int lowLevel = (int)floor(level);
-    int highLevel = (int)round(level);
+    int highLevel = lowLevel +1;//(int)round(level);
+    if(highLevel>= tex.mipmap.size())return sample_bilinear(tex, u, v, tex.mipmap.size()-1);
+
     Color lowLevelColor = sample_bilinear(tex, u, v, lowLevel);
     Color highLevelColor = sample_bilinear(tex, u, v, highLevel);
-    return lerpColor((level - (float)lowLevel) / ((float)lowLevel - highLevel), lowLevelColor, highLevelColor);
+    return lerpColor((level - (int)level), lowLevelColor, highLevelColor);
 }
 
 } // namespace CMU462
