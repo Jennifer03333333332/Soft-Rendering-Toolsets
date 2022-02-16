@@ -591,6 +591,13 @@ namespace CMU462
         g /= sample_rate * sample_rate;
         b /= sample_rate * sample_rate;
         a /= sample_rate * sample_rate;
+        if (a != 0) {
+            r *= 1.0 / a * 255.0f;
+            g *= 1.0 / a * 255.0f;
+            b *= 1.0 / a * 255.0f;
+        }
+
+
         //SSAABuffer position to pixel position. (x,y) is the left-buttom sample of this pixel
         size_t pixelPos = 4 * ((x / sample_rate) + (y / sample_rate) * target_w);
         render_target[pixelPos] = (uint8_t)(r);
@@ -614,10 +621,10 @@ namespace CMU462
           return;
     //try using float as rgba's data structure
     
-    //super_sample_buffer[4 * (sx + sy * supersample_w)] = c.r * 255.0;
-    //super_sample_buffer[4 * (sx + sy * supersample_w) + 1] = c.g * 255.0;
-    //super_sample_buffer[4 * (sx + sy * supersample_w) + 2] = c.b * 255.0;
-    //super_sample_buffer[4 * (sx + sy * supersample_w) + 3] = c.a * 255.0;
+    super_sample_buffer[4 * (sx + sy * supersample_w)] = c.r * 255.0;
+    super_sample_buffer[4 * (sx + sy * supersample_w) + 1] = c.g * 255.0;
+    super_sample_buffer[4 * (sx + sy * supersample_w) + 2] = c.b * 255.0;
+    super_sample_buffer[4 * (sx + sy * supersample_w) + 3] = c.a * 255.0;
 
       //Change to alpha blending
           //c.a * 255.0;
@@ -630,26 +637,6 @@ namespace CMU462
       //    //c.b * 255.0;
       //super_sample_buffer[4 * (sx + sy * supersample_w) + 3] = 255.0f*(1 - (1 - c.a) * (1 - super_sample_buffer[4 * (sx + sy * supersample_w) + 3] / 255.0f));
       // fill sample
-      size_t pos = 4 * (sx + sy * supersample_w);
-
-      Color from = c;
-
-      Color scr;
-      scr.r = super_sample_buffer[pos] / 255.0f;
-      scr.g = super_sample_buffer[pos + 1] / 255.0f;
-      scr.b = super_sample_buffer[pos + 2] / 255.0f;
-      scr.a = super_sample_buffer[pos + 3] / 255.0f;
-
-      Color to;
-      to.r = (1.0f - from.a) * scr.r + from.r * from.a;
-      to.g = (1.0f - from.a) * scr.g + from.g * from.a;
-      to.b = (1.0f - from.a) * scr.b + from.b * from.a;
-      to.a = 1.0f - (1.0f - from.a) * (1.0f - scr.a);
-
-      super_sample_buffer[pos] = (float)(to.r * 255.0);
-      super_sample_buffer[pos + 1] = (float)(to.g * 255.0);
-      super_sample_buffer[pos + 2] = (float)(to.b * 255.0);
-      super_sample_buffer[pos + 3] = (float)(to.a * 255.0);
 
   } 
   //Not using now
