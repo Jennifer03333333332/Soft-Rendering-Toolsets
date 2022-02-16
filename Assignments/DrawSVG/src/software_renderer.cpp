@@ -610,9 +610,9 @@ namespace CMU462
   //dst: canvas
   inline static void alpha_blending(vector<float>& buffer, const int& r_index, const Color& c) {
       buffer[r_index] = (c.r + (1 - c.a) * (buffer[r_index] / 255.0f)) * 255.0f;
-      buffer[r_index + 1] = (c.r + (1 - c.a) * (buffer[r_index + 1] / 255.0f)) * 255.0f;
-      buffer[r_index + 2] = (c.r + (1 - c.a) * (buffer[r_index + 2] / 255.0f)) * 255.0f;
-      buffer[r_index + 3] = (c.r + (1 - c.a) * (buffer[r_index + 3] / 255.0f)) * 255.0f;
+      buffer[r_index + 1] = (c.g + (1 - c.a) * (buffer[r_index + 1] / 255.0f)) * 255.0f;
+      buffer[r_index + 2] = (c.b + (1 - c.a) * (buffer[r_index + 2] / 255.0f)) * 255.0f;
+      buffer[r_index + 3] =  (1- ((1 - c.a) * (1- (buffer[r_index + 3] / 255.0f)))) * 255.0f;
   }
 
   //use inline to make running process faster
