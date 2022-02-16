@@ -592,9 +592,9 @@ namespace CMU462
         b /= sample_rate * sample_rate;
         a /= sample_rate * sample_rate;
         if (a != 0) {
-            r *= 1.0 / a * 255.0f;
-            g *= 1.0 / a * 255.0f;
-            b *= 1.0 / a * 255.0f;
+            r /= a;
+            g /= a;
+            b /= a;
         }
         //SSAABuffer position to pixel position. (x,y) is the left-buttom sample of this pixel
         size_t pixelPos = 4 * ((x / sample_rate) + (y / sample_rate) * target_w);
@@ -646,12 +646,12 @@ namespace CMU462
 
   } 
   //Not using now
-  //inline void SoftwareRendererImp::fill_pixel(int x, int y, const Color& c){
+  inline void SoftwareRendererImp::fill_pixel(int x, int y, const Color& c){
 
-  //    render_target[4 * (x + y * target_w)] = (uint8_t)c.r*255;
-  //    render_target[4 * (x + y * target_w) + 1] = (uint8_t)c.g*255;
-  //    render_target[4 * (x + y * target_w) + 2] = (uint8_t)c.b*255;
-  //    render_target[4 * (x + y * target_w) + 3] = (uint8_t)c.a*255;
-  //}
+      render_target[4 * (x + y * target_w)] = (uint8_t)c.r*255;
+      render_target[4 * (x + y * target_w) + 1] = (uint8_t)c.g*255;
+      render_target[4 * (x + y * target_w) + 2] = (uint8_t)c.b*255;
+      render_target[4 * (x + y * target_w) + 3] = (uint8_t)c.a*255;
+  }
 
 }// namespace CMU462
