@@ -622,13 +622,13 @@ namespace CMU462
       //Change to alpha blending
           //c.a * 255.0;
 
-      super_sample_buffer[4 * (sx + sy * supersample_w)] = (1 - c.a * 255.0) * super_sample_buffer[4 * (sx + sy * supersample_w)] + c.r * 255.0 * c.a*255.0;
-          //c.r * 255.0;
-      super_sample_buffer[4 * (sx + sy * supersample_w) + 1] = (1 - c.a * 255.0) * super_sample_buffer[4 * (sx + sy * supersample_w) + 1] + c.g * 255.0 * c.a * 255.0;
+      super_sample_buffer[4 * (sx + sy * supersample_w)] = 255.0f*((1 - c.a) * super_sample_buffer[4 * (sx + sy * supersample_w)] / 255.0f + c.r * c.a;)
+      //c.r * 255.0;
+      super_sample_buffer[4 * (sx + sy * supersample_w) + 1] = 255.0f*((1 - c.a) * super_sample_buffer[4 * (sx + sy * supersample_w) + 1] / 255.0f + c.g * c.a);
           //c.g * 255.0;
-      super_sample_buffer[4 * (sx + sy * supersample_w) + 2] = (1 - c.a * 255.0) * super_sample_buffer[4 * (sx + sy * supersample_w) + 2] + c.b * 255.0 * c.a * 255.0;
+      super_sample_buffer[4 * (sx + sy * supersample_w) + 2] = 255.0f*((1 - c.a) * super_sample_buffer[4 * (sx + sy * supersample_w) + 2] / 255.0f + c.b * c.a);
           //c.b * 255.0;
-      super_sample_buffer[4 * (sx + sy * supersample_w) + 3] = 1 - (1 - c.a * 255.0) * (1 - super_sample_buffer[4 * (sx + sy * supersample_w) + 3]);
+      super_sample_buffer[4 * (sx + sy * supersample_w) + 3] = 255.0f*(1 - (1 - c.a) * (1 - super_sample_buffer[4 * (sx + sy * supersample_w) + 3] / 255.0f));
 
   } 
   //Not using now
