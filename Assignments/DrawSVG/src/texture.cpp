@@ -183,7 +183,7 @@ Color Sampler2DImp::sample_trilinear(Texture& tex,
     if (level >= tex.mipmap.size()) return Color(1, 0, 1, 1);//this is magenta
     //Trilinear interpolation
     int lowLevel = (int)floor(level);
-    int highLevel = lowLevel +1;//(int)round(level);
+    int highLevel = lowLevel + 1;
     if(highLevel>= tex.mipmap.size())return sample_bilinear(tex, u, v, tex.mipmap.size()-1);
 
     Color lowLevelColor = sample_bilinear(tex, u, v, lowLevel);

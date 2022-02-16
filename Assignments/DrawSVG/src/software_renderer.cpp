@@ -531,23 +531,7 @@ namespace CMU462
       //SoftwareRenderer.h has Sampler2D* sampler
       //For now, just use mipmap[0]
       
-      //Should x be equal to x1? 
       //add center 0.5
-
-      //Version 1 use screen vector
-      //for (double x = x0; x <= x1; x += 1.0 / (double)sample_rate)//sample's x interval
-      //{
-      //    for (double y = y0; y <= y1; y += 1.0 / (double)sample_rate)//sample's y interval
-      //    {
-      //        //center of the samples x + 0.5 / sample_rate, y + 0.5 / sample_rate
-      //        float u = (x + 0.5 / (double)sample_rate - x0) / (x1 - x0);//u,v should belong to [0,1]
-      //        float v = (y + 0.5 / (double)sample_rate - y0) / (y1 - y0);
-      //        //Color c = sampler->sample_nearest(tex, u, v, level);
-      //        Color c = sampler->sample_bilinear(tex, u, v, level);
-      //        //Color c = sampler->sample_trilinear(tex, u, v, uscale, vscale);
-      //        fill_sample(x * sample_rate, y * sample_rate, c);
-      //    }
-      //}
 
       float uscale = x1 - x0, vscale = y1 - y0;
       int level = 0;//need to computer the level
@@ -558,9 +542,9 @@ namespace CMU462
       {
           for (float y = y0; y <= y1; y++)
           {
-              //center of the samples x + 0.5 / sample_rate, y + 0.5 / sample_rate
-              float u = (x + 0.5 - x0) / (x1 - x0 + 1);//u,v should belong to [0,1]
-              float v = (y + 0.5 - y0) / (y1 - y0 + 1);
+              //u,v should belong to [0,1]
+              float u = (x + 0.5 - x0) / (x1 - x0 );// 
+              float v = (y + 0.5 - y0) / (y1 - y0 );
               //Color c = sampler->sample_nearest(tex, u, v, level);
               //Color c = sampler->sample_bilinear(tex, u, v, level);
               Color c = sampler->sample_trilinear(tex, u, v, uscale, vscale);
@@ -628,19 +612,31 @@ namespace CMU462
           return;
       if (sy < 0 || sy >= supersample_h)
           return;
-    //Method n: try store float
-    super_sample_buffer[4 * (sx + sy * supersample_w)] = c.r * 255.0;
-    super_sample_buffer[4 * (sx + sy * supersample_w) + 1] = c.g * 255.0;
-    super_sample_buffer[4 * (sx + sy * supersample_w) + 2] = c.b * 255.0;
-    super_sample_buffer[4 * (sx + sy * supersample_w) + 3] = c.a * 255.0;
+    //try using float as rgba's data structure
+    
+    //super_sample_buffer[4 * (sx + sy * supersample_w)] = c.r * 255.0;
+    //super_sample_buffer[4 * (sx + sy * supersample_w) + 1] = c.g * 255.0;
+    //super_sample_buffer[4 * (sx + sy * supersample_w) + 2] = c.b * 255.0;
+    //super_sample_buffer[4 * (sx + sy * supersample_w) + 3] = c.a * 255.0;
+
+      //Change to alpha blending
+      super_sample_buffer[4 * (sx + sy * supersample_w) + 3] = 1 - (1 - c.a * 255.0) * (1 - super_sample_buffer[4 * (sx + sy * supersample_w) + 3]);
+          //c.a * 255.0;
+
+      super_sample_buffer[4 * (sx + sy * supersample_w)] = (1 - c.a * 255.0) * super_sample_buffer[4 * (sx + sy * supersample_w)] + c.r * 255.0;
+          //c.r * 255.0;
+      super_sample_buffer[4 * (sx + sy * supersample_w) + 1] = (1 - c.a * 255.0) * super_sample_buffer[4 * (sx + sy * supersample_w) + 1] + c.g * 255.0;
+          //c.g * 255.0;
+      super_sample_buffer[4 * (sx + sy * supersample_w) + 2] = (1 - c.a * 255.0) * super_sample_buffer[4 * (sx + sy * supersample_w) + 2] + c.b * 255.0;
+          //c.b * 255.0;
   } 
   //Not using now
-  inline void SoftwareRendererImp::fill_pixel(int x, int y, const Color& c){
+  //inline void SoftwareRendererImp::fill_pixel(int x, int y, const Color& c){
 
-      render_target[4 * (x + y * target_w)] = (uint8_t)c.r*255;
-      render_target[4 * (x + y * target_w) + 1] = (uint8_t)c.g*255;
-      render_target[4 * (x + y * target_w) + 2] = (uint8_t)c.b*255;
-      render_target[4 * (x + y * target_w) + 3] = (uint8_t)c.a*255;
-  }
+  //    render_target[4 * (x + y * target_w)] = (uint8_t)c.r*255;
+  //    render_target[4 * (x + y * target_w) + 1] = (uint8_t)c.g*255;
+  //    render_target[4 * (x + y * target_w) + 2] = (uint8_t)c.b*255;
+  //    render_target[4 * (x + y * target_w) + 3] = (uint8_t)c.a*255;
+  //}
 
 }// namespace CMU462
