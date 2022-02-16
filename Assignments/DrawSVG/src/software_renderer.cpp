@@ -626,7 +626,7 @@ namespace CMU462
       if (sy < 0 || sy >= supersample_h)
           return;
     //try using float as rgba's data structure
-      //alpha_blending(super_sample_buffer,4 * (sx + sy * supersample_w), c);
+      alpha_blending(super_sample_buffer,4 * (sx + sy * supersample_w), c);
 
     // super_sample_buffer[4 * (sx + sy * supersample_w)] = c.r * 255.0;
     // super_sample_buffer[4 * (sx + sy * supersample_w) + 1] = c.g * 255.0;
