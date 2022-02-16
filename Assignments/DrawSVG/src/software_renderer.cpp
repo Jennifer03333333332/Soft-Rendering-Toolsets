@@ -622,7 +622,7 @@ namespace CMU462
       //Change to alpha blending
           //c.a * 255.0;
 
-      //super_sample_buffer[4 * (sx + sy * supersample_w)] = 255.0f*((1 - c.a) * super_sample_buffer[4 * (sx + sy * supersample_w)] / 255.0f + c.r * c.a;)
+      //super_sample_buffer[4 * (sx + sy * supersample_w)] = 255.0f*((1 - c.a) * super_sample_buffer[4 * (sx + sy * supersample_w)] / 255.0f + c.r * c.a);
       ////c.r * 255.0;
       //super_sample_buffer[4 * (sx + sy * supersample_w) + 1] = 255.0f*((1 - c.a) * super_sample_buffer[4 * (sx + sy * supersample_w) + 1] / 255.0f + c.g * c.a);
       //    //c.g * 255.0;
