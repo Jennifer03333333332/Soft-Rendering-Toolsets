@@ -609,6 +609,14 @@ namespace CMU462
     return;
   }
 
+  //dst: canvas
+  static void alpha_blendingForSampleBuffer(const int& r_index, const Color& c) {
+      super_sample_buffer[r_index] = (c.r + (1 - c.a) * (super_sample_buffer[r_index] / 255.0f)) * 255.0f;
+      super_sample_buffer[r_index + 1] = (c.r + (1 - c.a) * (super_sample_buffer[r_index + 1] / 255.0f)) * 255.0f;
+      super_sample_buffer[r_index + 2] = (c.r + (1 - c.a) * (super_sample_buffer[r_index + 2] / 255.0f)) * 255.0f;
+      super_sample_buffer[r_index + 3] = (c.r + (1 - c.a) * (super_sample_buffer[r_index + 3] / 255.0f)) * 255.0f;
+  }
+
   //use inline to make running process faster
   //fill the sample buffer
   //sx,sy are the screen coordinates for ssaa screen
@@ -620,11 +628,11 @@ namespace CMU462
       if (sy < 0 || sy >= supersample_h)
           return;
     //try using float as rgba's data structure
-    
-    super_sample_buffer[4 * (sx + sy * supersample_w)] = c.r * 255.0;
-    super_sample_buffer[4 * (sx + sy * supersample_w) + 1] = c.g * 255.0;
-    super_sample_buffer[4 * (sx + sy * supersample_w) + 2] = c.b * 255.0;
-    super_sample_buffer[4 * (sx + sy * supersample_w) + 3] = c.a * 255.0;
+      alpha_blendingForSampleBuffer(4 * (sx + sy * supersample_w), c);
+    //super_sample_buffer[4 * (sx + sy * supersample_w)] = c.r * 255.0;
+    //super_sample_buffer[4 * (sx + sy * supersample_w) + 1] = c.g * 255.0;
+    //super_sample_buffer[4 * (sx + sy * supersample_w) + 2] = c.b * 255.0;
+    //super_sample_buffer[4 * (sx + sy * supersample_w) + 3] = c.a * 255.0;
 
       //Change to alpha blending
           //c.a * 255.0;
