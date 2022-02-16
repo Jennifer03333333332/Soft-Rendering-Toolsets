@@ -97,32 +97,13 @@ void Sampler2DImp::generate_mips(Texture& tex, int startLevel) {
     //for every texel in this level of mipmap
     for (int x = 0; x < mip.width; x++) {
         for (int y = 0; y < mip.height; y++) {
-            //Color sum = Color(0, 0, 0, 0);
-            ////Concentrate from the i-1 level. 4 -> 1
-            //for (int i = 0; i < 2; i++) {
-            //    for (int j = 0; j < 2; j++) {
-            //        Color c = GetColorFromTexture(tex, i - 1, 2 * x + i, 2 * y + j);
-            //        sum += c;//Color(r * a, g * a, b * a, a);
-            //    }
-            //}
-            //sum *= 0.25f;
-            ////if (sum.a != 0) {
-            ////    sum.r /= sum.a;
-            ////    sum.g /= sum.a;
-            ////    sum.b /= sum.a;
-            ////}
-            ////SetColorToTexture(tex, i, x, y, sum);
-            //float_to_uint8(&mip.texels[4 * (x + y * width)], &sum.r);
             Color sum = Color(0, 0, 0, 0);
-            for (int j = 0; j < 4; j++) {
-                static const int d[4][2] = {
-                        {0, 0}, {0, 1}, {1, 0}, {1, 1}
-                };
-                float r = tex.mipmap[i - 1].texels[4 * (2 * x + d[j][0] + (2 * y + d[j][1]) * mip.width * 2)] / 255.0f;
-                float g = tex.mipmap[i - 1].texels[4 * (2 * x + d[j][0] + (2 * y + d[j][1]) * mip.width * 2) + 1] / 255.0f;
-                float b = tex.mipmap[i - 1].texels[4 * (2 * x + d[j][0] + (2 * y + d[j][1]) * mip.width * 2) + 2] / 255.0f;
-                float a = tex.mipmap[i - 1].texels[4 * (2 * x + d[j][0] + (2 * y + d[j][1]) * mip.width * 2) + 3] / 255.0f;
-                sum += Color(r * a, g * a, b * a, a);
+            //Concentrate from the i-1 level. 4 -> 1
+            for (int i = 0; i < 2; i++) {
+                for (int j = 0; j < 2; j++) {
+                    Color c = GetColorFromTexture(tex, i - 1, 2 * x + i, 2 * y + j);
+                    sum += Color(c.r * a, c.g * a, c.b * a, c.a);//sum += c;
+                }
             }
             sum *= 0.25f;
             if (sum.a != 0) {
@@ -130,6 +111,7 @@ void Sampler2DImp::generate_mips(Texture& tex, int startLevel) {
                 sum.g /= sum.a;
                 sum.b /= sum.a;
             }
+            //SetColorToTexture(tex, i, x, y, sum);
             float_to_uint8(&mip.texels[4 * (x + y * width)], &sum.r);
         }
     }
