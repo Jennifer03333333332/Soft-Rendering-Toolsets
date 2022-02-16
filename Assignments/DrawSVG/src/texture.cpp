@@ -106,11 +106,11 @@ void Sampler2DImp::generate_mips(Texture& tex, int startLevel) {
                 }
             }
             sum *= 0.25f;
-            // if (sum.a != 0) {
-            //     sum.r /= sum.a;
-            //     sum.g /= sum.a;
-            //     sum.b /= sum.a;
-            // }
+             if (sum.a != 0) {
+                 sum.r /= sum.a;
+                 sum.g /= sum.a;
+                 sum.b /= sum.a;
+             }
             //SetColorToTexture(tex, i, x, y, sum);
             float_to_uint8(&mip.texels[4 * (x + y * mip.width)], &sum.r);
         }
