@@ -591,11 +591,11 @@ namespace CMU462
         g /= sample_rate * sample_rate;
         b /= sample_rate * sample_rate;
         a /= sample_rate * sample_rate;
-        if (a != 0) {
-            r /= a * 255.0f;
-            g /= a * 255.0f;
-            b /= a * 255.0f;
-        }
+        //if (a != 0) {
+        //    r /= a * 255.0f;
+        //    g /= a * 255.0f;
+        //    b /= a * 255.0f;
+        //}
         //SSAABuffer position to pixel position. (x,y) is the left-buttom sample of this pixel
         size_t pixelPos = 4 * ((x / sample_rate) + (y / sample_rate) * target_w);
         render_target[pixelPos] = (uint8_t)(r);
