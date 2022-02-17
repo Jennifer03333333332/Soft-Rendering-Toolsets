@@ -73,12 +73,11 @@ Task 8:
 
 
 Task 9:
-	For task9.svg, write the xml codes in text editor
+	For task9.svg, I wrote the xml codes in text editor
 
 
 Extra credit:
 
-    I completed the following extra credit work:
     For Task2, I did rasterize_line_xiaolinwu()
 
 Any other comments and considerations:
