@@ -596,7 +596,7 @@ namespace CMU462
         //   g = r/(a/255.0f);
         //   b = r/(a/255.0f);
         // }
-        //SSAABuffer position to pixel position. (x,y) is the left-buttom sample of this pixel
+        //SSAA Buffer position to pixel position. (x,y) is the left-buttom sample of this pixel
         size_t pixelPos = 4 * ((x / sample_rate) + (y / sample_rate) * target_w);
         render_target[pixelPos] = (uint8_t)(r);
         render_target[pixelPos + 1] = (uint8_t)(g);
@@ -606,14 +606,13 @@ namespace CMU462
     }
     return;
   }
-  //Task 8 
-  inline void alpha_blending(std::vector<float>& buffer, const int& r_index, const Color& element) {
-      buffer[r_index] = (element.r + (1 - element.a) * (buffer[r_index] / 255.0f)) * 255.0f;
-      buffer[r_index + 1] = (element.g + (1 - element.a) * (buffer[r_index + 1] / 255.0f)) * 255.0f;
-      buffer[r_index + 2] = (element.b + (1 - element.a) * (buffer[r_index + 2] / 255.0f)) * 255.0f;
-      buffer[r_index + 3] =  (element.b + (1 - element.a) * (buffer[r_index + 3] / 255.0f)) * 255.0f;
-      //buffer[r_index + 3] = (1.0f- ((1.0f - element.a) * (1- (buffer[r_index + 3] / 255.0f)))) * 255.0f;
-  }
+  //Task 8 not using
+  // inline void alpha_blending(std::vector<float>& buffer, const int& r_index, const Color& element) {
+  //     buffer[r_index] = (element.r + (1 - element.a) * (buffer[r_index] / 255.0f)) * 255.0f;
+  //     buffer[r_index + 1] = (element.g + (1 - element.a) * (buffer[r_index + 1] / 255.0f)) * 255.0f;
+  //     buffer[r_index + 2] = (element.b + (1 - element.a) * (buffer[r_index + 2] / 255.0f)) * 255.0f;
+  //     buffer[r_index + 3] =  (element.b + (1 - element.a) * (buffer[r_index + 3] / 255.0f)) * 255.0f;
+  // }
 
   //use inline to make running process faster
   //fill the sample buffer
@@ -625,33 +624,21 @@ namespace CMU462
           return;
       if (sy < 0 || sy >= supersample_h)
           return;
-    //try using float as rgba's data structure
-      //alpha_blending(super_sample_buffer,4 * (sx + sy * supersample_w), c);
+      //try using float as rgba's data structure
       int r_index = 4 * (sx + sy * supersample_w);
       //the initial value for sample_buffer is float_max
       //So it cause overflow
-      super_sample_buffer[r_index] = (c.r + (1 - c.a) * (super_sample_buffer[r_index] / 255.0f)) * 255.0f;
-      super_sample_buffer[r_index + 1] = (c.g + (1 - c.a) * (super_sample_buffer[r_index + 1] / 255.0f)) * 255.0f;
-      super_sample_buffer[r_index + 2] = (c.b + (1 - c.a) * (super_sample_buffer[r_index + 2] / 255.0f)) * 255.0f;
+      //clamp
+      super_sample_buffer[r_index] = clamp((c.r + (1 - c.a) * (super_sample_buffer[r_index] / 255.0f)) * 255.0f,0.0f,255.0f);
+      super_sample_buffer[r_index + 1] = clamp((c.g + (1 - c.a) * (super_sample_buffer[r_index + 1] / 255.0f)) * 255.0f,0.0f,255.0f);
+      super_sample_buffer[r_index + 2] = clamp((c.b + (1 - c.a) * (super_sample_buffer[r_index + 2] / 255.0f)) * 255.0f,0.0f,255.0f);
       //super_sample_buffer[r_index + 3] =  (c.b + (1 - c.a) * (super_sample_buffer[r_index + 3] / 255.0f)) * 255.0f;
-      super_sample_buffer[r_index + 3] = (1.0f- ((1.0f - c.a) * (1- (super_sample_buffer[r_index + 3] / 255.0f)))) * 255.0f;
-
-
+      super_sample_buffer[r_index + 3] = clamp((1.0f- ((1.0f - c.a) * (1- (super_sample_buffer[r_index + 3] / 255.0f)))) * 255.0f,0.0f,255.0f);
+     //Befor alpha blending:
      //super_sample_buffer[4 * (sx + sy * supersample_w)] = c.r * 255.0;
      //super_sample_buffer[4 * (sx + sy * supersample_w) + 1] = c.g * 255.0;
      //super_sample_buffer[4 * (sx + sy * supersample_w) + 2] = c.b * 255.0;
      //super_sample_buffer[4 * (sx + sy * supersample_w) + 3] = c.a * 255.0;
-
-      //Change to alpha blending
-          //c.a * 255.0;
-
-      //super_sample_buffer[4 * (sx + sy * supersample_w)] = 255.0f*((1 - c.a) * super_sample_buffer[4 * (sx + sy * supersample_w)] / 255.0f + c.r * c.a);
-      ////c.r * 255.0;
-      //super_sample_buffer[4 * (sx + sy * supersample_w) + 1] = 255.0f*((1 - c.a) * super_sample_buffer[4 * (sx + sy * supersample_w) + 1] / 255.0f + c.g * c.a);
-      //    //c.g * 255.0;
-      //super_sample_buffer[4 * (sx + sy * supersample_w) + 2] = 255.0f*((1 - c.a) * super_sample_buffer[4 * (sx + sy * supersample_w) + 2] / 255.0f + c.b * c.a);
-      //    //c.b * 255.0;
-      //super_sample_buffer[4 * (sx + sy * supersample_w) + 3] = 255.0f*(1 - (1 - c.a) * (1 - super_sample_buffer[4 * (sx + sy * supersample_w) + 3] / 255.0f));
       // fill sample
 
   } 

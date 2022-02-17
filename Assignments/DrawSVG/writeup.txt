@@ -65,10 +65,11 @@ Task 7:
     
 Task 8:
 
+    Fully implemented.
     problem I used to face:
     because I use "memset(&super_sample_buffer[0], (float)255, 4 * supersample_h * supersample_w * sizeof(float));" to set the background to white
     it set the memory as 0x7fffff, not 255.0f, which cause many overflow problems.
-
+    also rgba color > 255, using clamp() to solve it
 
 
 Task 9:
@@ -77,9 +78,8 @@ Task 9:
 
 Extra credit:
 
-    I completed the following extra credit work... (or N/A)
-
-    For Task2, I did rasterize_line_xiaolinwu
+    I completed the following extra credit work:
+    For Task2, I did rasterize_line_xiaolinwu()
 
 Any other comments and considerations:
 
