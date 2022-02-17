@@ -102,15 +102,16 @@ void Sampler2DImp::generate_mips(Texture& tex, int startLevel) {
             for (int m = 0; m < 2; m++) {
                 for (int n = 0; n < 2; n++) {
                     Color c = GetColorFromTexture(tex, i - 1, 2 * x + m, 2 * y + n);
-                    sum += Color(c.r * c.a, c.g * c.a, c.b * c.a, c.a);//sum += c;
+                    sum += Color(c.r, c.g, c.b, c.a);
+                    //sum += Color(c.r * c.a, c.g * c.a, c.b * c.a, c.a);//sum += c;
                 }
             }
             sum *= 0.25f;
-             if (sum.a != 0) {
-                sum.r /= sum.a;
-                sum.g /= sum.a;
-                sum.b /= sum.a;
-             }
+             //if (sum.a != 0) {
+             //   sum.r /= sum.a;
+             //   sum.g /= sum.a;
+             //   sum.b /= sum.a;
+             //}
             //SetColorToTexture(tex, i, x, y, sum);
             float_to_uint8(&mip.texels[4 * (x + y * mip.width)], &sum.r);
         }
