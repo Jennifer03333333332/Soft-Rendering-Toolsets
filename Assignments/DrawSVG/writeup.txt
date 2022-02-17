@@ -65,7 +65,11 @@ Task 7:
     
 Task 8:
 
-    To Do
+    problem I used to face:
+    because I use "memset(&super_sample_buffer[0], (float)255, 4 * supersample_h * supersample_w * sizeof(float));" to set the background to white
+    it set the memory as 0x7fffff, not 255.0f, which cause many overflow problems.
+
+
 
 Task 9:
 	For task9.svg, write the xml codes in text editor

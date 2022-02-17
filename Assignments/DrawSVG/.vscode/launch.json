@@ -29,7 +29,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/build_dbg/drawsvg",//DrawSVG
-            "args": [],
+            "args": ["alpha/"],//null
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}/svg",
             "environment": [],

@@ -573,7 +573,6 @@ namespace CMU462
     {
       for (size_t y = 0; y < supersample_h; y += sample_rate)
       {
-        //uint8_t r = 0, g = 0, b = 0, a = 0;
         float r = 0, g = 0, b = 0, a = 0;
         //Calculate all samples in the pixel where this sample in
         for (size_t i = 0; i < sample_rate; ++i)
@@ -592,11 +591,11 @@ namespace CMU462
         b /= sample_rate * sample_rate;
         a /= sample_rate * sample_rate;
         //get final color
-        //if (a != 0) {
-        //   r /= (a * 255.0f);
-        //   g /= (a * 255.0f);
-        //   b /= (a * 255.0f);
-        //}
+        // if (a != 0) {
+        //   r = r/(a/255.0f);
+        //   g = r/(a/255.0f);
+        //   b = r/(a/255.0f);
+        // }
         //SSAABuffer position to pixel position. (x,y) is the left-buttom sample of this pixel
         size_t pixelPos = 4 * ((x / sample_rate) + (y / sample_rate) * target_w);
         render_target[pixelPos] = (uint8_t)(r);
@@ -608,12 +607,12 @@ namespace CMU462
     return;
   }
   //Task 8 
-  inline static void alpha_blending(vector<float>& buffer, const int& r_index, const Color& element) {
+  inline void alpha_blending(std::vector<float>& buffer, const int& r_index, const Color& element) {
       buffer[r_index] = (element.r + (1 - element.a) * (buffer[r_index] / 255.0f)) * 255.0f;
       buffer[r_index + 1] = (element.g + (1 - element.a) * (buffer[r_index + 1] / 255.0f)) * 255.0f;
       buffer[r_index + 2] = (element.b + (1 - element.a) * (buffer[r_index + 2] / 255.0f)) * 255.0f;
-      //buffer[r_index + 3] =  (element.b + (1 - element.a) * (buffer[r_index + 3] / 255.0f)) * 255.0f;
-      buffer[r_index + 3] = (1.0f- ((1.0f - c.a) * (1- (buffer[r_index + 3] / 255.0f)))) * 255.0f;
+      buffer[r_index + 3] =  (element.b + (1 - element.a) * (buffer[r_index + 3] / 255.0f)) * 255.0f;
+      //buffer[r_index + 3] = (1.0f- ((1.0f - element.a) * (1- (buffer[r_index + 3] / 255.0f)))) * 255.0f;
   }
 
   //use inline to make running process faster
@@ -627,12 +626,21 @@ namespace CMU462
       if (sy < 0 || sy >= supersample_h)
           return;
     //try using float as rgba's data structure
-      alpha_blending(super_sample_buffer,4 * (sx + sy * supersample_w), c);
+      //alpha_blending(super_sample_buffer,4 * (sx + sy * supersample_w), c);
+      int r_index = 4 * (sx + sy * supersample_w);
+      //the initial value for sample_buffer is float_max
+      //So it cause overflow
+      super_sample_buffer[r_index] = (c.r + (1 - c.a) * (super_sample_buffer[r_index] / 255.0f)) * 255.0f;
+      super_sample_buffer[r_index + 1] = (c.g + (1 - c.a) * (super_sample_buffer[r_index + 1] / 255.0f)) * 255.0f;
+      super_sample_buffer[r_index + 2] = (c.b + (1 - c.a) * (super_sample_buffer[r_index + 2] / 255.0f)) * 255.0f;
+      //super_sample_buffer[r_index + 3] =  (c.b + (1 - c.a) * (super_sample_buffer[r_index + 3] / 255.0f)) * 255.0f;
+      super_sample_buffer[r_index + 3] = (1.0f- ((1.0f - c.a) * (1- (super_sample_buffer[r_index + 3] / 255.0f)))) * 255.0f;
 
-    // super_sample_buffer[4 * (sx + sy * supersample_w)] = c.r * 255.0;
-    // super_sample_buffer[4 * (sx + sy * supersample_w) + 1] = c.g * 255.0;
-    // super_sample_buffer[4 * (sx + sy * supersample_w) + 2] = c.b * 255.0;
-    // super_sample_buffer[4 * (sx + sy * supersample_w) + 3] = c.a * 255.0;
+
+     //super_sample_buffer[4 * (sx + sy * supersample_w)] = c.r * 255.0;
+     //super_sample_buffer[4 * (sx + sy * supersample_w) + 1] = c.g * 255.0;
+     //super_sample_buffer[4 * (sx + sy * supersample_w) + 2] = c.b * 255.0;
+     //super_sample_buffer[4 * (sx + sy * supersample_w) + 3] = c.a * 255.0;
 
       //Change to alpha blending
           //c.a * 255.0;
