@@ -36,9 +36,11 @@ public:
     }
     Object(List<Object>&& list, const Mat4& T = Mat4::I)
         : trans(T), itrans(T.inverse()), underlying(std::move(list)) {
+        has_trans = trans != Mat4::I;
     }
     Object(BVH<Object>&& bvh, const Mat4& T = Mat4::I)
         : trans(T), itrans(T.inverse()), underlying(std::move(bvh)) {
+        has_trans = trans != Mat4::I;
     }
 
     Object(const Object& src) = delete;
@@ -109,10 +111,10 @@ public:
     }
 
 private:
-    bool has_trans;
+    bool has_trans = false;
     Mat4 trans, itrans;
     int material = -1;
-    Scene_ID _id;
+    Scene_ID _id = 0;
     std::variant<Tri_Mesh, Shape, BVH<Object>, List<Object>> underlying;
 };
 
