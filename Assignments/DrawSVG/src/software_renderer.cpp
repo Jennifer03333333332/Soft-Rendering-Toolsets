@@ -78,7 +78,8 @@ namespace CMU462
     this->render_target = render_target;
     target_w = width;
     target_h = height;
-
+    //test only
+    //sample_rate = 3;
     if (SSAA) {
         supersample_h = height * sample_rate;
         supersample_w = width * sample_rate;
@@ -488,14 +489,27 @@ namespace CMU462
     // return;
     //}
     //SSAA
-      for (double x = xmin; x <= xmax; x += 1.0 / sample_rate)
+    //artifacts could happen
+      // for (double x = xmin; x <= xmax; x += 1.0 / sample_rate)
+      // {
+      //   for (double y = ymin; y <= ymax; y += 1.0 / sample_rate)
+      //   {
+      //     //center of the samples x + 0.5 / sample_rate,y+0.5 / sample_rate
+      //     if (inside_triangle(Vector2D(x + 0.5 / sample_rate, y + 0.5 / sample_rate), Triangle))
+      //     {
+      //       fill_sample(x * sample_rate, y * sample_rate, color);
+      //     }
+      //   }
+      // }
+      xmin*=sample_rate;xmax*=sample_rate;ymin*=sample_rate;ymax*=sample_rate;
+      for (double x = xmin; x <= xmax; x++)
       {
-        for (double y = ymin; y <= ymax; y += 1.0 / sample_rate)
+        for (double y = ymin; y <= ymax; y++)
         {
           //center of the samples x + 0.5 / sample_rate,y+0.5 / sample_rate
-          if (inside_triangle(Vector2D(x + 0.5 / sample_rate, y + 0.5 / sample_rate), Triangle))
+          if (inside_triangle(Vector2D(x/ sample_rate, y/ sample_rate), Triangle))
           {
-            fill_sample(x * sample_rate, y * sample_rate, color);
+            fill_sample(x, y, color);
           }
         }
       }
