@@ -65,7 +65,8 @@ namespace CMU462
     supersample_w = target_w * sample_rate;
     //allocate memory for super_sample_buffer, sizeof rgba * number of samples
     super_sample_buffer.resize(4 * supersample_h * supersample_w);
-    memset(&super_sample_buffer[0], (float)255, 4 * supersample_h * supersample_w * sizeof(float));
+    //memset(&super_sample_buffer[0], (float)255, 4 * supersample_h * supersample_w * sizeof(float));
+    std::fill(super_sample_buffer.begin(), super_sample_buffer.end(), 255.0f);
   }
 
   //Called when resizes
@@ -84,7 +85,8 @@ namespace CMU462
         //initialize the buffer with white(255)
         super_sample_buffer.resize(4 * supersample_h * supersample_w);
         //construct could take much room
-        memset(&super_sample_buffer[0], (float)255, 4 * supersample_h * supersample_w * sizeof(float));
+        //memset(&super_sample_buffer[0], (float)255, 4 * supersample_h * supersample_w * sizeof(float));
+        std::fill(super_sample_buffer.begin(), super_sample_buffer.end(), 255.0f);
     }
   }
 
