@@ -150,8 +150,8 @@ struct Camera {
 #define ASSIMP_COLLADA_LIGHT_ANGLE_NOT_SET 1e9f
 
 //skip
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+//#pragma GCC diagnostic push
+//#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
 /** A collada light source. */
 struct Light {
     Light() :
@@ -192,7 +192,7 @@ struct Light {
 
     aiString env_map;
 };
-#pragma GCC diagnostic pop
+//#pragma GCC diagnostic pop
 /** Short vertex index description */
 struct InputSemanticMapEntry {
     InputSemanticMapEntry() :
