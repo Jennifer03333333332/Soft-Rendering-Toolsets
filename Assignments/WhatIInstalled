@@ -6,5 +6,30 @@ The following packages will be REMOVED:
 
 
 sudo apt-get install notify-osd
+-----For scotty3D
+
+Usage: ./Scotty3D [OPTIONS]
+
+Options:
+  -h,--help                   Print this help message and exit
+  -s,--scene TEXT             Scene file to load
+  --env_map TEXT              Override scene environment map
+  --headless                  Path-trace scene without opening the GUI
+  -o,--output TEXT            Image file to write (if headless)
+  --animate                   Output animation frames (if headless)
+  --no_bvh                    Don't use BVH (if headless)
+  --width INT                 Output image width (if headless)
+  --height INT                Output image height (if headless)
+  --use_ar                    Compute output image width based on camera AR (if headless)
+  --depth INT                 Maximum ray depth (if headless)
+  --samples INT               Pixel samples (if headless)
+  --exposure FLOAT            Output exposure (if headless)
+
+
+platform.cpp:85 [info] Failed to create OpenGL 4.5 context, trying 4.1 (Could not create GL context: BadValue (integer parameter out of range for operation))
+platform.cpp:88 [warn] Failed to create OpenGL 4.1 context, trying 3.3 (Could not create GL context: BadValue (integer parameter out of range for operation))
+platform.cpp:94 [info] Could not enable vsync with late swap; using normal vsync.
+
+
 
 
