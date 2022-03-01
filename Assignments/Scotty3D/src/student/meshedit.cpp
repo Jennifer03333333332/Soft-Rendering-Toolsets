@@ -136,8 +136,26 @@ std::optional<Halfedge_Mesh::VertexRef> Halfedge_Mesh::collapse_face(Halfedge_Me
 */
 std::optional<Halfedge_Mesh::EdgeRef> Halfedge_Mesh::flip_edge(Halfedge_Mesh::EdgeRef e) {
 
+    //Task 1
     (void)e;
     return std::nullopt;
+
+    //First find the halfedge hf = h3, hf_twin = h0
+    HalfedgeRef hf = e->halfedge();
+    HalfedgeRef hf_twin = e->halfedge()->twin();
+    //find the face
+    FaceRef face = hf->face();
+    //Find the 2 vertices
+    VertexRef v0 =  hf_twin->vertex();
+    VertexRef v1 =  hf->vertex();
+
+    //Create new edge ? how to guide it's ccw: go next() in one face
+    for(HalfedgeRef hf_iter = hf->next();hf_iter!=hf;hf_iter = hf->next()){
+        
+    }
+
+    //delete old edge
+
 }
 
 /*
