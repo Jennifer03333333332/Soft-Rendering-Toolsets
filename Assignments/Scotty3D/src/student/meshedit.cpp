@@ -137,25 +137,80 @@ std::optional<Halfedge_Mesh::VertexRef> Halfedge_Mesh::collapse_face(Halfedge_Me
 std::optional<Halfedge_Mesh::EdgeRef> Halfedge_Mesh::flip_edge(Halfedge_Mesh::EdgeRef e) {
 
     //Task 1
-    (void)e;
-    return std::nullopt;
+    // (void)e;
+    // return std::nullopt;
+    if (e->on_boundary()) {//can't flip the edge on the boundary
+        return e;
+    }
+    std::vector<HalfedgeRef> hf_inFace0, hf_inFace1, hf_outside;
+    std::vector<VertexRef> vertices;
+    std::vector<EdgeRef> edges;
 
     //First find the halfedge hf = h3, hf_twin = h0
-    HalfedgeRef hf = e->halfedge();
-    HalfedgeRef hf_twin = e->halfedge()->twin();
-    //find the face
-    FaceRef face = hf->face();
-    //Find the 2 vertices
-    VertexRef v0 =  hf_twin->vertex();
-    VertexRef v1 =  hf->vertex();
+    HalfedgeRef h0 = e->halfedge();
+    HalfedgeRef h3 = e->halfedge()->twin();
 
-    //Create new edge ? how to guide it's ccw: go next() in one face
-    for(HalfedgeRef hf_iter = hf->next();hf_iter!=hf;hf_iter = hf->next()){
-        
+    //find the face
+    FaceRef f1 = h3->face();
+    FaceRef f0 = h0->face();
+    //Find the 2 vertices
+    VertexRef v0 =  h0->vertex();
+    VertexRef v1 =  h3->vertex();
+    //iterate hf in face 1
+    hf_inFace1.push_back(h3);
+    for(HalfedgeRef hf_iter = h3->next();hf_iter!=h3;hf_iter = h3->next()){
+        hf_inFace1.push_back(hf_iter);
+        hf_outside.push_back(hf_iter->twin());
+        vertices.push_back(hf_iter->vertex());
+        edges.push_back(hf_iter->edge());
+    }
+    //iterate hf in face 0
+    hf_inFace0.push_back(h0); 
+    for(HalfedgeRef hf_iter = h0->next();hf_iter!=h0;hf_iter = h0->next()){
+        hf_inFace0.push_back(hf_iter); 
+        hf_outside.push_back(hf_iter->twin());
+        vertices.push_back(hf_iter->vertex());
+        edges.push_back(hf_iter->edge());
+    } 
+
+
+
+    // how to guide it's ccw: go next() in one face
+
+    //reassign
+    int i = 1; 
+    //iterate in the face 1
+    for (HalfedgeRef h = h3->next(); h != h3; h = h->next(), i++) { 
+        //twin
+        h->twin() = hf_outside[i]; 
+        hf_outside[i]->twin() = h;
+        //vertex
+        h->vertex() = vertices[i]; 
+        vertices[i]->halfedge() = h; 
+        //face
+        h->face() = f1;
+        f1->halfedge() = h; 
+        //edge
+        h->edge() = edges[i];
+        edges[i]->halfedge() = h; 
+    }
+    for (HalfedgeRef h = h0->next(); h != h0; h = h->next(), i = (i + 1) % hf_outside.size()) {
+        h->twin() = hf_outside[i];
+        hf_outside[i]->twin() = h; 
+        h->vertex() = vertices[i];
+        vertices[i]->halfedge() = h; 
+        h->face() = f0;
+        f0->halfedge() = h; 
+        h->edge() = edges[i];
+        edges[i]->halfedge() = h; 
     }
 
-    //delete old edge
 
+    
+    //delete old edge
+    
+
+    
 }
 
 /*
