@@ -96,8 +96,57 @@ std::optional<Halfedge_Mesh::VertexRef> Halfedge_Mesh::bisect_edge(EdgeRef e) {
  */
 std::optional<Halfedge_Mesh::FaceRef> Halfedge_Mesh::erase_vertex(Halfedge_Mesh::VertexRef v) {
 
-    (void)v;
-    return std::nullopt;
+    //Should I delete a vertex that would cause the face disappearing? No I think.
+    if( v->on_boundary() ) return v->halfedge()->face();
+    //First find the halfedge
+
+    HalfedgeRef h = v->halfedge();
+    std::vector<HalfedgeRef> halfedge_array;//store all neighbors hf of v
+    //Find all neighbors for v
+    do {   
+        h = h->twin()->next();
+        halfedge_array.push_back(h);
+    } 
+    while( h != v->halfedge() );
+    HalfedgeRef new_hf = halfedge_array[0]->next();
+    //create new face
+    FaceRef newF = new_face();
+    newF->halfedge() = new_hf;
+
+    std::vector<HalfedgeRef> hf_inNewFace;
+
+    //halfedges can't have v, 
+    for(auto iter : halfedge_array){
+        //set new face
+        HalfedgeRef tmp = iter;
+        do {   
+            tmp->face() = newF;
+            //if tmp is in halfedge_array
+            hf_inNewFace.push_back(tmp);
+            tmp = tmp->next();
+        } 
+        while( tmp != iter );
+        erase(iter->face());//Am I delete the face or the face pointer?
+        erase(iter->edge());//Can I erase thing not existed?
+        erase(iter->twin());
+        erase(iter);//? can I delete the iteratot when loop?
+    }
+    //error here
+    for(auto it=hf_inNewFace.begin();it!=hf_inNewFace.end();++it){
+        for(auto j:halfedge_array){
+            if (*it == j)hf_inNewFace.erase(it);
+        }
+    }
+    
+    //Edge case
+    
+    //error: a live hf's face was erased. So for every hf in every face, must set a new face
+    
+    
+    erase(v);
+    std::optional<std::pair<Halfedge_Mesh::ElementRef, std::string>> test = validate();
+    
+    return newF;
 }
 
 /*
@@ -106,8 +155,46 @@ std::optional<Halfedge_Mesh::FaceRef> Halfedge_Mesh::erase_vertex(Halfedge_Mesh:
  */
 std::optional<Halfedge_Mesh::FaceRef> Halfedge_Mesh::erase_edge(Halfedge_Mesh::EdgeRef e) {
 
-    (void)e;
-    return std::nullopt;
+    // Can I erase boundary? No
+    if(e->on_boundary()) return e->halfedge()->face();
+    //First find the halfedge
+    HalfedgeRef h0 = e->halfedge();
+    HalfedgeRef h3 = e->halfedge()->twin();
+
+    //find the face
+    FaceRef f1 = h3->face();
+    FaceRef f0 = h0->face();
+    //Find the 2 vertices
+    VertexRef v0 =  h0->vertex();
+    VertexRef v1 =  h3->vertex();
+    //Face
+    FaceRef merged_face = new_face();
+    merged_face->halfedge() = h0->next();
+    
+    v0->halfedge() = h3->next();v1->halfedge() = h0->next();
+    //Next(), vertex->halfedge()
+    //All hf from the previous face should point to the new face
+    HalfedgeRef last_hf0, last_hf1;//
+    for(HalfedgeRef h_iter = h0->next();h_iter!=h0;h_iter = h_iter->next()){
+        last_hf0 = h_iter;
+        h_iter->face() = merged_face;
+    }
+    for(HalfedgeRef h_iter = h3->next();h_iter!=h3;h_iter = h_iter->next()){
+        last_hf1 = h_iter;
+        h_iter->face() = merged_face;
+    }
+    last_hf0->next() = h3->next(); last_hf1->next() = h0->next();
+    
+    
+    //a vertex's hf is erased
+
+    //erase faces and hfs and this edge
+    erase(f1);erase(f0);
+    erase(h0);erase(h3);//what if there are some vertex contained this hf?
+    erase(e);
+    std::optional<std::pair<Halfedge_Mesh::ElementRef, std::string>> test = validate();
+    
+    return merged_face;
 }
 
 /*
@@ -137,16 +224,14 @@ std::optional<Halfedge_Mesh::VertexRef> Halfedge_Mesh::collapse_face(Halfedge_Me
 std::optional<Halfedge_Mesh::EdgeRef> Halfedge_Mesh::flip_edge(Halfedge_Mesh::EdgeRef e) {
 
     //Task 1
-    // (void)e;
-    // return std::nullopt;
     if (e->on_boundary()) {//can't flip the edge on the boundary
         return e;
     }
     std::vector<HalfedgeRef> hf_inFace0, hf_inFace1, hf_outside;
-    std::vector<VertexRef> vertices;
-    std::vector<EdgeRef> edges;
-
-    //First find the halfedge hf = h3, hf_twin = h0
+    //std::vector<VertexRef> vertex_array;
+    //std::vector<EdgeRef> edges_array;
+    
+    //First find the halfedge
     HalfedgeRef h0 = e->halfedge();
     HalfedgeRef h3 = e->halfedge()->twin();
 
@@ -157,60 +242,71 @@ std::optional<Halfedge_Mesh::EdgeRef> Halfedge_Mesh::flip_edge(Halfedge_Mesh::Ed
     VertexRef v0 =  h0->vertex();
     VertexRef v1 =  h3->vertex();
     //iterate hf in face 1
+    //int j = 3, init = 0;
     hf_inFace1.push_back(h3);
-    for(HalfedgeRef hf_iter = h3->next();hf_iter!=h3;hf_iter = h3->next()){
+    for(HalfedgeRef hf_iter = h3->next();hf_iter!=h3;hf_iter = hf_iter->next()){
+        //init++;
+        //if(init > j) break;
         hf_inFace1.push_back(hf_iter);
         hf_outside.push_back(hf_iter->twin());
-        vertices.push_back(hf_iter->vertex());
-        edges.push_back(hf_iter->edge());
+        //vertex_array.push_back(hf_iter->vertex());
+        //edges_array.push_back(hf_iter->edge());
     }
     //iterate hf in face 0
-    hf_inFace0.push_back(h0); 
-    for(HalfedgeRef hf_iter = h0->next();hf_iter!=h0;hf_iter = h0->next()){
-        hf_inFace0.push_back(hf_iter); 
+    //init = 0;
+    hf_inFace0.push_back(h0);
+    for(HalfedgeRef hf_iter = h0->next();hf_iter!=h0;hf_iter = hf_iter->next()){
+        //init++;
+        //if(init > j) break;
+        hf_inFace0.push_back(hf_iter);
         hf_outside.push_back(hf_iter->twin());
-        vertices.push_back(hf_iter->vertex());
-        edges.push_back(hf_iter->edge());
-    } 
+        //vertex_array.push_back(hf_iter->vertex());
+        //edges_array.push_back(hf_iter->edge());
+    }
+    //what's in vertex_array : v0,v2,v1,v3(triangle mesh)
+    //how to guide it's ccw: go next() in one face
 
-
-
-    // how to guide it's ccw: go next() in one face
-
+    //Our new edge's vertex:v2,v3(h3->next()->next()->vertex(),h0->next()->next()->vertex())
+    //what changed: v2,v3's hf, e's vertex, h0,h3's vertex, f0,f1's vertex
     //reassign
-    int i = 1; 
-    //iterate in the face 1
-    for (HalfedgeRef h = h3->next(); h != h3; h = h->next(), i++) { 
-        //twin
-        h->twin() = hf_outside[i]; 
-        hf_outside[i]->twin() = h;
-        //vertex
-        h->vertex() = vertices[i]; 
-        vertices[i]->halfedge() = h; 
-        //face
-        h->face() = f1;
-        f1->halfedge() = h; 
-        //edge
-        h->edge() = edges[i];
-        edges[i]->halfedge() = h; 
+    //set_neighbors(HalfedgeRef next, HalfedgeRef twin, VertexRef vertex, EdgeRef edge,FaceRef face) 
+    h3->set_neighbors(hf_inFace1[2],h0,hf_inFace0[2]->vertex(),e,f1);
+    h0->set_neighbors(hf_inFace0[2],h3,hf_inFace1[2]->vertex(),e,f0);
+    f1->halfedge() = h3;
+    f0->halfedge() = h0;
+
+    // hf_inFace0[1]->next() = h3;
+    // hf_inFace0[1]->face() = f1;
+    // hf_inFace1[1]->next() = h0;
+    // hf_inFace1[1]->face() = f0;
+    //Adjust face array
+    HalfedgeRef tmp = hf_inFace0[1];
+    hf_inFace0.erase(hf_inFace0.begin()+1);
+    hf_inFace0.push_back(hf_inFace1[1]);
+
+    hf_inFace1.erase(hf_inFace1.begin()+1);
+    hf_inFace1.push_back(tmp);
+    //Iterate based on hf array, fix next()
+    for(int iter = 0;iter < hf_inFace0.size();iter++){
+        if(iter>0)hf_inFace0[iter-1]->next() = hf_inFace0[iter];
+        else{
+            hf_inFace0[hf_inFace0.size()-1]->next() = hf_inFace0[0];
+        }
+        hf_inFace0[iter]->face() = f0;
     }
-    for (HalfedgeRef h = h0->next(); h != h0; h = h->next(), i = (i + 1) % hf_outside.size()) {
-        h->twin() = hf_outside[i];
-        hf_outside[i]->twin() = h; 
-        h->vertex() = vertices[i];
-        vertices[i]->halfedge() = h; 
-        h->face() = f0;
-        f0->halfedge() = h; 
-        h->edge() = edges[i];
-        edges[i]->halfedge() = h; 
+    for(int iter = 0;iter < hf_inFace1.size();iter++){
+        if(iter>0)hf_inFace1[iter-1]->next() = hf_inFace1[iter];
+        else{
+            hf_inFace1[hf_inFace1.size()-1]->next() = hf_inFace1[0];
+        }
+        hf_inFace1[iter]->face() = f1;
     }
-
-
+    //hf_inFace0[2]->next() = hf_inFace1[1];
+    //error how do you know this face don't have next hf?
+    //v0,v1 is not in the new face
+    std::optional<std::pair<Halfedge_Mesh::ElementRef, std::string>> test = validate();
     
-    //delete old edge
-    
-
-    
+    return e;
 }
 
 /*

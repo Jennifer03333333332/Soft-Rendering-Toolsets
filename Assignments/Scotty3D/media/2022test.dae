@@ -5,8 +5,8 @@
       <author>Assimp</author>
       <authoring_tool>Assimp Exporter</authoring_tool>
     </contributor>
-    <created>2022-02-27T23:32:14</created>
-    <modified>2022-02-27T23:32:14</modified>
+    <created>2022-03-01T20:20:45</created>
+    <modified>2022-03-01T20:20:45</modified>
     <unit name="meter" meter="1" />
     <up_axis>Y_UP</up_axis>
   </asset>
@@ -91,6 +91,32 @@
         </technique>
       </profile_COMMON>
     </effect>
+    <effect id="lambertian_2-fx" name="lambertian">
+      <profile_COMMON>
+        <technique sid="standard">
+          <phong>
+            <emission>
+              <color sid="emission">1   1   1   1</color>
+            </emission>
+            <diffuse>
+              <color sid="diffuse">1   1   1   1</color>
+            </diffuse>
+            <shininess>
+              <float sid="shininess">1</float>
+            </shininess>
+            <reflective>
+              <color sid="reflective">1   1   1   1</color>
+            </reflective>
+            <transparent>
+              <color sid="transparent">1   1   1   1</color>
+            </transparent>
+            <index_of_refraction>
+              <float sid="index_of_refraction">1.2</float>
+            </index_of_refraction>
+          </phong>
+        </technique>
+      </profile_COMMON>
+    </effect>
   </library_effects>
   <library_materials>
     <material id="lambertian" name="lambertian">
@@ -99,49 +125,74 @@
     <material id="lambertian_1" name="lambertian">
       <instance_effect url="#lambertian_1-fx"/>
     </material>
+    <material id="lambertian_2" name="lambertian">
+      <instance_effect url="#lambertian_2-fx"/>
+    </material>
   </library_materials>
   <library_geometries>
-    <geometry id="Cube-S3D-16_1" name="Cube-S3D-16" >
+    <geometry id="Cube-S3D-14_1" name="Cube-S3D-14" >
       <mesh>
-        <source id="Cube-S3D-16_1-positions" name="Cube-S3D-16_1-positions">
-          <float_array id="Cube-S3D-16_1-positions-array" count="24"> -1 1 1 -1 1 -1 -1 -1 -1 -1 -1 1 1 -1 -1 1 -1 1 1 1 -1 -0.91673636 1 1 </float_array>
+        <source id="Cube-S3D-14_1-positions" name="Cube-S3D-14_1-positions">
+          <float_array id="Cube-S3D-14_1-positions-array" count="24"> -1 -1 1 -1 1 1 -1 1 -1 -1 -1 -1 1 -1 1 1 -1 -1 -0.91673636 1 1 1 1 -1 </float_array>
           <technique_common>
-            <accessor count="8" offset="0" source="#Cube-S3D-16_1-positions-array" stride="3">
+            <accessor count="8" offset="0" source="#Cube-S3D-14_1-positions-array" stride="3">
               <param name="X" type="float" />
               <param name="Y" type="float" />
               <param name="Z" type="float" />
             </accessor>
           </technique_common>
         </source>
-        <vertices id="Cube-S3D-16_1-vertices">
-          <input semantic="POSITION" source="#Cube-S3D-16_1-positions" />
+        <vertices id="Cube-S3D-14_1-vertices">
+          <input semantic="POSITION" source="#Cube-S3D-14_1-positions" />
         </vertices>
         <polylist count="6" material="defaultMaterial">
-          <input offset="0" semantic="VERTEX" source="#Cube-S3D-16_1-vertices" />
+          <input offset="0" semantic="VERTEX" source="#Cube-S3D-14_1-vertices" />
           <vcount>4 4 4 4 4 4 </vcount>
-          <p>3 0 1 2 5 3 2 4 7 5 4 6 0 7 6 1 0 3 5 7 6 4 2 1 </p>
+          <p>3 0 1 2 5 4 0 3 7 6 4 5 2 1 6 7 6 1 0 4 2 7 5 3 </p>
         </polylist>
       </mesh>
     </geometry>
-    <geometry id="Cube-S3D-17_1" name="Cube-S3D-17" >
+    <geometry id="Cube-S3D-15_1" name="Cube-S3D-15" >
       <mesh>
-        <source id="Cube-S3D-17_1-positions" name="Cube-S3D-17_1-positions">
-          <float_array id="Cube-S3D-17_1-positions-array" count="24"> -1 1 1 -1 1 -1 -1 -1 -1 -1 -1 1 1 -1 -1 -0.90987611 -1 1 1 1 -1 1 1 1 </float_array>
+        <source id="Cube-S3D-15_1-positions" name="Cube-S3D-15_1-positions">
+          <float_array id="Cube-S3D-15_1-positions-array" count="24"> -1 -1 1 -1 1 1 -1 1 -1 -1 -1 -1 -0.90987611 -1 1 1 -1 -1 1 1 1 1 1 -1 </float_array>
           <technique_common>
-            <accessor count="8" offset="0" source="#Cube-S3D-17_1-positions-array" stride="3">
+            <accessor count="8" offset="0" source="#Cube-S3D-15_1-positions-array" stride="3">
               <param name="X" type="float" />
               <param name="Y" type="float" />
               <param name="Z" type="float" />
             </accessor>
           </technique_common>
         </source>
-        <vertices id="Cube-S3D-17_1-vertices">
-          <input semantic="POSITION" source="#Cube-S3D-17_1-positions" />
+        <vertices id="Cube-S3D-15_1-vertices">
+          <input semantic="POSITION" source="#Cube-S3D-15_1-positions" />
         </vertices>
         <polylist count="6" material="defaultMaterial">
-          <input offset="0" semantic="VERTEX" source="#Cube-S3D-17_1-vertices" />
+          <input offset="0" semantic="VERTEX" source="#Cube-S3D-15_1-vertices" />
           <vcount>4 4 4 4 4 4 </vcount>
-          <p>3 0 1 2 5 3 2 4 7 5 4 6 0 7 6 1 0 3 5 7 6 4 2 1 </p>
+          <p>3 0 1 2 5 4 0 3 7 6 4 5 2 1 6 7 6 1 0 4 2 7 5 3 </p>
+        </polylist>
+      </mesh>
+    </geometry>
+    <geometry id="Cube-S3D-16-FLIPPED_1" name="Cube-S3D-16-FLIPPED" >
+      <mesh>
+        <source id="Cube-S3D-16-FLIPPED_1-positions" name="Cube-S3D-16-FLIPPED_1-positions">
+          <float_array id="Cube-S3D-16-FLIPPED_1-positions-array" count="24"> -0.5 -0.5 -0.5 0.5 -0.5 -0.5 -0.5 0.5 -0.5 0.5 0.5 -0.5 0.5 -0.5 0.5 0.5 0.5 0.5 -0.5 -0.5 0.5 -0.5 0.5 0.5 </float_array>
+          <technique_common>
+            <accessor count="8" offset="0" source="#Cube-S3D-16-FLIPPED_1-positions-array" stride="3">
+              <param name="X" type="float" />
+              <param name="Y" type="float" />
+              <param name="Z" type="float" />
+            </accessor>
+          </technique_common>
+        </source>
+        <vertices id="Cube-S3D-16-FLIPPED_1-vertices">
+          <input semantic="POSITION" source="#Cube-S3D-16-FLIPPED_1-positions" />
+        </vertices>
+        <polylist count="12" material="defaultMaterial">
+          <input offset="0" semantic="VERTEX" source="#Cube-S3D-16-FLIPPED_1-vertices" />
+          <vcount>3 3 3 3 3 3 3 3 3 3 3 3 </vcount>
+          <p>2 0 1 3 2 1 3 1 4 5 3 4 5 4 6 7 5 6 7 6 0 2 7 0 7 2 3 5 7 3 0 6 4 1 0 4 </p>
         </polylist>
       </mesh>
     </geometry>
@@ -150,9 +201,9 @@
   </library_controllers>
   <library_visual_scenes>
     <visual_scene id="node" name="">
-      <node id="Cube-S3D-16" name="Cube-S3D-16" type="NODE">
-        <matrix sid="matrix">1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1</matrix>
-        <instance_geometry url="#Cube-S3D-16_1">
+      <node id="Cube-S3D-14" name="Cube-S3D-14" type="NODE">
+        <matrix sid="matrix">1 0 0 0 0 1 0 2.6129825 0 0 1 0 0 0 0 1</matrix>
+        <instance_geometry url="#Cube-S3D-14_1">
           <bind_material>
             <technique_common>
               <instance_material symbol="defaultMaterial" target="#lambertian">
@@ -161,9 +212,9 @@
           </bind_material>
         </instance_geometry>
       </node>
-      <node id="Cube-S3D-17" name="Cube-S3D-17" type="NODE">
-        <matrix sid="matrix">1 0 0 0 0 1 0 1.9534092 0 0 1 0 0 0 0 1</matrix>
-        <instance_geometry url="#Cube-S3D-17_1">
+      <node id="Cube-S3D-15" name="Cube-S3D-15" type="NODE">
+        <matrix sid="matrix">1 0 0 0 0 1 0 3.5062749 0 0 1 0 0 0 0 1</matrix>
+        <instance_geometry url="#Cube-S3D-15_1">
           <bind_material>
             <technique_common>
               <instance_material symbol="defaultMaterial" target="#lambertian_1">
@@ -172,12 +223,23 @@
           </bind_material>
         </instance_geometry>
       </node>
+      <node id="Cube-S3D-16-FLIPPED" name="Cube-S3D-16-FLIPPED" type="NODE">
+        <matrix sid="matrix">1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1</matrix>
+        <instance_geometry url="#Cube-S3D-16-FLIPPED_1">
+          <bind_material>
+            <technique_common>
+              <instance_material symbol="defaultMaterial" target="#lambertian_2">
+              </instance_material>
+            </technique_common>
+          </bind_material>
+        </instance_geometry>
+      </node>
       <node id="S3D-ANIM_CAM_NODE" name="S3D-ANIM_CAM_NODE" type="NODE">
-        <matrix sid="matrix">0.70710713 -0.49999964 0.49999946 2.4999993 2.980231e-08 0.70710677 0.70710665 3.5355344 -0.70710617 -0.50000012 0.50000024 2.5000002 0 0 0 0.99999994</matrix>
+        <matrix sid="matrix">0.70710731 -0.49999958 0.49999976 2.4999998 0 0.70710695 0.70710671 3.5355353 -0.70710635 -0.5000003 0.50000042 2.5000007 0 0 0 1</matrix>
         <instance_camera url="#S3D-ANIM_CAM_NODE-camera"/>
       </node>
       <node id="S3D-RENDER_CAM_NODE" name="S3D-RENDER_CAM_NODE" type="NODE">
-        <matrix sid="matrix">0.70710713 -0.49999964 0.49999946 2.4999993 2.980231e-08 0.70710677 0.70710665 3.5355344 -0.70710617 -0.50000012 0.50000024 2.5000002 0 0 0 0.99999994</matrix>
+        <matrix sid="matrix">0.70710731 -0.49999958 0.49999976 2.4999998 0 0.70710695 0.70710671 3.5355353 -0.70710635 -0.5000003 0.50000042 2.5000007 0 0 0 1</matrix>
         <instance_camera url="#S3D-RENDER_CAM_NODE-camera"/>
       </node>
     </visual_scene>
