@@ -98,46 +98,49 @@ std::optional<Halfedge_Mesh::FaceRef> Halfedge_Mesh::erase_vertex(Halfedge_Mesh:
 
     //Should I delete a vertex that would cause the face disappearing? No I think.
     if( v->on_boundary() ) return v->halfedge()->face();
-    //First find the halfedge
+    //First find the halfedge neighbors
 
     HalfedgeRef h = v->halfedge();
-    std::vector<HalfedgeRef> halfedge_array;//store all neighbors hf of v
+    std::vector<HalfedgeRef> halfedge_array;
+    std::vector<VertexRef> vertices_array;
+    std::vector<FaceRef> faces_array;
     //Find all neighbors for v
     do {   
-        h = h->twin()->next();
-        halfedge_array.push_back(h);
+        // h = h->twin()->next();
+        // halfedge_array.push_back(h);
+
+        HalfedgeRef tmp_h;
+        //all hf in Each face
+        for (tmp_h = h->next(); tmp_h->next() != h; tmp_h = tmp_h->next()) {
+            halfedge_array.push_back(tmp_h);
+            vertices_array.push_back(tmp_h->vertex());
+        }
+        faces_array.push_back(h->face());
+        h = tmp_h->twin();
     } 
     while( h != v->halfedge() );
-    HalfedgeRef new_hf = halfedge_array[0]->next();
-    //create new face
-    FaceRef newF = new_face();
-    newF->halfedge() = new_hf;
-
-    std::vector<HalfedgeRef> hf_inNewFace;
-
-    //halfedges can't have v, 
-    for(auto iter : halfedge_array){
-        //set new face
-        HalfedgeRef tmp = iter;
-        do {   
-            tmp->face() = newF;
-            //if tmp is in halfedge_array
-            hf_inNewFace.push_back(tmp);
-            tmp = tmp->next();
-        } 
-        while( tmp != iter );
-        erase(iter->face());//Am I delete the face or the face pointer?
-        erase(iter->edge());//Can I erase thing not existed?
-        erase(iter->twin());
-        erase(iter);//? can I delete the iteratot when loop?
+    //reassign
+    for (int i = 0; i < halfedge_array.size(); i++) {
+        vertices_array[i]->halfedge() = halfedge_array[i];
+        halfedge_array[i]->next() = halfedge_array[(i + 1) % halfedge_array.size()];
+        halfedge_array[i]->face() = faces_array[0];
     }
-    //error here
-    for(auto it=hf_inNewFace.begin();it!=hf_inNewFace.end();++it){
-        for(auto j:halfedge_array){
-            if (*it == j)hf_inNewFace.erase(it);
-        }
+    faces_array[0]->halfedge() = halfedge_array[0];
+
+    //erase face
+    for(int i = 1;i<faces_array.size();i++){
+        erase(faces_array[i]);
     }
-    
+    //find all neighbors hf of v
+    h = v->halfedge();
+    do {
+        HalfedgeRef nh = h->twin()->next();
+        erase(h->edge());
+        erase(h->twin());
+        erase(h);
+        h = nh;
+    } while (h != v->halfedge());
+
     //Edge case
     
     //error: a live hf's face was erased. So for every hf in every face, must set a new face
@@ -146,7 +149,7 @@ std::optional<Halfedge_Mesh::FaceRef> Halfedge_Mesh::erase_vertex(Halfedge_Mesh:
     erase(v);
     std::optional<std::pair<Halfedge_Mesh::ElementRef, std::string>> test = validate();
     
-    return newF;
+    return faces_array[0];
 }
 
 /*
@@ -275,10 +278,6 @@ std::optional<Halfedge_Mesh::EdgeRef> Halfedge_Mesh::flip_edge(Halfedge_Mesh::Ed
     f1->halfedge() = h3;
     f0->halfedge() = h0;
 
-    // hf_inFace0[1]->next() = h3;
-    // hf_inFace0[1]->face() = f1;
-    // hf_inFace1[1]->next() = h0;
-    // hf_inFace1[1]->face() = f0;
     //Adjust face array
     HalfedgeRef tmp = hf_inFace0[1];
     hf_inFace0.erase(hf_inFace0.begin()+1);
@@ -305,7 +304,6 @@ std::optional<Halfedge_Mesh::EdgeRef> Halfedge_Mesh::flip_edge(Halfedge_Mesh::Ed
     //error how do you know this face don't have next hf?
     //v0,v1 is not in the new face
     std::optional<std::pair<Halfedge_Mesh::ElementRef, std::string>> test = validate();
-    
     return e;
 }
 
@@ -316,8 +314,90 @@ std::optional<Halfedge_Mesh::EdgeRef> Halfedge_Mesh::flip_edge(Halfedge_Mesh::Ed
 */
 std::optional<Halfedge_Mesh::VertexRef> Halfedge_Mesh::split_edge(Halfedge_Mesh::EdgeRef e) {
 
-    (void)e;
-    return std::nullopt;
+    
+    if (e->on_boundary()) {//can't flip the edge on the boundary
+        return std::nullopt;
+    }
+    
+    std::vector<HalfedgeRef> hf_inFace0, hf_inFace1;
+    std::vector<HalfedgeRef> newhf_f0, newhf_f1, newhf_f2, newhf_f3;
+    //First find the halfedge
+    HalfedgeRef h0 = e->halfedge();
+    HalfedgeRef h3 = e->halfedge()->twin();
+    EdgeRef olde0 = h0->edge();
+    EdgeRef olde3 = h3->edge();
+    //find the face
+    FaceRef f1 = h3->face();
+    FaceRef f0 = h0->face();
+    //Find the 2 vertices
+    VertexRef v0 =  h0->vertex();
+    VertexRef v1 =  h3->vertex();
+
+    //Start the reassign
+    
+    // For the 2 new edges and For the original edge that was split
+    EdgeRef new_e0 = new_edge(), new_e1 = new_edge();
+    HalfedgeRef new_hf1 = new_halfedge(),new_hf1_twin = new_halfedge(),new_hf0 = new_halfedge(),new_hf0_twin = new_halfedge();
+
+    EdgeRef new_e2 = new_edge(), new_e3 = new_edge();
+    HalfedgeRef new_hf2 = new_halfedge(),new_hf2_twin = new_halfedge(),new_hf3 = new_halfedge(),new_hf3_twin = new_halfedge();
+    FaceRef f2 = new_face(), f3 = new_face();
+
+    //iterate hf in face 1
+    hf_inFace1.push_back(h3);
+    for(HalfedgeRef hf_iter = h3->next();hf_iter!=h3;hf_iter = hf_iter->next()){
+        hf_inFace1.push_back(hf_iter);
+    }
+    //iterate hf in face 0
+    hf_inFace0.push_back(h0);
+    for(HalfedgeRef hf_iter = h0->next();hf_iter!=h0;hf_iter = hf_iter->next()){
+        hf_inFace0.push_back(hf_iter);
+    }
+    //for triangle only
+    if(hf_inFace1.size()!=3 && hf_inFace0.size()!=3)return std::nullopt;
+    VertexRef v3 = hf_inFace0[2]->vertex();
+    VertexRef v2 = hf_inFace1[2]->vertex();
+    //Storage ends
+    // new vertex
+    VertexRef new_v = new_vertex();
+    new_v->pos = (v3->pos + v2->pos)/2;
+
+    
+    //assign hf to edge
+    new_e2->halfedge() = new_hf2;new_e1->halfedge() = new_hf1;new_e0->halfedge() = new_hf0;new_e3->halfedge() = new_hf3;
+    //assign hf to face
+    f0->halfedge() = new_hf0;f1->halfedge() = new_hf1;f2->halfedge() = new_hf2;f3->halfedge() = new_hf3;
+    //assign hf to vertex
+    v0->halfedge() = new_hf3;v1->halfedge() = new_hf2;v2->halfedge() = new_hf1;v3->halfedge() = new_hf0;
+    new_v->halfedge() = new_hf2_twin;//! forget the hf of new vertex
+    //assign everything to hf
+    new_hf0->set_neighbors(new_hf2_twin,new_hf0_twin,v3,new_e0,f0);
+    new_hf0_twin->set_neighbors(hf_inFace0[2],new_hf0,new_v,new_e0,f3);
+    new_hf1->set_neighbors(new_hf3_twin,new_hf1_twin,v2,new_e1,f1);
+    new_hf1_twin->set_neighbors(hf_inFace1[2],new_hf1,new_v,new_e1,f2);
+    new_hf2->set_neighbors(new_hf1_twin,new_hf2_twin,v1,new_e2,f2);
+    new_hf2_twin->set_neighbors(hf_inFace0[1],new_hf2,new_v,new_e2,f0);
+    new_hf3->set_neighbors(new_hf0_twin,new_hf3_twin,v0,new_e3,f3);
+    new_hf3_twin->set_neighbors(hf_inFace1[1],new_hf3,new_v,new_e3,f1);
+    //forget the face of olf hf!
+    hf_inFace0[1]->face() = f0;
+    hf_inFace0[2]->face() = f3;
+    hf_inFace1[1]->face() = f1;
+    hf_inFace1[2]->face() = f2;
+    //next() for the old hf
+    hf_inFace0[1]->next() = new_hf0;
+    hf_inFace0[2]->next() = new_hf3;
+    hf_inFace1[1]->next() = new_hf1;
+    hf_inFace1[2]->next() = new_hf2;
+
+    //erase the old edges
+    erase(olde0);erase(olde3);
+    //erase hf: h0,h3
+    erase(h0); erase(h3);
+    //erase face: in this case no need
+    //vertex: nothing changed
+    std::optional<std::pair<Halfedge_Mesh::ElementRef, std::string>> test = validate();
+    return new_v;
 }
 
 
