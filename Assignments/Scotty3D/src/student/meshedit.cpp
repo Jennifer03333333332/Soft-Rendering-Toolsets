@@ -159,7 +159,7 @@ std::optional<Halfedge_Mesh::FaceRef> Halfedge_Mesh::erase_vertex(Halfedge_Mesh:
 std::optional<Halfedge_Mesh::FaceRef> Halfedge_Mesh::erase_edge(Halfedge_Mesh::EdgeRef e) {
 
     // Can I erase boundary? No
-    if(e->on_boundary()) return e->halfedge()->face();
+    if(e->on_boundary()) return std::nullopt;//return e->halfedge()->face();
     //First find the halfedge
     HalfedgeRef h0 = e->halfedge();
     HalfedgeRef h3 = e->halfedge()->twin();
@@ -173,8 +173,8 @@ std::optional<Halfedge_Mesh::FaceRef> Halfedge_Mesh::erase_edge(Halfedge_Mesh::E
     //Face
     FaceRef merged_face = new_face();
     merged_face->halfedge() = h0->next();
-    
-    v0->halfedge() = h3->next();v1->halfedge() = h0->next();
+    v0->halfedge() = h3->next();
+    v1->halfedge() = h0->next();//what if h0 don't have next
     //Next(), vertex->halfedge()
     //All hf from the previous face should point to the new face
     HalfedgeRef last_hf0, last_hf1;//
@@ -192,10 +192,18 @@ std::optional<Halfedge_Mesh::FaceRef> Halfedge_Mesh::erase_edge(Halfedge_Mesh::E
     //a vertex's hf is erased
 
     //erase faces and hfs and this edge
+    //if after erase, the vertice don't have edge any more, it should be erase
     erase(f1);erase(f0);
-    erase(h0);erase(h3);//what if there are some vertex contained this hf?
     erase(e);
-    std::optional<std::pair<Halfedge_Mesh::ElementRef, std::string>> test = validate();
+    
+    erase(h0);erase(h3);//what if there are some vertex contained this hf?
+    // unsigned int testv0 = v0->degree();
+    // unsigned int testv1 = v1->degree();
+
+    if(v0->degree() < 1)erase(v0);
+    
+    if(v1->degree() < 1)erase(v1);
+    //std::optional<std::pair<Halfedge_Mesh::ElementRef, std::string>> test = validate();
     
     return merged_face;
 }
@@ -205,9 +213,99 @@ std::optional<Halfedge_Mesh::FaceRef> Halfedge_Mesh::erase_edge(Halfedge_Mesh::E
     the new vertex created by the collapse.
 */
 std::optional<Halfedge_Mesh::VertexRef> Halfedge_Mesh::collapse_edge(Halfedge_Mesh::EdgeRef e) {
+    //collapse boundaries is ok
+    //Edge case : after collapse, no face left in this mesh / this mesh start with 2 faces / no collapse if other edges are all on boundary
 
-    (void)e;
-    return std::nullopt;
+    std::vector<HalfedgeRef> hf_inFace0, hf_inFace1, hf_outside;
+    //std::vector<VertexRef> vertex_array;
+    //std::vector<EdgeRef> edges_array;
+    
+    //First find the halfedge
+    HalfedgeRef h0 = e->halfedge();
+    HalfedgeRef h3 = e->halfedge()->twin();
+    HalfedgeRef tmp_hf_in_f1 = h3->next();
+
+    //find the face
+    FaceRef f1 = h3->face();
+    FaceRef f0 = h0->face();
+    if( f0->degree() <=2 && f1->degree()<=2) return std::nullopt;
+    //Find the 2 vertices
+    VertexRef v0 =  h0->vertex();
+    VertexRef v1 =  h3->vertex();
+    VertexRef v =  new_vertex();
+    v->pos = (v0->pos + v1->pos)/2;
+    erase_edge(e);
+    // if( erase_edge(e) == std::nullopt ){
+    //     return std::nullopt;
+    // }
+
+
+
+
+    //get all the edges/hfs with v0 and v1
+    std::vector<HalfedgeRef> hf_withv0,hf_withv1, hf_mixed;
+    HalfedgeRef h = v0->halfedge();
+    do {
+        // h = h->twin();
+        // hf_withv0.push_back(h);
+        h = h->twin()->next();
+        hf_withv0.push_back(h);//start point = v0
+    } 
+    while( h != v0->halfedge() );
+    h = v1->halfedge();
+    do {
+        h = h->twin()->next();
+        hf_withv1.push_back(h);//start point = v1
+    } 
+    while( h != v1->halfedge() );
+
+    for(auto hf : hf_withv0){
+        hf->vertex() = v;
+    }
+    for(auto hf : hf_withv1){
+        hf->vertex() = v;
+    }
+    //For the face we're going to lose: tmp_hf_in_f1
+    // std::vector<HalfedgeRef> outside, inside;
+    // h = tmp_hf_in_f1;
+    // do {
+    //     inside.push_back(h);
+    //     outside.push_back(h->twin());
+    //     h = h->next();
+    // } 
+    // while( h != tmp_hf_in_f1 );
+
+    //if there are 2-degree face, return null or replace it with line
+    //if(f0->degree() <=2 && f1->degree()<=2) return std::nullopt;
+    
+    //erase: v0,v1, face ,edge
+    //erase when hf and it's twin has the same vertex?
+    hf_mixed.insert(hf_mixed.end(),hf_withv0.begin(),hf_withv0.end());
+    hf_mixed.insert(hf_mixed.end(),hf_withv1.begin(),hf_withv1.end());
+    std::vector<EdgeRef> edge_array;
+    //think about how to change o(n2)
+    for(int i = 0;i<hf_mixed.size();i++){
+        //edge_array.push_back(hf_mixed[i]->edge());
+        for(int j = i+1;j<hf_mixed.size();j++){
+            //if hf are duplicate
+            HalfedgeRef i_twin = hf_mixed[i]->twin(), j_twin = hf_mixed[j]->twin();
+            if(hf_mixed[i]->vertex() == hf_mixed[j]->vertex()
+                && i_twin->vertex() == j_twin->vertex()){
+                    //bind
+                    i_twin->twin() = hf_mixed[j];//error fail to adjust this twin()
+                    hf_mixed[j] = i_twin->twin();
+                    erase(j_twin->face());//what if it don't have face?
+                    erase(j_twin->edge());
+                    erase(hf_mixed[i]);erase(j_twin);//is erase in real time?
+                    break;
+                }
+        }
+    }
+
+    erase(v0);erase(v1);
+    std::optional<std::pair<Halfedge_Mesh::ElementRef, std::string>> test = validate();
+    
+    return v;
 }
 
 /*
@@ -228,7 +326,7 @@ std::optional<Halfedge_Mesh::EdgeRef> Halfedge_Mesh::flip_edge(Halfedge_Mesh::Ed
 
     //Task 1
     if (e->on_boundary()) {//can't flip the edge on the boundary
-        return e;
+        return std::nullopt;
     }
     std::vector<HalfedgeRef> hf_inFace0, hf_inFace1, hf_outside;
     //std::vector<VertexRef> vertex_array;
@@ -300,9 +398,13 @@ std::optional<Halfedge_Mesh::EdgeRef> Halfedge_Mesh::flip_edge(Halfedge_Mesh::Ed
         }
         hf_inFace1[iter]->face() = f1;
     }
+    //what if after flip it duplicate with other edge?
     //hf_inFace0[2]->next() = hf_inFace1[1];
     //error how do you know this face don't have next hf?
     //v0,v1 is not in the new face
+    if(f0->degree() <=2 && f1->degree()<=2) return std::nullopt;
+    //how to judge 3 points is on the same edge: using the same vertex
+    
     std::optional<std::pair<Halfedge_Mesh::ElementRef, std::string>> test = validate();
     return e;
 }
@@ -379,7 +481,7 @@ std::optional<Halfedge_Mesh::VertexRef> Halfedge_Mesh::split_edge(Halfedge_Mesh:
     new_hf2_twin->set_neighbors(hf_inFace0[1],new_hf2,new_v,new_e2,f0);
     new_hf3->set_neighbors(new_hf0_twin,new_hf3_twin,v0,new_e3,f3);
     new_hf3_twin->set_neighbors(hf_inFace1[1],new_hf3,new_v,new_e3,f1);
-    //forget the face of olf hf!
+    //! forget the face of olf hf
     hf_inFace0[1]->face() = f0;
     hf_inFace0[2]->face() = f3;
     hf_inFace1[1]->face() = f1;
