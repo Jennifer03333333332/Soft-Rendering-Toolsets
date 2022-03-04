@@ -10,6 +10,7 @@
 *********************** Local Operations **************************
 ******************************************************************/
 
+
 /* Note on local operation return types:
 
     The local operations all return a std::optional<T> type. This is used so that your
@@ -120,7 +121,7 @@ std::optional<Halfedge_Mesh::FaceRef> Halfedge_Mesh::erase_vertex(Halfedge_Mesh:
     } 
     while( h != v->halfedge() );
     //reassign
-    for (int i = 0; i < halfedge_array.size(); i++) {
+    for (int i = 0; i < (int)halfedge_array.size(); i++) {
         vertices_array[i]->halfedge() = halfedge_array[i];
         halfedge_array[i]->next() = halfedge_array[(i + 1) % halfedge_array.size()];
         halfedge_array[i]->face() = faces_array[0];
@@ -128,7 +129,7 @@ std::optional<Halfedge_Mesh::FaceRef> Halfedge_Mesh::erase_vertex(Halfedge_Mesh:
     faces_array[0]->halfedge() = halfedge_array[0];
 
     //erase face
-    for(int i = 1;i<faces_array.size();i++){
+    for(int i = 1;i <  (int)faces_array.size();i++){
         erase(faces_array[i]);
     }
     //find all neighbors hf of v
@@ -147,7 +148,7 @@ std::optional<Halfedge_Mesh::FaceRef> Halfedge_Mesh::erase_vertex(Halfedge_Mesh:
     
     
     erase(v);
-    std::optional<std::pair<Halfedge_Mesh::ElementRef, std::string>> test = validate();
+    //std::optional<std::pair<Halfedge_Mesh::ElementRef, std::string>> test = validate();
     
     return faces_array[0];
 }
@@ -293,7 +294,7 @@ std::optional<Halfedge_Mesh::VertexRef> Halfedge_Mesh::collapse_edge(Halfedge_Me
     if(hf_inFace0.size() + 1 > 3){//hf_inFace0.size() + 1 = edges number of f0// if it's not triangle
         f0->halfedge() = hf_inFace0[0];
         //bind next() in face
-        for(int i = 0;i<hf_inFace0.size();i++){
+        for(int i = 0;i< (int)hf_inFace0.size();i++){
             if(i == 0) hf_inFace0[hf_inFace0.size()-1]->next() = hf_inFace0[0];
             else{hf_inFace0[i-1]->next() = hf_inFace0[i];}
         }
@@ -328,7 +329,7 @@ std::optional<Halfedge_Mesh::VertexRef> Halfedge_Mesh::collapse_edge(Halfedge_Me
     if(hf_inFace1.size() + 1 > 3){//hf_inFace0.size() + 1 = edges number of f0// if it's not triangle
         f1->halfedge() = hf_inFace1[0];
         //bind next() in face
-        for(int i = 0;i<hf_inFace1.size();i++){
+        for(int i = 0;i <  (int)hf_inFace1.size();i++){
             if(i == 0) hf_inFace1[hf_inFace1.size()-1]->next() = hf_inFace1[0];
             else{hf_inFace1[i-1]->next() = hf_inFace1[i];}
         }
@@ -348,7 +349,7 @@ std::optional<Halfedge_Mesh::VertexRef> Halfedge_Mesh::collapse_edge(Halfedge_Me
         //before erase b : 
         b->vertex()->halfedge() = b_twin;
         b_twin->vertex()->halfedge() = b_twin;
-        
+
         tmp_v0->halfedge() = a_twin;
         tmp_v1->halfedge() = b_twin;
 
@@ -358,17 +359,21 @@ std::optional<Halfedge_Mesh::VertexRef> Halfedge_Mesh::collapse_edge(Halfedge_Me
         erase(f1);
     }
 
-
-    
-
-        //test
-    // HalfedgeRef h = v->halfedge();
-    // do{
-    //     h = h->twin()->next();
+    // std::set<std::pair<unsigned int, unsigned int>> edge_ids;
+    // for (EdgeRef e_iter = edges.begin(); e_iter != edges.end(); e_iter++) {
+    //     unsigned int l = e_iter->halfedge()->vertex()->id();
+    //     unsigned int r = e_iter->halfedge()->twin()->vertex()->id();
+    //     if(l == r) {
+    //         return std::nullopt;
+    //     }
+    //     auto entry = edge_ids.find({l, r});
+    //     if(entry != edge_ids.end()) {
+    //         return std::nullopt;
+    //     }
+    //     edge_ids.insert({l, r});
+    //     edge_ids.insert({r, l});
     // }
-    // while(h!=v->halfedge());
-
-    std::optional<std::pair<Halfedge_Mesh::ElementRef, std::string>> test = validate();
+    //std::optional<std::pair<Halfedge_Mesh::ElementRef, std::string>> test = validate();
     
     return v;
 }
@@ -390,13 +395,12 @@ std::optional<Halfedge_Mesh::VertexRef> Halfedge_Mesh::collapse_face(Halfedge_Me
 std::optional<Halfedge_Mesh::EdgeRef> Halfedge_Mesh::flip_edge(Halfedge_Mesh::EdgeRef e) {
 
     //Task 1
+    //Edge case : tetrahedron, e not on boundary??
+   
     if (e->on_boundary()) {//can't flip the edge on the boundary
         return std::nullopt;
     }
     std::vector<HalfedgeRef> hf_inFace0, hf_inFace1, hf_outside;
-    //std::vector<VertexRef> vertex_array;
-    //std::vector<EdgeRef> edges_array;
-    
     //First find the halfedge
     HalfedgeRef h0 = e->halfedge();
     HalfedgeRef h3 = e->halfedge()->twin();
@@ -405,30 +409,21 @@ std::optional<Halfedge_Mesh::EdgeRef> Halfedge_Mesh::flip_edge(Halfedge_Mesh::Ed
     FaceRef f1 = h3->face();
     FaceRef f0 = h0->face();
     //Find the 2 vertices
-    VertexRef v0 =  h0->vertex();
-    VertexRef v1 =  h3->vertex();
-    //iterate hf in face 1
-    //int j = 3, init = 0;
-    hf_inFace1.push_back(h3);
-    for(HalfedgeRef hf_iter = h3->next();hf_iter!=h3;hf_iter = hf_iter->next()){
-        //init++;
-        //if(init > j) break;
+    // VertexRef v0 =  h0->vertex();
+    // VertexRef v1 =  h3->vertex();
+    //iterate hf in face 1, 0
+    HalfedgeRef hf_iter = h3;
+    do {
         hf_inFace1.push_back(hf_iter);
-        hf_outside.push_back(hf_iter->twin());
-        //vertex_array.push_back(hf_iter->vertex());
-        //edges_array.push_back(hf_iter->edge());
-    }
-    //iterate hf in face 0
-    //init = 0;
-    hf_inFace0.push_back(h0);
-    for(HalfedgeRef hf_iter = h0->next();hf_iter!=h0;hf_iter = hf_iter->next()){
-        //init++;
-        //if(init > j) break;
+        hf_iter = hf_iter->next();   
+    } while (hf_iter!=h3);
+
+    hf_iter = h0;
+    do {
         hf_inFace0.push_back(hf_iter);
-        hf_outside.push_back(hf_iter->twin());
-        //vertex_array.push_back(hf_iter->vertex());
-        //edges_array.push_back(hf_iter->edge());
-    }
+        hf_iter = hf_iter->next();   
+    } while (hf_iter!=h0);
+
     //what's in vertex_array : v0,v2,v1,v3(triangle mesh)
     //how to guide it's ccw: go next() in one face
 
@@ -449,14 +444,14 @@ std::optional<Halfedge_Mesh::EdgeRef> Halfedge_Mesh::flip_edge(Halfedge_Mesh::Ed
     hf_inFace1.erase(hf_inFace1.begin()+1);
     hf_inFace1.push_back(tmp);
     //Iterate based on hf array, fix next()
-    for(int iter = 0;iter < hf_inFace0.size();iter++){
+    for(int iter = 0;iter <  (int)hf_inFace0.size();iter++){
         if(iter>0)hf_inFace0[iter-1]->next() = hf_inFace0[iter];
         else{
             hf_inFace0[hf_inFace0.size()-1]->next() = hf_inFace0[0];
         }
         hf_inFace0[iter]->face() = f0;
     }
-    for(int iter = 0;iter < hf_inFace1.size();iter++){
+    for(int iter = 0;iter <  (int)hf_inFace1.size();iter++){
         if(iter>0)hf_inFace1[iter-1]->next() = hf_inFace1[iter];
         else{
             hf_inFace1[hf_inFace1.size()-1]->next() = hf_inFace1[0];
@@ -469,8 +464,22 @@ std::optional<Halfedge_Mesh::EdgeRef> Halfedge_Mesh::flip_edge(Halfedge_Mesh::Ed
     //v0,v1 is not in the new face
     if(f0->degree() <=2 && f1->degree()<=2) return std::nullopt;
     //how to judge 3 points is on the same edge: using the same vertex
-    
-    std::optional<std::pair<Halfedge_Mesh::ElementRef, std::string>> test = validate();
+    //how to judge if there are edge duplicate
+    std::set<std::pair<unsigned int, unsigned int>> edge_ids;
+    for (EdgeRef e_iter = edges.begin(); e_iter != edges.end(); e_iter++) {
+        unsigned int l = e_iter->halfedge()->vertex()->id();
+        unsigned int r = e_iter->halfedge()->twin()->vertex()->id();
+        if(l == r) {
+            return std::nullopt;
+        }
+        auto entry = edge_ids.find({l, r});
+        if(entry != edge_ids.end()) {
+            return std::nullopt;
+        }
+        edge_ids.insert({l, r});
+        edge_ids.insert({r, l});
+    }
+    //std::optional<std::pair<Halfedge_Mesh::ElementRef, std::string>> test = validate();
     return e;
 }
 
@@ -711,73 +720,97 @@ std::optional<Halfedge_Mesh::FaceRef> Halfedge_Mesh::bevel_edge(Halfedge_Mesh::E
     Halfedge_Mesh::bevel_face_positions (which you also have to
     implement!)
 */
+
+inline int Findh0TwinInSideFace(const int& index, const int& degree){
+    return ((index + 1) * 3 + 2) % (3 * degree);// number of new hf for each side face
+}
 std::optional<Halfedge_Mesh::FaceRef> Halfedge_Mesh::bevel_face(Halfedge_Mesh::FaceRef f) {
 
     // Reminder: You should set the positions of new vertices (v->pos) to be exactly
     // the same as wherever they "started from."
 
-    // if (f->is_boundary()) {
-    //     return f;
-    // }
+    // if (f->is_boundary()) {return f;}
 
-    std::vector<VertexRef> verts;
-    std::vector<HalfedgeRef> outside, halfedges_array, inside;
-    std::vector<FaceRef> faces_array;
-
-    HalfedgeRef th = f->halfedge();
+    std::vector<HalfedgeRef> old_hfs, new_hfs, halfedges_array;
+    std::vector<FaceRef> faces_array;//side faces
+    std::vector<VertexRef> vertices_array;//vertices in up face
+    //Store hfs in old face in old_hfs
+    HalfedgeRef h = f->halfedge();
     do {
-        outside.push_back(th);
-        verts.push_back(new_vertex());
-        th = th->next();
-    } while (th != f->halfedge());
+        old_hfs.emplace_back(h);
+        h = h->next();
+    } while (h != f->halfedge());
+    int degree = (int)old_hfs.size();
+    //For example, 4 degree polygon -> 4 faces as side
+    for (int i = 0; i < degree; i++) {
+        
+        FaceRef f0 = new_face();  
+        //Bind face and hf
+        f0->halfedge() = old_hfs[i];
+        old_hfs[i]->face() = f0;
 
-    int deg = f->degree();
-    for (int i = 0; i < deg; i++) {
-        halfedges_array.push_back(new_halfedge());
-        halfedges_array.push_back(new_halfedge());
-        halfedges_array.push_back(new_halfedge());
+        //bind face
+        HalfedgeRef h0 = new_halfedge(),h1 = new_halfedge(),h2 = new_halfedge();
+        
+        //Store array
+        //For side face: ⬆h0 →h1 ⬇h2 ⬅old_hfs[i]
+        //next
+        h0->next() = h1; h1->next() = h2; h2->next() = old_hfs[i]; old_hfs[i]->next() = h0;
+        //twin
+        h0->face() = f0; h1->face() = f0; h2->face() = f0;
+        h0->vertex() = old_hfs[(i+1)%degree]->vertex(); //old_hfs[i]->next()->vertex(); old_hfs[i]->next() could don't have vertex
+        
 
-        faces_array.push_back(new_face());
-        faces_array[i]->halfedge() = outside[i];
-        outside[i]->face() = faces_array[i];
-        halfedges_array[i * 3]->face() = faces_array[i];
-        halfedges_array[i * 3 + 1]->face() = faces_array[i];
-        halfedges_array[i * 3 + 2]->face() = faces_array[i];
-
-        inside.push_back(new_halfedge());
+        halfedges_array.emplace_back(h0); halfedges_array.emplace_back(h1); halfedges_array.emplace_back(h2);//hf for one side face
+        faces_array.emplace_back(f0);
+        //For Up face:
+        new_hfs.emplace_back(new_halfedge());
+        vertices_array.emplace_back(new_vertex());
     }
 
-    for (int i = 0; i < deg; i++) {
-        EdgeRef ne = new_edge();
+    
+    //assign up face
+    for (int j = 0; j < degree; j++) {
+        //In up face
+        {
+            //Bind next in up face
+            new_hfs[j]->next() = new_hfs[(j + 1) % degree];
+            //Bind twin with side face
+            new_hfs[j]->twin() = halfedges_array[j * 3 + 1];//h1
+            halfedges_array[j * 3 + 1]->twin() = new_hfs[j];
+            //Bind vertex in up face
+            new_hfs[j]->vertex() = vertices_array[j];
+            vertices_array[j]->halfedge() = new_hfs[j];
+            vertices_array[j]->pos = old_hfs[j]->vertex()->pos; //set as the start position
+            //Bind edge in up face
+            new_hfs[j]->edge() = halfedges_array[j * 3 + 1]->edge() = new_edge();
+            new_hfs[j]->edge() -> halfedge() = new_hfs[j];
+            //Bind face
+            new_hfs[j]->face() = f;
+            f->halfedge() = new_hfs[j];
+        }
+        //In side faces
+        {
+            //next(): done
+            //set twin(!!!)
+            halfedges_array[j * 3]->twin() = halfedges_array[Findh0TwinInSideFace(j,degree)];
+            halfedges_array[Findh0TwinInSideFace(j,degree)]->twin() = halfedges_array[j * 3];
 
-        outside[i]->next() = halfedges_array[i * 3];
-        halfedges_array[i * 3]->next() = halfedges_array[i * 3 + 1];
-        halfedges_array[i * 3 + 1]->next() = halfedges_array[i * 3 + 2];
-        halfedges_array[i * 3 + 2]->next() = outside[i];
-        inside[i]->next() = inside[(i + 1) % deg];
-
-        inside[i]->twin() = halfedges_array[i * 3 + 1];
-        halfedges_array[i * 3 + 1]->twin() = inside[i];
-        inside[i]->edge() = halfedges_array[i * 3 + 1]->edge() = ne;
-        ne->halfedge() = inside[i];
-        inside[i]->face() = f;
-        f->halfedge() = inside[i];
-
-        halfedges_array[i * 3]->vertex() = outside[(i + 1) % deg]->vertex();
-        halfedges_array[i * 3 + 1]->vertex() = verts[(i + 1) % deg];
-        halfedges_array[i * 3 + 2]->vertex() = verts[i];
-        inside[i]->vertex() = verts[i];
-        verts[i]->halfedge() = inside[i];
-        verts[i]->pos = outside[i]->vertex()->pos;
-
-        EdgeRef me = new_edge();
-        me->halfedge() = halfedges_array[i * 3];
-        halfedges_array[i * 3]->twin() = halfedges_array[((i + 1) * 3 + 2) % (3 * deg)];
-        halfedges_array[((i + 1) * 3 + 2) % (3 * deg)]->twin() = halfedges_array[i * 3];
-        halfedges_array[i * 3]->edge() = halfedges_array[((i + 1) * 3 + 2) % (3 * deg)]->edge() = me;
+            //Bind vertex in side face
+            //Vertex
+            halfedges_array[j * 3 + 1]->vertex() = vertices_array[(j + 1) % old_hfs.size()];
+            halfedges_array[j * 3 + 2]->vertex() = vertices_array[j];
+            // For side edges ( vertical )
+            
+            //Bind edge
+            halfedges_array[j * 3]->edge() = halfedges_array[Findh0TwinInSideFace(j,degree)]->edge() = new_edge();
+            halfedges_array[j * 3]->edge()->halfedge() = halfedges_array[j * 3];
+            //Bind face: Done
+        }
+        
     }
 
-
+    //std::optional<std::pair<Halfedge_Mesh::ElementRef, std::string>> test = validate();
     return f;
 }
 
@@ -797,7 +830,7 @@ void Halfedge_Mesh::bevel_vertex_positions(const std::vector<Vec3>& start_positi
     std::vector<HalfedgeRef> new_halfedges;
     auto h = face->halfedge();
     do {
-        new_halfedges.push_back(h);
+        new_halfedges.emplace_back(h);
         h = h->next();
     } while(h != face->halfedge());
 
@@ -806,24 +839,26 @@ void Halfedge_Mesh::bevel_vertex_positions(const std::vector<Vec3>& start_positi
     // (void)face;
     // (void)tangent_offset;
     tangent_offset = (-1.0f)*tangent_offset;//left and right was reverse
-    std::vector<Vec3> orig;
+    //Store new_halfedges
+    std::vector<Vec3> before_pos;
     for (auto e : new_halfedges) {
-        orig.push_back(e->twin()->next()->next()->vertex()->pos);//current v pos
+        before_pos.emplace_back(e->twin()->next()->next()->vertex()->pos);//vertex on the old edge, guide the direction
     }
 
-    std::vector<Vec3> delta;
-    for (int i = 0; i < new_halfedges.size(); i++) {
-        Vec3 dir = orig[i] - start_positions[i];
-        if(dir.norm_squared()!=0) dir.normalize();
-        dir *= tangent_offset;
-        if (tangent_offset > 0 && (new_halfedges[i]->vertex()->pos - orig[i]).norm_squared() <= dir.norm_squared())
-            return;
-        if (tangent_offset < 0 && (new_halfedges[i]->vertex()->pos - start_positions[i]).norm_squared() <= dir.norm_squared())
-            return;
-        delta.push_back(dir);
+    int degree = (int)face->degree();
+    std::vector<Vec3> delta;//delta of vector's / change
+    for (int i = 0; i < degree; i++) {
+        Vec3 dv = before_pos[i] - start_positions[i];
+        if(dv.norm_squared()!=0) dv.normalize();
+        dv *= tangent_offset;
+        //if get larger, Distance between(current and original edge) can not > original edge's length
+        if (tangent_offset > 0 && (new_halfedges[i]->vertex()->pos - before_pos[i]).norm_squared() <= dv.norm_squared())return;
+        //if get smaller, Distance between(current and original edge) can not cause reverse
+        if (tangent_offset < 0 && (new_halfedges[i]->vertex()->pos - start_positions[i]).norm_squared() <= dv.norm_squared())return;
+        delta.emplace_back(dv);
     }
 
-    for (int i = 0; i < new_halfedges.size(); i++) {
+    for (int i = 0; i < degree; i++) {
         new_halfedges[i]->vertex()->pos += delta[i];
     }
     
@@ -904,28 +939,26 @@ void Halfedge_Mesh::bevel_face_positions(const std::vector<Vec3>& start_position
     // (void)face;
     // (void)tangent_offset; : delta.pos.x
     // (void)normal_offset;: delta.pos.y
-
-    Vec3 center_t1 = face->center();
-    std::vector<Vec3> orig;// pos of vertices
+    int degree = (int)face->degree();
+    Vec3 center_t = face->center();
+    std::vector<Vec3> before_pos;// pos of vertices
     for (auto e : new_halfedges) {
-        orig.push_back(e->vertex()->pos);
+        before_pos.push_back(e->vertex()->pos);
     }
-    Vec3 normal = (-1)*face->normal().normalize();
+    Vec3 normal = (-1.0f)*face->normal().normalize();
     normal *= normal_offset;
 
     std::vector<Vec3> delta;
-    for (int i = 0; i < new_halfedges.size(); i++) {
-        Vec3 dir = Vec3();
-        Vec3 horizontal_dir = (center_t1 - orig[i]).normalize() * tangent_offset;
-        dir = horizontal_dir + normal;
-
-        //constrained
-        if ( (new_halfedges[i]->vertex()->pos - center_t1 ).norm_squared() <= dir.norm_squared() )
-            return;
-        delta.push_back(dir);
+    for (int i = 0; i < degree; i++) {
+        Vec3 dv = Vec3();
+        Vec3 horizontal = (center_t - before_pos[i]).normalize() * tangent_offset;
+        dv = horizontal + normal;
+        //constrained for both larger and smaller
+        if ( (new_halfedges[i]->vertex()->pos - center_t ).norm_squared() <= dv.norm_squared() ) return;
+        delta.push_back(dv);
     }
 
-    for (int i = 0; i < new_halfedges.size(); i++) {
+    for (int i = 0; i < degree; i++) {
         new_halfedges[i]->vertex()->pos += delta[i];
     }
 }
