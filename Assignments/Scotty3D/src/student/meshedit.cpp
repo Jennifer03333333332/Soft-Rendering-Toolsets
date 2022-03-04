@@ -799,7 +799,7 @@ void Halfedge_Mesh::bevel_vertex_positions(const std::vector<Vec3>& start_positi
 
     std::vector<Vec3> orig;
     for (auto e : new_halfedges) {
-        orig.push_back(e->twin()->next()->next()->vertex()->pos);//current pos
+        orig.push_back(e->twin()->next()->next()->vertex()->pos);//current v pos
     }
 
     std::vector<Vec3> delta;
@@ -888,34 +888,33 @@ void Halfedge_Mesh::bevel_face_positions(const std::vector<Vec3>& start_position
         new_halfedges.push_back(h);
         h = h->next();
     } while(h != face->halfedge());
-
+    //right means -x  left means + x
+    //right means tangent_offset < 0 & vertice get closer to center, left means tangent_offset > 0
     // (void)new_halfedges;
     // (void)start_positions;
     // (void)face;
-    // (void)tangent_offset;
-    // (void)normal_offset;
-    Vec3 c0(0), c1(0);
-    std::vector<Vec3> orig;
-    for (auto e : new_halfedges) {
-        orig.push_back(e->twin()->vertex()->pos);
-        c0 += orig.back();//last element of orig
-        c1 += e->vertex()->pos;
-    }
-    c0 /= (float)new_halfedges.size();
-    c1 /= (float)new_halfedges.size();
+    // (void)tangent_offset; : delta.pos.x
+    // (void)normal_offset;: delta.pos.y
 
-    Vec3 v0 = orig[1] - orig[0];
-    Vec3 v1 = orig[2] - orig[1];
-    Vec3 normal = cross(v1, v0);
-    normal.normalize();
+
+    //Vec3 center_t1 = face->center();
+    Vec3 center_t2 = Vec3();
+    std::vector<Vec3> orig;// pos of vertices
+    for (auto e : new_halfedges) {
+        orig.push_back(e->vertex()->pos);
+        center_t2 += e->vertex()->pos;
+    }
+    center_t2 /= (float)new_halfedges.size();
+    Vec3 normal = (-1)*face->normal().normalize();
     normal *= normal_offset;
 
     std::vector<Vec3> delta;
     for (int i = 0; i < new_halfedges.size(); i++) {
-        Vec3 dir = c0 - orig[i];
+        Vec3 dir = center_t2 - orig[i];
         dir *= tangent_offset;
         dir += normal;
-        if (tangent_offset > 0 && (new_halfedges[i]->vertex()->pos - c1).norm_squared() <= dir.norm_squared())
+        //constrained to the center and the origin vertex
+        if (tangent_offset > 0 && (new_halfedges[i]->vertex()->pos - center_t2).norm_squared() <= dir.norm_squared())
             return;
         if (tangent_offset < 0 && (new_halfedges[i]->vertex()->pos - orig[i]).norm_squared() <= dir.norm_squared())
             return;
