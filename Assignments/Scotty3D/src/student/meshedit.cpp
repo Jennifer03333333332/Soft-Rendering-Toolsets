@@ -213,6 +213,9 @@ std::optional<Halfedge_Mesh::FaceRef> Halfedge_Mesh::erase_edge(Halfedge_Mesh::E
     the new vertex created by the collapse.
 */
 std::optional<Halfedge_Mesh::VertexRef> Halfedge_Mesh::collapse_edge(Halfedge_Mesh::EdgeRef e) {
+    
+
+
     //collapse boundaries is ok
     //Edge case : after collapse, no face left in this mesh / this mesh start with 2 faces / no collapse if other edges are all on boundary
     if(e->on_boundary())return std::nullopt;
@@ -224,13 +227,10 @@ std::optional<Halfedge_Mesh::VertexRef> Halfedge_Mesh::collapse_edge(Halfedge_Me
     //First find the halfedge
     HalfedgeRef h0 = e->halfedge();
     HalfedgeRef h3 = e->halfedge()->twin();
-    HalfedgeRef tmp_hf_in_f1 = h3->next();
-    
+
     //find the face
     FaceRef f1 = h3->face();
     FaceRef f0 = h0->face();
-    //int f1_degree = f1->degree();
-    //int f0_degree = f0->degree(); 
 
     if( f0->degree() <=3 && f0->is_boundary()) {
         return std::nullopt;
@@ -244,7 +244,7 @@ std::optional<Halfedge_Mesh::VertexRef> Halfedge_Mesh::collapse_edge(Halfedge_Me
     VertexRef v =  new_vertex();
     v->pos = (v0->pos + v1->pos)/2;
     //deal with next
-    //HalfedgeRef h3_next = h3->next(), h0_next= h0->next();
+    //Store 2 arrays for face0 and face1
     for(HalfedgeRef h_iter = h3->next();h_iter!=h3;h_iter = h_iter->next()){
         //h3_last = h_iter;
         hf_inFace1.push_back(h_iter);
@@ -301,7 +301,8 @@ std::optional<Halfedge_Mesh::VertexRef> Halfedge_Mesh::collapse_edge(Halfedge_Me
     }
     else{//triangle
         HalfedgeRef a = hf_inFace0[0], b = hf_inFace0[1], a_twin = a->twin(), b_twin = b->twin();
-
+        VertexRef tmp_v0 = a_twin->vertex();
+        VertexRef tmp_v1 = b_twin->vertex();
         //bind twin(). keep atwin and btwin, erase a ,b
         a_twin->twin() = b_twin;b_twin->twin() = a_twin;
         //before erase(b->edge());
@@ -313,6 +314,9 @@ std::optional<Halfedge_Mesh::VertexRef> Halfedge_Mesh::collapse_edge(Halfedge_Me
         //before erase b : 
         b->vertex()->halfedge() = b_twin;
         b_twin->vertex()->halfedge() = b_twin;
+
+        tmp_v0->halfedge() = a_twin;
+        tmp_v1->halfedge() = b_twin;
 
         erase(b->face());
         erase(b->edge());
@@ -331,7 +335,8 @@ std::optional<Halfedge_Mesh::VertexRef> Halfedge_Mesh::collapse_edge(Halfedge_Me
     }
     else{//triangle
         HalfedgeRef a = hf_inFace1[0], b = hf_inFace1[1], a_twin = a->twin(), b_twin = b->twin();
-
+        VertexRef tmp_v0 = a_twin->vertex();
+        VertexRef tmp_v1 = b_twin->vertex();
         //bind twin(). keep atwin and btwin, erase a ,b
         a_twin->twin() = b_twin;b_twin->twin() = a_twin;
         //before erase(b->edge());
@@ -343,6 +348,10 @@ std::optional<Halfedge_Mesh::VertexRef> Halfedge_Mesh::collapse_edge(Halfedge_Me
         //before erase b : 
         b->vertex()->halfedge() = b_twin;
         b_twin->vertex()->halfedge() = b_twin;
+        
+        tmp_v0->halfedge() = a_twin;
+        tmp_v1->halfedge() = b_twin;
+
         erase(b->face());
         erase(b->edge());
         erase(a);erase(b);
