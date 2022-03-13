@@ -1133,11 +1133,38 @@ void Halfedge_Mesh::catmullclark_subdivide_positions() {
     // slightly more involved, using the Catmull-Clark subdivision
     // rules. (These rules are outlined in the Developer Manual.)
 
-    // Faces
-
-    // Edges
-
-    // Vertices
+    // Faces : find centers
+    for(auto &f:faces){
+        f.new_pos = f.center();
+    }
+    // Edges: average of 4 points: edge's vertices and adjacent face's centroids
+    for(auto &e:edges){
+        e.new_pos = (e.halfedge()->face()->center()
+                + e.halfedge()->twin()->face()->center())/4.0f
+                + e.center()/2.0f;
+    }
+    // Vertices: Q + 2R + (n-3)S / n
+    //
+    for(auto &v:vertices){
+        //v.new_pos = v.pos;
+        Vec3 Q,R;
+        float n = (float)v.degree();
+        //1 Calculate Q = average of all the neighbor faces' point
+        //2 Calculate R = average of all the neighbor edges' point
+        //3 Calculate S = v.pos;
+        //For this vertex, iterate all the neighbor faces
+        HalfedgeRef h = v.halfedge();
+        do {
+            Q += h->face()->new_pos;
+            R += h->edge()->new_pos;
+            h = h->twin()->next();
+        
+        } while(h != v.halfedge());
+        Q /= n;
+        R /= n;
+        
+        v.new_pos = (Q + 2*R + (n-3)*v.pos) / n;
+    }
 }
 
 /*
