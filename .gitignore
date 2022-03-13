@@ -2,7 +2,7 @@
 *.pdf
 Lecture/
 .vs/
-
+*.mp4
 # from drawsvg gitignore
 # Build directory
 build/
