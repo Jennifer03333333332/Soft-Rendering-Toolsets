@@ -28,7 +28,7 @@
   <polygon id="svg_14" opacity="0.2" fill="#1B1F8A" points="227.26,2 183.926,68 230.593,139.333 261.926,61.333"/>
   <polygon id="svg_15" fill="none" stroke="#000000" stroke-miterlimit="10" points="227.26,2 183.926,68 230.593,139.333 261.926,61.333"/>
   <line id="svg_27" fill="none" stroke="#000000" stroke-miterlimit="10" x1="227.259" y1="2" x2="230.593" y2="139.333"/>
-  <circle id="svg_28" cx="228.925" cy="64.675" r="5.318"/>
+  <circle id="svg_28" cx="228.925" cy="70.667" r="5.318"/>
   <g id="svg_29">
    <defs>
     <rect id="SVGID_5_" x="216.107" y="70.946" width="8" height="8"/>

@@ -100,8 +100,10 @@
 		c0,1.411,0.586,2.023,1.971,2.023c0.506,0,0.905-0.133,1.038-0.293L169.928,30.736"/>
 </g>
 <line fill="none" stroke="#000000" stroke-miterlimit="10" x1="227.259" y1="2" x2="230.593" y2="139.333"/>
-<line fill="none" stroke="#000000" stroke-miterlimit="10" x1="183.926" y1="68" x2="261.926" y2="61.333"/>
-<circle cx="228.925" cy="64.675" r="5.318"/>
+<line fill="none" stroke="#000000" stroke-miterlimit="10" x1="183.926" y1="68" x2="228.925" y2="70.667"/>
+<line fill="none" stroke="#000000" stroke-miterlimit="10" x1="228.925" y1="70.667" x2="261.926" y2="61.333"/>
+
+<circle cx="228.925" cy="70.667" r="5.318"/>
 <g>
 	<defs>
 		<rect id="SVGID_5_" x="216.107" y="70.946" width="8" height="8"/>

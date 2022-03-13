@@ -4,6 +4,7 @@ title: "Linear Subdivision"
 permalink: /meshedit/global/linear/
 parent: "Global Operations"
 grand_parent: "A2: MeshEdit"
+usemathjax: true
 ---
 
 # Linear Subdivision
@@ -16,9 +17,9 @@ Unlike most other global remeshing operations, linear (and Catmull-Clark) subdiv
 2.  Generate a list of polygons for the new mesh, as a list of indices into the new vertex list (a la "polygon soup").
 3.  Using these two lists, rebuild the halfedge connectivity from scratch.
 
-Given these lists, `Halfedge_Mesh::from_poly` will take care of allocating halfedges, setting up `next` and `twin` pointers, etc., based on the list of polygons generated in step 2---this routine is already implemented in the Scotty3D skeleton code.
+Given these lists, `Halfedge_Mesh::from_poly` will take care of allocating halfedges, setting up `next` and `twin` pointers, etc., based on the list of polygons generated in step $$2$$---this routine is already implemented in the Scotty3D skeleton code.
 
-Both linear and Catmull-Clark subdivision schemes will handle general _n_-gons (i.e., polygons with _n_ sides) rather than, say, quads only or triangles only. Each _n_-gon (including but not limited to quadrilaterals) will be split into _n_ quadrilaterals according to the following template:
+Both linear and Catmull-Clark subdivision schemes will handle general $$n$$-gons (i.e., polygons with $$n$$ sides) rather than, say, quads only or triangles only. Each $$n$$-gon (including but not limited to quadrilaterals) will be split into $$n$$ quadrilaterals according to the following template:
 
 <center><img src="subdivide_quad.png" style="height:220px"></center>
 
@@ -38,11 +39,11 @@ For linear subdivision, the rules for computing new vertex positions are very si
 *   New vertices at original edges are assigned the average coordinates of the two edge endpoints.
 *   New vertices at original vertices are assigned the same coordinates as in the original mesh.
 
-These values should be assigned to the members `Face::new_pos`, `Edge::new_pos`, and `Vertex::new_pos`, respectively. For instance, `f->new_pos = Vec3( x, y, z );` will assign the coordinates (x,y,z) to the new vertex associated with face `f`. The general strategy for assigning these new positions is to iterate over all vertices, then all edges, then all faces, assigning appropriate values to `new_pos`. **Note:** you _must_ copy the original vertex position `Vertex::pos` to the new vertex position `Vertex::new_pos`; these values will not be used automatically.
+These values should be assigned to the members `Face::new_pos`, `Edge::new_pos`, and `Vertex::new_pos`, respectively. For instance, `f->new_pos = Vec3( x, y, z );` will assign the coordinates $$(x,y,z)$$ to the new vertex associated with face $$f$$. The general strategy for assigning these new positions is to iterate over all vertices, then all edges, then all faces, assigning appropriate values to `new_pos`. **Note:** you _must_ copy the original vertex position `Vertex::pos` to the new vertex position `Vertex::new_pos`; these values will not be used automatically.
 
 This step should be implemented in the method `Halfedge_Mesh::linear_subdivide_positions` in `student/meshedit.cpp`.
 
-Steps 2 and 3 are already implemented by `Halfedge_Mesh::subdivide` in `geometry/halfedge.cpp`. For your understanding, an explanation of how these are implemented is provided below:
+Steps $$2$$ and $$3$$ are already implemented by `Halfedge_Mesh::subdivide` in `geometry/halfedge.cpp`. For your understanding, an explanation of how these are implemented is provided below:
 
 ### Polygons
 

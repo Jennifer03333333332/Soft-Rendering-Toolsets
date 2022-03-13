@@ -6,6 +6,7 @@ parent: "A2: MeshEdit"
 has_children: true
 has_toc: false
 nav_order: 2
+usemathjax: true
 ---
 
 # Global Mesh Operations
@@ -27,4 +28,4 @@ Three subdivision schemes are supported by Scotty3D: [Linear](linear), [Catmull-
 
 ## Performance
 
-All subdivision operations, as well as re-meshing and simplification, should complete almost instantaneously (no more than a second) on meshes of a few hundred polygons or fewer. If performance is worse than this, ensure that implementations are not repeatedly iterating over more elements than needed, or allocating/deallocating more memory than necessary. A useful debugging technique is to print out (or otherwise keep track of, e.g., via an integer counter or a profiler) the number of times basic methods like `Halfedge::next()` or `Halfedge_Mesh::new_vertex()` are called during a single execution of one of the methods; for most methods this number should be some reasonably small constant (no more than, say, 1000!) times the number of elements in the mesh.
+All subdivision operations, as well as re-meshing and simplification, should complete almost instantaneously (no more than a second) on meshes of a few hundred polygons or fewer. If performance is worse than this, ensure that implementations are not repeatedly iterating over more elements than needed, or allocating/deallocating more memory than necessary. A useful debugging technique is to print out (or otherwise keep track of, e.g., via an integer counter or a profiler) the number of times basic methods like `Halfedge::next()` or `Halfedge_Mesh::new_vertex()` are called during a single execution of one of the methods; for most methods this number should be some reasonably small constant (no more than, say, $$1000$$!) times the number of elements in the mesh.

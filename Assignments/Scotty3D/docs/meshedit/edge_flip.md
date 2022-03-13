@@ -5,11 +5,12 @@ permalink: /meshedit/local/edge_flip
 nav_order: 1
 parent: Local Operations
 grand_parent: "A2: MeshEdit"
+usemathjax: true
 ---
 
 # Edge Flip Tutorial
 
-Here we provide a step-by-step guide to implementing a simplified version of the _EdgeFlip_ operation for a pair of triangles---the final version, however, must be implemented for general polygons (i.e., any _n_-gon). The basic strategy for implementing the other local operations is quite similar to the procedure outlined below.
+Here we provide a step-by-step guide to implementing a simplified version of the _EdgeFlip_ operation (rotate an edge counter-clockwise by one vertex) for a pair of triangles---the final version, however, must be implemented for general polygons (i.e., any $$n$$-gon). The basic strategy for implementing the other local operations is quite similar to the procedure outlined below.
 
 **Note:** if you're not familiar with C++, you should definitely take a moment to learn about the [standard library class](http://en.cppreference.com/w/cpp/container/vector) `std::vector`, especially the method `push_back()`, which will make it easy to accumulate a list of pointers as you walk around a polygon, vertex, etc.
 
@@ -17,7 +18,7 @@ We now consider the case of a triangle-triangle edge flip.
 
 ### PHASE 0: Draw a Diagram
 
-Suppose we have a pair of triangles (a,b,c) and (c,b,d). After flipping the edge (b,c), we should now have triangles (a,d,c) and (a,b,d). A good first step for implementing any local mesh operation is to draw a diagram that clearly labels all elements affected by the operation:
+Suppose we have a pair of triangles $$(a,b,c)$$ and $$(c,b,d)$$. After flipping the edge $$(b,c)$$, we should now have triangles $$(a,d,c)$$ and $$(a,b,d)$$. A good first step for implementing any local mesh operation is to draw a diagram that clearly labels all elements affected by the operation:
 
 <center><img src="edge_flip_diagram.png"></center>
 
@@ -55,7 +56,7 @@ Once you've drawn your diagram, simply collect all the elements from the "before
 
 ### PHASE II: Allocate new elements
 
-If your edge operation requires new elements, now is the time to allocate them. For the edge flip, we don't need any new elements; but suppose that for some reason we needed a new vertex v4\. At this point we would allocate the new vertex via
+If your edge operation requires new elements, now is the time to allocate them. For the edge flip, we don't need any new elements; but suppose that for some reason we needed a new vertex $$v_4$$. At this point we would allocate the new vertex via
 
     VertexRef v4 = new_vertex();
 

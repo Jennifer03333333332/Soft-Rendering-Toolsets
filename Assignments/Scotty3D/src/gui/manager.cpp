@@ -341,6 +341,8 @@ Mode Manager::item_options(Undo& undo, Mode cur_mode, Scene_Item& item, Pose& ol
         widgets.action_button(Widget_Type::scale, "Scale [s]");
         if(Manager::wrap_button("Delete [del]")) {
             undo.del_obj(item.id());
+            ImGui::Unindent();
+            return cur_mode;
         }
 
         ImGui::Unindent();
@@ -928,8 +930,8 @@ void Manager::UIsettings() {
                  ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings);
 
     // TODO How can we use this checkbox to set this flag for all cameras?
-    //ImGui::Text("Camera");
-    //ImGui::Checkbox("Flip Vertical Rotation", &TODO);
+    // ImGui::Text("Camera");
+    // ImGui::Checkbox("Flip Vertical Rotation", &TODO);
 
     ImGui::Text("Scene Importer");
     ImGui::Checkbox("Drop Normals", &load_opt.drop_normals);

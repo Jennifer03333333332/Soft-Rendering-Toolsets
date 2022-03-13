@@ -19,10 +19,16 @@
     <line id="svg_24" fill="none" stroke="#000000" stroke-miterlimit="10" x1="288.978" y1="55.658" x2="265.477" y2="118.825"/>
     <line id="svg_25" fill="none" stroke="#000000" stroke-miterlimit="10" x1="288.978" y1="55.658" x2="232.551" y2="90.492"/>
     <line id="svg_26" fill="none" stroke="#000000" stroke-miterlimit="10" x1="288.978" y1="55.658" x2="242.206" y2="35.193"/>
+    <line id="svg_27" fill="none" stroke="#000000" stroke-miterlimit="10" x1="288.978" y1="55.658" x2="213.477" y2="45.513"/>
+    <line id="svg_28" fill="none" stroke="#000000" stroke-miterlimit="10" x1="288.978" y1="55.658" x2="267.291" y2="0.658"/>
+    <line id="svg_29" fill="none" stroke="#000000" stroke-miterlimit="10" x1="288.978" y1="55.658" x2="322.144" y2="99.158"/>
+    <line id="svg_30" fill="none" stroke="#000000" stroke-miterlimit="10" x1="288.978" y1="55.658" x2="312.98" y2="6.158"/>
+    <line id="svg_31" fill="none" stroke="#000000" stroke-miterlimit="10" x1="288.978" y1="55.658" x2="243.977" y2="16.367"/>
+    <line id="svg_32" fill="none" stroke="#000000" stroke-miterlimit="10" x1="288.978" y1="55.658" x2="349.144" y2="50.825"/>
 
-    <circle id="svg_28" cx="288.978" cy="55.658" r="3.671"/>
+    <circle id="svg_33" cx="288.978" cy="55.658" r="3.671"/>
    </g>
-   <g id="svg_29">
+   <g id="svg_34">
     <defs>
      <rect id="SVGID_3_" x="282.648" y="48.78" width="10" height="17"/>
     </defs>
@@ -31,11 +37,11 @@
     </clipPath>
    </g>
   </g>
-  <g id="svg_31">
-   <g id="svg_32">
-    <path id="svg_33" fill="none" stroke="#000000" stroke-width="3" stroke-miterlimit="10" d="m227.278,19.637c-18.174,-6.461 -37.744,-9.979 -58.134,-9.979c-20.525,0 -40.219,3.564 -58.494,10.107"/>
-    <g id="svg_34">
-     <polygon id="svg_35" points="237.14500427246094,23.490999221801758 225.375,12.473999977111816 226.50999450683594,19.43400001525879 221.0279998779297,23.868000030517578 "/>
+  <g id="svg_35">
+   <g id="svg_36">
+    <path id="svg_37" fill="none" stroke="#000000" stroke-width="3" stroke-miterlimit="10" d="m227.278,19.637c-18.174,-6.461 -37.744,-9.979 -58.134,-9.979c-20.525,0 -40.219,3.564 -58.494,10.107"/>
+    <g id="svg_38">
+     <polygon id="svg_39" points="237.14500427246094,23.490999221801758 225.375,12.473999977111816 226.50999450683594,19.43400001525879 221.0279998779297,23.868000030517578 "/>
     </g>
    </g>
   </g>
