@@ -1034,7 +1034,83 @@ void Halfedge_Mesh::extrude_vertex_position(const Vec3& start_positions,
 */
 void Halfedge_Mesh::triangulate() {
 
+
     // For each face...
+    //vertex stay the same
+    //Using method 1: pick one vertex then connect it with other vertex
+    //think about next,twin,  v, e, f
+    //for(auto &f:faces){
+         
+    for(auto ref_f = faces_begin();ref_f!=faces_end();ref_f++){
+        if(ref_f->degree() == 3) continue;
+        if(ref_f->is_boundary()) continue;
+
+        std::vector<VertexRef> v_array;
+        //std::vector<HalfedgeRef> hf_array;
+        
+        HalfedgeRef h = ref_f->halfedge();
+        
+        do{
+            
+            v_array.push_back(h->vertex());
+            //hf_array.push_back(h);
+            h->vertex()->halfedge() = h;//make sure the connectivity
+
+            h = h->next();
+           
+        }while(h!=ref_f->halfedge());
+
+        //HalfedgeRef last_htwin = new_halfedge();
+        //create new face
+        int newfaceNum = (int)v_array.size()-2;
+        for(int i = 1; i < newfaceNum + 1; i++){
+            //for the last face, 3 edges is v_array[0]->halfedge(), v_array[i]->halfedge() and v_array[i+1]->halfedge()
+            if(i == newfaceNum){
+                FaceRef new_f = new_face();
+                new_f->halfedge() = v_array[0]->halfedge();
+                //Hf 1
+                v_array[0]->halfedge()->next() = v_array[i]->halfedge();
+                v_array[0]->halfedge()->face() = new_f;
+                //Hf 2
+                v_array[i]->halfedge()->face() = new_f;
+                //Hf 3
+                v_array[i+1]->halfedge()->next() = v_array[0]->halfedge();
+                v_array[i+1]->halfedge()->face() = new_f;
+                break;
+            }
+            //each triangle made by v0, vi, vi+1 
+            HalfedgeRef new_h = new_halfedge();//as right hf, from v_array[i+1] to v_array[0]
+            HalfedgeRef new_h_twin = new_halfedge();//from v_array[0] to v_array[i+1]
+            EdgeRef new_e = new_edge();
+            FaceRef new_f = new_face();
+            //For the 3 halfedge in this triangle face: v_array[0]->halfedge(), v_array[i]->halfedge(),new_h
+            //!when i-1 i+1 out of range
+            new_h->set_neighbors(v_array[0]->halfedge(),new_h_twin,v_array[i+1],new_e,new_f);
+            
+            //ignore twin for hf1
+            v_array[0]->halfedge()->next() = v_array[i]->halfedge();
+            v_array[0]->halfedge()->face() = new_f;
+            //for  v_array[i]->halfedge()
+            v_array[i]->halfedge()->next() = new_h;
+            v_array[i]->halfedge()->face() = new_f;
+            //Deal with new_h_twin(which will become v_array[0]->halfedge() in next round)
+            new_h_twin->twin() = new_h;//! forget twin need to be set bidirectional
+            new_h_twin->vertex() = v_array[0];
+            new_h_twin->edge() = new_e;
+            
+            v_array[0]->halfedge() = new_h_twin;
+            //!error forget assign hf to new edge, face
+            new_e->halfedge() = new_h;
+            new_f->halfedge() = new_h;
+            //last_htwin = new_h_twin;
+            //if this is the last round, new_h_twin can't bind the next() and the face()
+        }
+        
+        //erase the old face(make sure hfs don't point to the old face)
+        erase(ref_f);
+    }    
+    std::optional<std::pair<Halfedge_Mesh::ElementRef, std::string>> test = validate();
+
 }
 
 /* Note on the quad subdivision process:
