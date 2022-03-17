@@ -530,8 +530,8 @@ std::optional<Halfedge_Mesh::VertexRef> Halfedge_Mesh::split_edge(Halfedge_Mesh:
     // First find the halfedge
     HalfedgeRef h0 = e->halfedge();
     HalfedgeRef h3 = e->halfedge()->twin();
-    EdgeRef olde0 = h0->edge();
-    EdgeRef olde3 = h3->edge();
+    // EdgeRef olde0 = h0->edge();
+    // EdgeRef olde3 = h3->edge();
     // find the face
     FaceRef f1 = h3->face();
     FaceRef f0 = h0->face();
@@ -543,6 +543,8 @@ std::optional<Halfedge_Mesh::VertexRef> Halfedge_Mesh::split_edge(Halfedge_Mesh:
 
     // For the 2 new edges and For the original edge that was split
     EdgeRef new_e0 = new_edge(), new_e1 = new_edge();
+    
+
     HalfedgeRef new_hf1 = new_halfedge(), new_hf1_twin = new_halfedge(), new_hf0 = new_halfedge(),
                 new_hf0_twin = new_halfedge();
 
@@ -550,7 +552,10 @@ std::optional<Halfedge_Mesh::VertexRef> Halfedge_Mesh::split_edge(Halfedge_Mesh:
     HalfedgeRef new_hf2 = new_halfedge(), new_hf2_twin = new_halfedge(), new_hf3 = new_halfedge(),
                 new_hf3_twin = new_halfedge();
     FaceRef f2 = new_face(), f3 = new_face();
-
+    new_e0->is_new = true;
+    new_e1->is_new = true;
+    new_e2->is_new = true;
+    new_e3->is_new = true;
     // iterate hf in face 1
     hf_inFace1.push_back(h3);
     for(HalfedgeRef hf_iter = h3->next(); hf_iter != h3; hf_iter = hf_iter->next()) {
@@ -568,8 +573,8 @@ std::optional<Halfedge_Mesh::VertexRef> Halfedge_Mesh::split_edge(Halfedge_Mesh:
     // Storage ends
     //  new vertex
     VertexRef new_v = new_vertex();
-    new_v->pos = (v3->pos + v2->pos) / 2;
-
+    new_v->pos = e->center();//(v3->pos + v2->pos) / 2.0f;
+    new_v->is_new = true;
     // assign hf to edge
     new_e2->halfedge() = new_hf2;
     new_e1->halfedge() = new_hf1;
@@ -607,8 +612,9 @@ std::optional<Halfedge_Mesh::VertexRef> Halfedge_Mesh::split_edge(Halfedge_Mesh:
     hf_inFace1[2]->next() = new_hf2;
 
     // erase the old edges
-    erase(olde0);
-    erase(olde3);
+    // erase(olde0);
+    // erase(olde3);
+    erase(e);
     // erase hf: h0,h3
     erase(h0);
     erase(h3);
@@ -1034,83 +1040,83 @@ void Halfedge_Mesh::extrude_vertex_position(const Vec3& start_positions,
 */
 void Halfedge_Mesh::triangulate() {
 
-
     // For each face...
-    //vertex stay the same
-    //Using method 1: pick one vertex then connect it with other vertex
-    //think about next,twin,  v, e, f
-    //for(auto &f:faces){
-         
-    for(auto ref_f = faces_begin();ref_f!=faces_end();ref_f++){
+    // vertex stay the same
+    // Using method 1: pick one vertex then connect it with other vertex
+    // think about next,twin,  v, e, f
+    // for(auto &f:faces){
+
+    for(auto ref_f = faces_begin(); ref_f != faces_end(); ref_f++) {
         if(ref_f->degree() == 3) continue;
         if(ref_f->is_boundary()) continue;
 
         std::vector<VertexRef> v_array;
-        //std::vector<HalfedgeRef> hf_array;
-        
+        // std::vector<HalfedgeRef> hf_array;
+
         HalfedgeRef h = ref_f->halfedge();
-        
-        do{
-            
+
+        do {
+
             v_array.push_back(h->vertex());
-            //hf_array.push_back(h);
-            h->vertex()->halfedge() = h;//make sure the connectivity
+            // hf_array.push_back(h);
+            h->vertex()->halfedge() = h; // make sure the connectivity
 
             h = h->next();
-           
-        }while(h!=ref_f->halfedge());
 
-        //HalfedgeRef last_htwin = new_halfedge();
-        //create new face
-        int newfaceNum = (int)v_array.size()-2;
-        for(int i = 1; i < newfaceNum + 1; i++){
-            //for the last face, 3 edges is v_array[0]->halfedge(), v_array[i]->halfedge() and v_array[i+1]->halfedge()
-            if(i == newfaceNum){
+        } while(h != ref_f->halfedge());
+
+        // HalfedgeRef last_htwin = new_halfedge();
+        // create new face
+        int newfaceNum = (int)v_array.size() - 2;
+        for(int i = 1; i < newfaceNum + 1; i++) {
+            // for the last face, 3 edges is v_array[0]->halfedge(), v_array[i]->halfedge() and
+            // v_array[i+1]->halfedge()
+            if(i == newfaceNum) {
                 FaceRef new_f = new_face();
                 new_f->halfedge() = v_array[0]->halfedge();
-                //Hf 1
+                // Hf 1
                 v_array[0]->halfedge()->next() = v_array[i]->halfedge();
                 v_array[0]->halfedge()->face() = new_f;
-                //Hf 2
+                // Hf 2
                 v_array[i]->halfedge()->face() = new_f;
-                //Hf 3
-                v_array[i+1]->halfedge()->next() = v_array[0]->halfedge();
-                v_array[i+1]->halfedge()->face() = new_f;
+                // Hf 3
+                v_array[i + 1]->halfedge()->next() = v_array[0]->halfedge();
+                v_array[i + 1]->halfedge()->face() = new_f;
                 break;
             }
-            //each triangle made by v0, vi, vi+1 
-            HalfedgeRef new_h = new_halfedge();//as right hf, from v_array[i+1] to v_array[0]
-            HalfedgeRef new_h_twin = new_halfedge();//from v_array[0] to v_array[i+1]
+            // each triangle made by v0, vi, vi+1
+            HalfedgeRef new_h = new_halfedge();      // as right hf, from v_array[i+1] to v_array[0]
+            HalfedgeRef new_h_twin = new_halfedge(); // from v_array[0] to v_array[i+1]
             EdgeRef new_e = new_edge();
             FaceRef new_f = new_face();
-            //For the 3 halfedge in this triangle face: v_array[0]->halfedge(), v_array[i]->halfedge(),new_h
-            //!when i-1 i+1 out of range
-            new_h->set_neighbors(v_array[0]->halfedge(),new_h_twin,v_array[i+1],new_e,new_f);
-            
-            //ignore twin for hf1
+            // For the 3 halfedge in this triangle face: v_array[0]->halfedge(),
+            // v_array[i]->halfedge(),new_h
+            //! when i-1 i+1 out of range
+            new_h->set_neighbors(v_array[0]->halfedge(), new_h_twin, v_array[i + 1], new_e, new_f);
+
+            // ignore twin for hf1
             v_array[0]->halfedge()->next() = v_array[i]->halfedge();
             v_array[0]->halfedge()->face() = new_f;
-            //for  v_array[i]->halfedge()
+            // for  v_array[i]->halfedge()
             v_array[i]->halfedge()->next() = new_h;
             v_array[i]->halfedge()->face() = new_f;
-            //Deal with new_h_twin(which will become v_array[0]->halfedge() in next round)
-            new_h_twin->twin() = new_h;//! forget twin need to be set bidirectional
+            // Deal with new_h_twin(which will become v_array[0]->halfedge() in next round)
+            new_h_twin->twin() = new_h; //! forget twin need to be set bidirectional
             new_h_twin->vertex() = v_array[0];
             new_h_twin->edge() = new_e;
-            
+
             v_array[0]->halfedge() = new_h_twin;
-            //!error forget assign hf to new edge, face
+            //! error forget assign hf to new edge, face
             new_e->halfedge() = new_h;
             new_f->halfedge() = new_h;
-            //last_htwin = new_h_twin;
-            //if this is the last round, new_h_twin can't bind the next() and the face()
+            // last_htwin = new_h_twin;
+            // if this is the last round, new_h_twin can't bind the next() and the face()
         }
-        
-        //erase the old face(make sure hfs don't point to the old face)
-        erase(ref_f);
-    }    
-    std::optional<std::pair<Halfedge_Mesh::ElementRef, std::string>> test = validate();
 
+        // erase the old face(make sure hfs don't point to the old face)
+        erase(ref_f);
+    }
+    // std::optional<std::pair<Halfedge_Mesh::ElementRef, std::string>> test = validate();
 }
 
 /* Note on the quad subdivision process:
@@ -1173,20 +1179,20 @@ void Halfedge_Mesh::linear_subdivide_positions() {
 
     // For each vertex, assign Vertex::new_pos to
     // its original position, Vertex::pos.
-    for(auto &v:vertices){
+    for(auto& v : vertices) {
         v.new_pos = v.pos;
     }
     // For each edge, assign the midpoint of the two original
     // positions to Edge::new_pos.
-    for(auto &e:edges){
+    for(auto& e : edges) {
         e.new_pos = e.center();
     }
     // For each face, assign the centroid (i.e., arithmetic mean)
     // of the original vertex positions to Face::new_pos. Note
     // that in general, NOT all faces will be triangles!
 
-    //Linear subdivision is used in general mesh.
-    for(auto &f:faces){
+    // Linear subdivision is used in general mesh.
+    for(auto& f : faces) {
         f.new_pos = f.center();
     }
 }
@@ -1210,42 +1216,43 @@ void Halfedge_Mesh::catmullclark_subdivide_positions() {
     // rules. (These rules are outlined in the Developer Manual.)
 
     // Faces : find centers
-    for(auto &f:faces){
+    for(auto& f : faces) {
         f.new_pos = f.center();
     }
     // Edges: average of 4 points: edge's vertices and adjacent face's centroids
-    for(auto &e:edges){
-        e.new_pos = (e.halfedge()->face()->center()
-                + e.halfedge()->twin()->face()->center())/4.0f
-                + e.center()/2.0f;
+    for(auto& e : edges) {
+        e.new_pos = (e.halfedge()->face()->center() + e.halfedge()->twin()->face()->center() +
+                     e.center() * 2.0f) /
+                    4.0f;
     }
     // Vertices: Q + 2R + (n-3)S / n
     //
-    for(auto &v:vertices){
-        //v.new_pos = v.pos;
-        Vec3 Q,R;
+    for(auto& v : vertices) {
+        // v.new_pos = v.pos;
+        Vec3 Q, R;
         float n = (float)v.degree();
-        //1 Calculate Q = average of all the neighbor faces' point
-        //2 Calculate R = average of all the neighbor edges' point
-        //3 Calculate S = v.pos;
-        //For this vertex, iterate all the neighbor faces
+        // 1 Calculate Q = average of all the neighbor faces' point
+        // 2 Calculate R = average of all the neighbor edges' point
+        // 3 Calculate S = v.pos;
+        // For this vertex, iterate all the neighbor faces
         HalfedgeRef h = v.halfedge();
         do {
             Q += h->face()->new_pos;
             R += h->edge()->new_pos;
             h = h->twin()->next();
-        
+
         } while(h != v.halfedge());
         Q /= n;
         R /= n;
-        
-        v.new_pos = (Q + 2*R + (n-3)*v.pos) / n;
+
+        v.new_pos = (Q + 2 * R + (n - 3) * v.pos) / n;
     }
 }
 
 /*
     This routine should increase the number of triangles in the mesh
     using Loop subdivision. Note: this is will only be called on triangle meshes.
+    for triangle meshes without boundary only!
 */
 void Halfedge_Mesh::loop_subdivide() {
 
@@ -1258,15 +1265,33 @@ void Halfedge_Mesh::loop_subdivide() {
     // the new subdivided (fine) mesh, which has more elements to traverse.  We
     // will then assign vertex positions in
     // the new mesh based on the values we computed for the original mesh.
+    //
+    for(auto& f : faces) {
+        if(f.degree() != 3 || f.is_boundary()) return;
+    }
 
     // Compute new positions for all the vertices in the input mesh using
     // the Loop subdivision rule and store them in Vertex::new_pos.
     //    At this point, we also want to mark each vertex as being a vertex of the
     //    original mesh. Use Vertex::is_new for this.
 
+    // old vertex
+    for(auto& v : vertices) {
+        float n = (float)v.degree();
+        float u = (n == 3) ? (3.0f / 16.0f) : (3.0f / (8 * n));
+        v.new_pos = (1 - n * u) * v.pos + u * v.neighborhood_center();
+        v.is_new = false;
+    }
     // Next, compute the subdivided vertex positions associated with edges, and
     // store them in Edge::new_pos.
-
+    for(auto& e : edges) {
+        // midpoint in this edge should be changed to 3/8() + 1/8()
+        e.new_pos = (e.halfedge()->next()->next()->vertex()->pos +
+                     e.halfedge()->twin()->next()->next()->vertex()->pos) *
+                        (1.0f / 8.0f) +
+                    (e.center() * 2.0f) * (3.0f / 8.0f);
+        e.is_new = false;
+    }
     // Next, we're going to split every edge in the mesh, in any order.
     // We're also going to distinguish subdivided edges that came from splitting
     // an edge in the original mesh from new edges by setting the boolean Edge::is_new.
@@ -1274,9 +1299,56 @@ void Halfedge_Mesh::loop_subdivide() {
     // Otherwise, we'll end up splitting edges that we just split (and the
     // loop will never end!)
 
-    // Now flip any new edge that connects an old and new vertex.
+    // // edge split the old edge
+    // for(auto e = edges_begin(); e != edges_end(); e++) {
+    //     if(e->is_new) continue;
+    //     auto res = split_edge(e);
+    //     if(res.has_value()) { // res!=std::nullopt
+    //         VertexRef new_v = *res;
+    //         new_v->new_pos = e->new_pos;
+    //         //(e->halfedge()->next()->next()->vertex()->pos
+    //         //+ e->halfedge()->twin()->next()->next()->vertex()->pos)*(1.0f/8.0f)
+    //         //+ (e->center()*2.0f)*(3.0f/8.0f);
+    //     }
+    //     // e->is_new = true;
+    // }
 
+    //Avoid losing reference cause edges always changed because of split_edge?
+    int n = (int)edges.size();
+    EdgeRef old_e = edges_begin();
+    for(int i = 0; i < n; i++) {
+
+        // get the next edge NOW!
+        EdgeRef nextEdge = old_e;
+        nextEdge++;
+
+        // now, even if splitting the edge deletes it...
+        if(old_e->is_new == true) continue;//skip the new edge
+        auto res = split_edge(old_e);
+        if(res.has_value()) { // res!=std::nullopt
+            VertexRef new_v = *res;
+            new_v->new_pos = old_e->new_pos;//why I can't calculte the position here: cause the pos is from original mesh
+        }
+
+        // ...we still have a valid reference to the next edge.
+        old_e = nextEdge;
+    }
+
+    // Now flip any new edge that connects an old and new vertex.
+    for(auto e = edges_begin(); e != edges_end(); e++) {
+        if(!e->is_new) continue; // only for new edges
+        bool new1 = e->halfedge()->vertex()->is_new;
+        bool new2 = e->halfedge()->twin()->vertex()->is_new;
+        if(new1 ^ new2) { // old and new vertex
+            flip_edge(e);
+        }
+    }
     // Finally, copy new vertex positions into the Vertex::pos.
+    for(auto v = vertices_begin(); v != vertices_end(); v++) {
+        v->pos = v->new_pos;
+    }
+
+    std::optional<std::pair<Halfedge_Mesh::ElementRef, std::string>> test = validate();
 }
 
 /*
