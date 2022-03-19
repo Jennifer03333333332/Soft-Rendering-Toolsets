@@ -436,10 +436,10 @@ std::optional<Halfedge_Mesh::EdgeRef> Halfedge_Mesh::flip_edge(Halfedge_Mesh::Ed
     // find the face
     FaceRef f1 = h3->face();
     FaceRef f0 = h0->face();
-    if(f1->is_boundary()||f0->is_boundary() || f1==f0)return std::nullopt;
+    if(f1->is_boundary() || f0->is_boundary() || f1 == f0) return std::nullopt;
     // Find the 2 vertices
-    VertexRef v0 =  h0->vertex();//their halfedge must change
-    VertexRef v1 =  h3->vertex();
+    VertexRef v0 = h0->vertex(); // their halfedge must change
+    VertexRef v1 = h3->vertex();
     // int ti =1;
     // if(v0==v1){
     //     ti++;
@@ -479,7 +479,7 @@ std::optional<Halfedge_Mesh::EdgeRef> Halfedge_Mesh::flip_edge(Halfedge_Mesh::Ed
 
     hf_inFace1.erase(hf_inFace1.begin() + 1);
     hf_inFace1.push_back(tmp);
-    // Iterate based on hf array, fix next() 
+    // Iterate based on hf array, fix next()
     for(int iter = 0; iter < (int)hf_inFace0.size(); iter++) {
         if(iter > 0)
             hf_inFace0[iter - 1]->next() = hf_inFace0[iter];
@@ -520,7 +520,6 @@ std::optional<Halfedge_Mesh::EdgeRef> Halfedge_Mesh::flip_edge(Halfedge_Mesh::Ed
     //     edge_ids.insert({r, l});
     // }
 
-
     // std::optional<std::pair<Halfedge_Mesh::ElementRef, std::string>> test = validate();
     return e;
 }
@@ -552,7 +551,6 @@ std::optional<Halfedge_Mesh::VertexRef> Halfedge_Mesh::split_edge(Halfedge_Mesh:
 
     // For the 2 new edges and For the original edge that was split
     EdgeRef new_e0 = new_edge(), new_e1 = new_edge();
-    
 
     HalfedgeRef new_hf1 = new_halfedge(), new_hf1_twin = new_halfedge(), new_hf0 = new_halfedge(),
                 new_hf0_twin = new_halfedge();
@@ -561,7 +559,7 @@ std::optional<Halfedge_Mesh::VertexRef> Halfedge_Mesh::split_edge(Halfedge_Mesh:
     HalfedgeRef new_hf2 = new_halfedge(), new_hf2_twin = new_halfedge(), new_hf3 = new_halfedge(),
                 new_hf3_twin = new_halfedge();
     FaceRef f2 = new_face(), f3 = new_face();
-    new_e0->is_new = true;//error the edges form the old edges are not new
+    new_e0->is_new = true; // error the edges form the old edges are not new
     new_e1->is_new = true;
 
     // iterate hf in face 1
@@ -1285,7 +1283,8 @@ void Halfedge_Mesh::loop_subdivide() {
     for(auto& v : vertices) {
         float n = (float)v.degree();
         float u = (n == 3) ? (3.0f / 16.0f) : (3.0f / (8.0f * n));
-        v.new_pos = (1 - n * u) * v.pos + u * v.neighborhood_center()*n; //error forget neighborhood_center should * degree
+        v.new_pos = (1 - n * u) * v.pos + u * v.neighborhood_center() *
+                                              n; // error forget neighborhood_center should * degree
         v.is_new = false;
     }
     // Next, compute the subdivided vertex positions associated with edges, and
@@ -1319,7 +1318,7 @@ void Halfedge_Mesh::loop_subdivide() {
     //     // e->is_new = true;
     // }
 
-    //Avoid losing reference cause edges always changed because of split_edge?
+    // Avoid losing reference cause edges always changed because of split_edge?
     int n = (int)edges.size();
     EdgeRef old_e = edges_begin();
     for(int i = 0; i < n; i++) {
@@ -1329,27 +1328,29 @@ void Halfedge_Mesh::loop_subdivide() {
         nextEdge++;
 
         // now, even if splitting the edge deletes it...
-        if(old_e->is_new == true) continue;//skip the new edge
-        auto res = split_edge(old_e);//old_e should be erased but haven't
-        if(res.has_value()) { // res!=std::nullopt
+        if(old_e->is_new == true) continue; // skip the new edge
+        auto res = split_edge(old_e);       // old_e should be erased but haven't
+        if(res.has_value()) {               // res!=std::nullopt
             VertexRef new_v = *res;
-            new_v->new_pos = old_e->new_pos;//why I can't calculte the position here: cause the pos is from original mesh
+            new_v->new_pos = old_e->new_pos; // why I can't calculte the position here: cause the
+                                             // pos is from original mesh
         }
 
         // ...we still have a valid reference to the next edge.
         old_e = nextEdge;
     }
-    //int flip_times = 0;
-    // //Now flip any new edge that connects an old and new vertex.
+    // int flip_times = 0;
+    //  //Now flip any new edge that connects an old and new vertex.
 
     for(auto e = edges_begin(); e != edges_end(); e++) {
         if(!e->is_new) continue; // only for new edges
         bool new1 = e->halfedge()->vertex()->is_new;
         bool new2 = e->halfedge()->twin()->vertex()->is_new;
-        //edge case: If an edge is connected to one new one old, but it's just a half of an old edge, shouldn't flip that
+        // edge case: If an edge is connected to one new one old, but it's just a half of an old
+        // edge, shouldn't flip that
         if(new1 ^ new2) { // old and new vertex
             flip_edge(e);
-            //flip_times++;
+            // flip_times++;
         }
     }
     // Finally, copy new vertex positions into the Vertex::pos.
@@ -1357,7 +1358,7 @@ void Halfedge_Mesh::loop_subdivide() {
         v->pos = v->new_pos;
     }
 
-    //std::optional<std::pair<Halfedge_Mesh::ElementRef, std::string>> test = validate();
+    // std::optional<std::pair<Halfedge_Mesh::ElementRef, std::string>> test = validate();
 }
 
 /*
@@ -1386,6 +1387,77 @@ bool Halfedge_Mesh::isotropic_remesh() {
 
     return false;
 }
+// I don't get why there's no Mat3
+struct Matrix3x3 {
+    /// Identity matrix
+    static const Matrix3x3 I;
+    static Matrix3x3 crossProduct(const Vec3& u);
+    // static Matrix3x3 inverse();//const Matrix3x3& m
+    Matrix3x3() {
+        *this = I;
+    }
+    explicit Matrix3x3(Vec3 x, Vec3 y, Vec3 z) {
+        cols[0] = x;
+        cols[1] = y;
+        cols[2] = z;
+    }
+    Vec3& operator[](int idx) {
+        assert(idx >= 0 && idx <= 3);
+        return cols[idx];
+    }
+    Vec3 operator[](int idx) const {
+        assert(idx >= 0 && idx <= 3);
+        return cols[idx];
+    }
+    Vec3 operator*(const Vec3& x) const {
+        return x[0] * cols[0] + x[1] * cols[1] + x[2] * cols[2];
+    }
+    Matrix3x3 operator/=(float s) {
+        for(int i = 0; i < 3; i++) cols[i] /= s;
+        return *this;
+    }
+    Matrix3x3(const Matrix3x3&) = default;
+    Matrix3x3& operator=(const Matrix3x3&) = default;
+    ~Matrix3x3() = default;
+    union {
+        Vec3 cols[3];
+        float data[9] = {};
+    };
+    /// Returns determinant (brute force).
+    float det() const {
+        return -cols[0][2] * cols[1][1] * cols[2][0] + cols[0][1] * cols[1][2] * cols[2][0] +
+               cols[0][2] * cols[1][0] * cols[2][1] - cols[0][0] * cols[1][2] * cols[2][1] -
+               cols[0][1] * cols[1][0] * cols[2][2] + cols[0][0] * cols[1][1] * cols[2][2];
+    }
+    /// Returns matrix inverse (will be NaN if m is not invertible) const Matrix3x3& m
+    Matrix3x3 inverse() {
+        Matrix3x3 m = *this;
+        Matrix3x3 r;
+        r[0][0] = m[1][1] * m[2][2] - m[1][2] * m[2][1];
+        r[0][1] = m[0][2] * m[2][1] - m[0][1] * m[2][2];
+        r[0][2] = m[0][1] * m[2][2] - m[0][2] * m[1][1];
+
+        r[1][0] = m[1][2] * m[2][0] - m[1][0] * m[2][2];
+        r[1][1] = m[0][0] * m[2][2] - m[0][2] * m[2][0];
+        r[1][2] = m[0][2] * m[1][0] - m[0][0] * m[1][2];
+
+        r[2][0] = m[1][0] * m[2][1] - m[1][1] * m[2][0];
+        r[2][1] = m[0][1] * m[2][0] - m[0][0] * m[2][1];
+        r[2][2] = m[0][0] * m[1][1] - m[0][1] * m[1][0];
+        r /= m.det();
+        return r;
+    }
+};
+// Calculate Vec4 Xt * Matrix3x3 m
+Vec4 LeftMultiXTranspose(Vec4& Xt, Mat4& m) {
+    Vec4 r;
+    for(int i = 0; i < 4; i++) {
+        r[i] = Xt[0] * m[0][i] + Xt[1] * m[1][i] + Xt[2] * m[2][i] + Xt[3] * m[3][i];
+    }
+    return r;
+}
+const inline Matrix3x3 Matrix3x3::I =
+    Matrix3x3{Vec3{1.0f, 0.0f, 0.0f}, Vec3{0.0f, 1.0f, 0.0f}, Vec3{0.0f, 0.0f, 1.0f}};
 
 /* Helper type for quadric simplification */
 struct Edge_Record {
@@ -1394,14 +1466,36 @@ struct Edge_Record {
     Edge_Record(std::unordered_map<Halfedge_Mesh::VertexRef, Mat4>& vertex_quadrics,
                 Halfedge_Mesh::EdgeRef e)
         : edge(e) {
-
+        Matrix3x3 b;
         // Compute the combined quadric from the edge endpoints.
         // -> Build the 3x3 linear system whose solution minimizes the quadric error
         //    associated with these two endpoints.
+
+        Mat4 K_forEdge; // Calculate K for this edge ( = K for v0 + K for v1)
+        auto v0_iter = vertex_quadrics.find(e->halfedge()->vertex());
+        auto v1_iter = vertex_quadrics.find(e->halfedge()->twin()->vertex());
+        if(v0_iter != vertex_quadrics.end()) {
+            K_forEdge += (*v0_iter).second;
+        }
+        if(v1_iter != vertex_quadrics.end()) {
+            K_forEdge += (*v1_iter).second;
+        }
+        // Judge if B is positive definite??
+        Vec3 w;
+        Matrix3x3 B;
+        for(int i = 0; i < 3; i++) {
+            for(int j = 0; j < 3; j++) {
+                B[i][j] = K_forEdge[i][j];
+            }
+            w[i] = K_forEdge[i][3];
+        }
         // -> Use this system to solve for the optimal position, and store it in
         //    Edge_Record::optimal.
         // -> Also store the cost associated with collapsing this edge in
         //    Edge_Record::cost.
+        optimal = B.inverse() * ((-1.0f) * w);
+        Vec4 X(optimal, 1.0f);
+        cost = dot(X, K_forEdge * X); // LeftMultiXTranspose(X,K_forEdge)
     }
     Halfedge_Mesh::EdgeRef edge;
     Vec3 optimal;
@@ -1501,7 +1595,6 @@ template<class T> struct PQueue {
     further without destroying it.)
 */
 bool Halfedge_Mesh::simplify() {
-
     std::unordered_map<VertexRef, Mat4> vertex_quadrics;
     std::unordered_map<FaceRef, Mat4> face_quadrics;
     std::unordered_map<EdgeRef, Edge_Record> edge_records;
@@ -1510,24 +1603,98 @@ bool Halfedge_Mesh::simplify() {
     // Compute initial quadrics for each face by simply writing the plane equation
     // for the face in homogeneous coordinates. These quadrics should be stored
     // in face_quadrics
+    for(auto f = faces_begin(); f != faces_end(); f++) {
+        if(f->degree() != 3) return false; // only for triangle mesh
+
+        Vec3 p_pos = f->halfedge()->vertex()->pos; // any point p from the face f
+        Vec3 n = f->normal();                      // n = face f's normal
+        float offset = (-1.0f) * dot(n, p_pos);    // offset d = -<n,p>
+        Vec4 v(n[0], n[1], n[2],
+               offset); // vector v(homogenous coor) = (normal.x,normal.y,normal.z,offset d)
+        // std::pair<FaceRef, Mat4> mypair(f,outer(v,v));
+        face_quadrics.insert({f, outer(v, v)});
+    }
     // -> Compute an initial quadric for each vertex as the sum of the quadrics
     //    associated with the incident faces, storing it in vertex_quadrics
+    for(auto v = vertices_begin(); v != vertices_end(); v++) {
+        Mat4 K_sum;
+        // traversal each face neighbor to v
+        HalfedgeRef h = v->halfedge();
+        do {
+            FaceRef f = h->face();
+            auto f_iter = face_quadrics.find(f);
+            if(f_iter != face_quadrics.end()) {
+                K_sum += (*f_iter).second;
+            }
+            h = h->twin()->next();
+        } while(h != v->halfedge());
+        vertex_quadrics.insert({v, K_sum});
+    }
     // -> Build a priority queue of edges according to their quadric error cost,
     //    i.e., by building an Edge_Record for each edge and sticking it in the
     //    queue. You may want to use the above PQueue<Edge_Record> for this.
+
+    PQueue<Edge_Record> pq_edge;
+    for(auto e = edges_begin(); e != edges_end(); e++) {
+        Edge_Record record(vertex_quadrics, e);
+        edge_records[e] = record;
+        pq_edge.insert(record);
+    }
     // -> Until we reach the target edge budget, collapse the best edge. Remember
     //    to remove from the queue any edge that touches the collapsing edge
     //    BEFORE it gets collapsed, and add back into the queue any edge touching
     //    the collapsed vertex AFTER it's been collapsed. Also remember to assign
     //    a quadric to the collapsed vertex, and to pop the collapsed edge off the
     //    top of the queue.
+    int target_num = (int)(0.25f * edges.size());
+    while((int)edges.size() > target_num) {
+        auto best_eRecord = pq_edge.top();
+        pq_edge.pop();
+        // 3 Compute the new quadric by summing the quadrics at its two endpoints.??
+        // 4 Remove any edge touching either of its endpoints from the queue
+        VertexRef v0 = best_eRecord.edge->halfedge()->vertex();
+        HalfedgeRef h0 = v0->halfedge();
+        do {
+            if(h0->edge() != best_eRecord.edge) {
+                pq_edge.remove(edge_records[h0->edge()]);
+            }
+            h0 = h0->twin()->next();
+        } while(h0 != v0->halfedge());
+        VertexRef v1 = best_eRecord.edge->halfedge()->twin()->vertex();
+        HalfedgeRef h1 = v1->halfedge();
+        do {
+            if(h1->edge() != best_eRecord.edge) {
+                pq_edge.remove(edge_records[h1->edge()]);
+            }
+            h1 = h1->twin()->next();
+        } while(h1 != v1->halfedge());
+        // 5 Collapse the edge.
+        auto r = collapse_edge_erase(best_eRecord.edge);
+        if(r.has_value()) {
+            VertexRef new_v = *r;
+            // 6 Set the quadric of the new vertex to the quadric computed in Step 3
+            new_v->pos = best_eRecord.optimal;//Don't change??
+            // 7 Insert any edge touching the new vertex into the queue, creating new edge records for each of them.
+            HalfedgeRef h_iter = new_v->halfedge();
+            do {
+                Edge_Record record(vertex_quadrics, h_iter->edge());
+                edge_records[h_iter->edge()] = record;
+                pq_edge.insert(record);
+                h_iter = h_iter->twin()->next();
+            } while (h_iter != new_v->halfedge());
 
+        } else {
+            return false;
+        }
+    }
     // Note: if you erase elements in a local operation, they will not be actually deleted
     // until do_erase or validate are called. This is to facilitate checking
     // for dangling references to elements that will be erased.
+
     // The rest of the codebase will automatically call validate() after each op,
     // but here simply calling collapse_edge() will not erase the elements.
     // You should use collapse_edge_erase() instead for the desired behavior.
 
+    // collapse_edge_erase()
     return false;
 }
