@@ -1387,7 +1387,7 @@ bool Halfedge_Mesh::isotropic_remesh() {
 
     return false;
 }
-// I don't get why there's no Mat3
+
 struct Matrix3x3 {
     /// Identity matrix
     static const Matrix3x3 I;
@@ -1448,14 +1448,7 @@ struct Matrix3x3 {
         return r;
     }
 };
-// Calculate Vec4 Xt * Matrix3x3 m
-Vec4 LeftMultiXTranspose(Vec4& Xt, Mat4& m) {
-    Vec4 r;
-    for(int i = 0; i < 4; i++) {
-        r[i] = Xt[0] * m[0][i] + Xt[1] * m[1][i] + Xt[2] * m[2][i] + Xt[3] * m[3][i];
-    }
-    return r;
-}
+
 const inline Matrix3x3 Matrix3x3::I =
     Matrix3x3{Vec3{1.0f, 0.0f, 0.0f}, Vec3{0.0f, 1.0f, 0.0f}, Vec3{0.0f, 0.0f, 1.0f}};
 
@@ -1495,7 +1488,7 @@ struct Edge_Record {
         //    Edge_Record::cost.
         optimal = B.inverse() * ((-1.0f) * w);
         Vec4 X(optimal, 1.0f);
-        cost = dot(X, K_forEdge * X); // LeftMultiXTranspose(X,K_forEdge)
+        cost = dot(X, K_forEdge * X); 
     }
     Halfedge_Mesh::EdgeRef edge;
     Vec3 optimal;
@@ -1634,11 +1627,11 @@ bool Halfedge_Mesh::simplify() {
     //    i.e., by building an Edge_Record for each edge and sticking it in the
     //    queue. You may want to use the above PQueue<Edge_Record> for this.
 
-    PQueue<Edge_Record> pq_edge;
+    //PQueue<Edge_Record> pq_edge;
     for(auto e = edges_begin(); e != edges_end(); e++) {
         Edge_Record record(vertex_quadrics, e);
         edge_records[e] = record;
-        pq_edge.insert(record);
+        edge_queue.insert(record);
     }
     // -> Until we reach the target edge budget, collapse the best edge. Remember
     //    to remove from the queue any edge that touches the collapsing edge
@@ -1648,15 +1641,16 @@ bool Halfedge_Mesh::simplify() {
     //    top of the queue.
     int target_num = (int)(0.25f * edges.size());
     while((int)edges.size() > target_num) {
-        auto best_eRecord = pq_edge.top();
-        pq_edge.pop();
-        // 3 Compute the new quadric by summing the quadrics at its two endpoints.??
+        auto best_eRecord = edge_queue.top();
+        edge_queue.pop();
+        // 3 Compute the new quadric by summing the quadrics at its two endpoints.??why it's equal to the new vertex's quadric 
+        Mat4 QuadricStep3 = vertex_quadrics[best_eRecord.edge->halfedge()->vertex()] +vertex_quadrics[best_eRecord.edge->halfedge()->twin()->vertex()];
         // 4 Remove any edge touching either of its endpoints from the queue
         VertexRef v0 = best_eRecord.edge->halfedge()->vertex();
         HalfedgeRef h0 = v0->halfedge();
         do {
             if(h0->edge() != best_eRecord.edge) {
-                pq_edge.remove(edge_records[h0->edge()]);
+                edge_queue.remove(edge_records[h0->edge()]);
             }
             h0 = h0->twin()->next();
         } while(h0 != v0->halfedge());
@@ -1664,7 +1658,7 @@ bool Halfedge_Mesh::simplify() {
         HalfedgeRef h1 = v1->halfedge();
         do {
             if(h1->edge() != best_eRecord.edge) {
-                pq_edge.remove(edge_records[h1->edge()]);
+                edge_queue.remove(edge_records[h1->edge()]);
             }
             h1 = h1->twin()->next();
         } while(h1 != v1->halfedge());
@@ -1672,14 +1666,18 @@ bool Halfedge_Mesh::simplify() {
         auto r = collapse_edge_erase(best_eRecord.edge);
         if(r.has_value()) {
             VertexRef new_v = *r;
+            
+            new_v->pos = best_eRecord.optimal;//set the position to the mini quad error point
             // 6 Set the quadric of the new vertex to the quadric computed in Step 3
-            new_v->pos = best_eRecord.optimal;//Don't change??
+            //vertex_quadrics.insert({new_v,QuadricStep3});
+            vertex_quadrics[new_v] = QuadricStep3;//error C++ List Iterators Incompatible not solved yet
+
             // 7 Insert any edge touching the new vertex into the queue, creating new edge records for each of them.
             HalfedgeRef h_iter = new_v->halfedge();
             do {
                 Edge_Record record(vertex_quadrics, h_iter->edge());
                 edge_records[h_iter->edge()] = record;
-                pq_edge.insert(record);
+                edge_queue.insert(record);
                 h_iter = h_iter->twin()->next();
             } while (h_iter != new_v->halfedge());
 
