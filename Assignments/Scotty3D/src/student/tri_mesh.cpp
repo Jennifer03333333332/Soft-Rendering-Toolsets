@@ -6,7 +6,7 @@ namespace PT {
 
 BBox Triangle::bbox() const {
 
-    // TODO (PathTracer): Task 2
+    // TODO (PathTracer): Task 2 or 3
     // Compute the bounding box of the triangle.
 
     // Beware of flat/zero-volume boxes! You may need to

@@ -290,19 +290,25 @@ void Model::halfedge_viz(Halfedge_Mesh::HalfedgeRef h, Mat4& transform) {
 
     // Move to center of edge and towards center of face
     Vec3 offset = (v1 - v0) * 0.2f;
-    Vec3 base = h->face()->halfedge()->vertex()->pos;
+    auto base = h->face()->halfedge();
 
-    if(base == v0) {
-        base = h->next()->next()->vertex()->pos;
-    } else if(base == v1) {
+    if(base->vertex() == v_0) {
+        base = h->next()->next();
+    } else if(base->vertex() == v_1) {
         Halfedge_Mesh::HalfedgeRef hf = h;
         do {
             hf = hf->next();
         } while(hf->next() != h);
-        base = hf->vertex()->pos;
+        base = hf;
     }
 
-    Vec3 face_n = cross(base - v0, base - v1).unit();
+    Vec3 face_n;
+    do {
+        Vec3 b = base->vertex()->pos;
+        base = base->next();
+        face_n = cross(b - v0, b - v1);
+    } while(face_n.norm() < EPS_F);
+
     offset += cross(face_n, dir).unit() * s * 0.2f;
 
     // Align edge
