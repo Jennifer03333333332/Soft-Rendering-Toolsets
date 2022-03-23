@@ -366,7 +366,7 @@ public:
 
         // Returns whether the vertex is on a boundary loop
         bool on_boundary() const;
-        // Returns the number of edges incident from this vertex
+        // Returns the number of non-boundary faces adjacent to the vertex
         unsigned int degree() const;
         // Computes an area-weighted normal vector at the vertex
         Vec3 normal() const;

@@ -41,20 +41,23 @@ We recommend checking out this [Scratchapixel article](https://www.scratchapixel
 
 Your job is to construct a `BVH` in `void BVH<Primitive>::build` in
 `student/bvh.inl`
-using the [Surface Area Heuristic](http://15462.courses.cs.cmu.edu/fall2017/lecture/acceleratingqueries/slide_025) discussed in class. Tree construction would occur when the BVH object is constructed. Below is the pseudocode by which your BVH construction procedure should generally follow:
+using the [Surface Area Heuristic](http://15462.courses.cs.cmu.edu/fall2017/lecture/acceleratingqueries/slide_025) discussed in class. Tree construction would occur when the BVH object is constructed. Below is the pseudocode from class by which your BVH construction procedure should generally follow:
 
 <center><img src="figures/BVH_construction_pseudocode.png"></center>
 
+If you find it easier to think of looping over partitions rather than buckets, here is another outline of pseudocode that you may use:
+
+<center><img src="figures/Partitions.png"></center>
 
 **Notes:**
-- The first $$B$$ referenced in the pseudocode is the bucket that the primitive's centroid would lie in along the axis we are currently on. The next for loop is iterating over all possible ways to group the buckets together along the axis we are currently on.
+- The $$B$$ referenced in the first pseudocode is the bucket that the primitive's centroid would lie in along the axis we are currently on. 
 - For the centroid referenced in the pseudocode, we can simply take the center of the primitive's bbox to be a good approximation.
 - A helpful C++ function to use for partitioning primitives is
 [std::partition](https://en.cppreference.com/w/cpp/algorithm/partition). This function divides the original group of elements
 into two sub-groups, where the first group contains elements that return
 true for the execution policy and the second group contains the elements that
 return false. Note that the elements are **not sorted** within the subgroups
-themselves.
+themselves. You may want to use [std::sort](https://en.cppreference.com/w/cpp/algorithm/sort) to sort them.
 - You may find that this task is one of the most time consuming parts of A3, especially since this part of the documentation is intentionally sparse.
 
 ## Step 2: Ray-BVH Intersection

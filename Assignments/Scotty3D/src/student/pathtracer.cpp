@@ -4,6 +4,9 @@
 #include "../util/rand.h"
 #include "debug.h"
 
+#define TASK_4 0
+#define TASK_6 0
+
 namespace PT {
 
 Spectrum Pathtracer::trace_pixel(size_t x, size_t y) {
@@ -69,6 +72,10 @@ Spectrum Pathtracer::sample_direct_lighting(const Shading_Info& hit) {
     // incoming light (the first value returned by Pathtracer::trace()). Note that since we only
     // want emissive, we can trace a ray with depth = 0.
 
+#if TASK_4 == 1
+    return radiance
+#endif
+
     // TODO (PathTrace): Task 6
 
     // For task 6, we want to upgrade our direct light sampling procedure to also
@@ -90,6 +97,9 @@ Spectrum Pathtracer::sample_direct_lighting(const Shading_Info& hit) {
     // we don't know whether it came from the BSDF or the light, so you should use BSDF::evaluate(),
     // BSDF::pdf(), and Pathtracer::area_lights_pdf() to compute the proper weighting.
     // What is the PDF of our sample, given it could have been produced from either source?
+#if TASK_6 == 1
+    return radiance
+#endif
 
     return radiance;
 }
@@ -137,7 +147,7 @@ std::pair<Spectrum, Spectrum> Pathtracer::trace(const Ray& ray) {
                         out_dir, result.normal,   ray.depth};
 
     // Sample and return light reflected through the intersection
-    return {{}, sample_direct_lighting(hit) + sample_indirect_lighting(hit)};
+    return {emissive, sample_direct_lighting(hit) + sample_indirect_lighting(hit)};
 }
 
 } // namespace PT

@@ -7,7 +7,7 @@ parent: "A3: Pathtracer"
 
 # (Task 4) Path Tracing
 
-Up to this point, your renderer only computes object visibility using ray tracing. Now, we will simulate the complicated paths light can take through the scene, bouncing off many surfaces before eventually reaching the camera. Simulating this multi-bounce light is referred to as _global illumination_, and it is critical to producing realistic images, especially when specular surfaces are present.
+Up to this point, your renderer has only computed object visibility using ray tracing. Now, we will simulate the complicated paths that light can take throughout the scene, bouncing off many surfaces before eventually reaching the camera. Simulating this multi-bounce light is referred to as _global illumination_, and it is critical for producing realistic images, especially when specular surfaces are present.
 
 ---
 

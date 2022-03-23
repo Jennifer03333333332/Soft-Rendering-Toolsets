@@ -27,17 +27,16 @@
         void student_debug_ui() {
 
             // ...
-            Checkbox("Use Normal Colors", &debugger.normal_colors);
+            Checkbox("Pathtracer: use normal colors", &debug_data.normal_colors);
             // ...
         }
 
     And we finally used the option in pathtracer.cpp:
 
-        Spectrum Pathtracer::trace_ray(const Ray& ray) {
+        Spectrum Pathtracer::trace(const Ray& ray) {
 
             // ...
-            Spectrum radiance_out = debug_data.normal_colors ? Spectrum(0.5f) :
-    Spectrum::direction(hit.normal);
+            if(debug_data.normal_colors) return {Spectrum::direction(result.normal), {}};
             // ...
         }
 */
