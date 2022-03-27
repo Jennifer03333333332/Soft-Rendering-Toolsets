@@ -9,6 +9,8 @@
 
 namespace PT {
 
+
+//x,y: screen space coordinates [0,w],[0,h]
 Spectrum Pathtracer::trace_pixel(size_t x, size_t y) {
 
     // TODO (PathTracer): Task 1
@@ -23,9 +25,15 @@ Spectrum Pathtracer::trace_pixel(size_t x, size_t y) {
     Vec2 xy((float)x, (float)y);
     Vec2 wh((float)out_w, (float)out_h);
 
-    Ray ray = camera.generate_ray(xy / wh);
-    ray.depth = max_depth;
 
+    Samplers::Rect sampler( Vec2(1.0f,1.0f) );
+    Vec2 sample_pos = sampler.sample();//[0,1],[0,1]
+
+
+    Ray ray = camera.generate_ray((xy + sample_pos) / wh);
+    ray.depth = max_depth;
+    //debug: 10.0f means show the ray until time become 10.0f
+    if(RNG::coin_flip(0.0005f)) log_ray(ray, 10.0f);
     // Pathtracer::trace() returns the incoming light split into emissive and reflected components.
     auto [emissive, reflected] = trace(ray);
     return emissive + reflected;

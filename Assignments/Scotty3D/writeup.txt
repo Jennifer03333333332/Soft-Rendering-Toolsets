@@ -1,9 +1,8 @@
 For checkpoint:
 
 Fully Implement EdgeFlip, EdgeSplit, EdgeCollapse and FaceBevel 
-Extra credit : Fully Implement BevelVertex, eraseEdge, eraseVertex
+
 
 For final:
 
 Fully Implement Triangulation, LinearSubdivision, and CatmullClarkSubdivision
-Fully Implement Loop subdivision
