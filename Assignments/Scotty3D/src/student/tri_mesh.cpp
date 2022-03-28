@@ -9,10 +9,19 @@ BBox Triangle::bbox() const {
     // TODO (PathTracer): Task 2 or 3
     // Compute the bounding box of the triangle.
 
+    Vec3 p0 = vertex_list[v0].position;
+    Vec3 p1 = vertex_list[v1].position;
+    Vec3 p2 = vertex_list[v2].position;
+
+    float minX = std::min({p0.x, p1.x, p2.x});
+    float maxX = std::max({p0.x, p1.x, p2.x});
+    float minY = std::min({p0.y, p1.y, p2.y});
+    float maxY = std::max({p0.y, p1.y, p2.y});
+    float minZ = std::min({p0.z, p1.z, p2.z});
+    float maxZ = std::max({p0.z, p1.z, p2.z});
     // Beware of flat/zero-volume boxes! You may need to
     // account for that here, or later on in BBox::intersect.
-
-    BBox box;
+    BBox box(Vec3(minX, minY, minZ), Vec3(maxX, maxY, maxZ)); // min max
     return box;
 }
 
@@ -22,20 +31,69 @@ Trace Triangle::hit(const Ray& ray) const {
     Tri_Mesh_Vert v_0 = vertex_list[v0];
     Tri_Mesh_Vert v_1 = vertex_list[v1];
     Tri_Mesh_Vert v_2 = vertex_list[v2];
-    (void)v_0;
-    (void)v_1;
-    (void)v_2;
+    // (void)v_0;
+    // (void)v_1;
+    // (void)v_2;
 
     // TODO (PathTracer): Task 2
     // Intersect the ray with the triangle defined by the three vertices.
 
+    // Moller-Trumbore algorithm
+    // if ray intersect with this triangle
+    bool hit = true; 
+    //Store u,v,t
+    Vec3 uvt;
+    float distance;
+
+    Vec3 p0p1 = v_1.position - v_0.position;      // e1
+    Vec3 p0p2 = v_2.position - v_0.position;      // e2
+    Vec3 p0_rayOrigin = ray.point - v_0.position; // s
+    float det = dot(cross(p0p1, ray.dir), p0p2) ;
+    if(dot(cross(p0p1, ray.dir), p0p2) != 0) { // if denominator is zero
+        Vec3 Temp_vec3(-1.0f * dot(cross(p0_rayOrigin, p0p2), ray.dir),
+                       dot(cross(p0p1, ray.dir), p0_rayOrigin),
+                       -1.0f * dot(cross(p0_rayOrigin, p0p2), p0p1));
+        uvt = Temp_vec3 / (dot(cross(p0p1, ray.dir), p0p2));
+        // How to judge if ray hits the triangle?
+        
+        // The hit point not in the triangle; t must >= 0
+        if(uvt.x < 0 || uvt.y < 0 || (1.0f - uvt.x - uvt.y) < 0 || uvt.z < 0) {
+            hit = false; 
+        }
+        // Also point should be within the ray.dist_bounds
+        distance = std::abs((uvt.z * ray.dir).norm());
+        if(distance < ray.dist_bounds.x || distance > ray.dist_bounds.y) {
+            hit = false;
+        }
+    } else {
+        // TODO
+        // dot(cross(p0p1, ray.dir), p0p2) == 0
+        // means cross(p0p1, ray.dir) == 0 or p0p2 == 0 or cross(p0p1, ray.dir)  vertical to p0p2 
+        // (1) p0p1 X ray.dir == zero: ray is parallel to p0p1
+        // (2) cross(p0p1, ray.dir) is vertical to p0p2: ray.dir is in this triangle's plane
+        
+        hit = false;//temporary
+
+        // Vec3 normal_thistriangle = cross(p0p1,p0p2);
+        // Vec3 p0_rayO = ray.point - v_0.position;
+        // if(dot(p0_rayO,normal_thistriangle) == 0){//ray.point is in this plane
+
+        // }
+    }
+
     Trace ret;
     ret.origin = ray.point;
-    ret.hit = false;       // was there an intersection?
-    ret.distance = 0.0f;   // at what distance did the intersection occur?
-    ret.position = Vec3{}; // where was the intersection?
-    ret.normal = Vec3{};   // what was the surface normal at the intersection?
-                           // (this should be interpolated between the three vertex normals)
+    ret.hit = hit;       // was there an intersection?
+    if(hit){
+        ret.distance = distance;   // at what distance did the intersection occur?
+        ret.position = ray.at(uvt.z); // where was the intersection? o+td
+        // what was the surface normal at the intersection?// (this should be interpolated between the three vertex normals)
+        ret.normal = uvt.x*v_0.normal +
+            uvt.y*v_1.normal +
+            (1.0f - uvt.x - uvt.y)*v_2.normal;
+    }
+
+       
     return ret;
 }
 

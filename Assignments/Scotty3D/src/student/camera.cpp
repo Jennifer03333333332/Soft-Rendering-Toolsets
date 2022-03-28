@@ -23,7 +23,7 @@ Ray Camera::generate_ray(Vec2 screen_coord) const {
     //Calculate the coords in camera space (sample_pos_in_cameraspace)
     float point_x = screen_coord.x*screen_width - 0.5f*screen_width;
     float point_y = screen_coord.y*screen_height - 0.5f*screen_height;
-    //error, x not span
+    
     Ray r = Ray();
     r.point = Vec3(0,0,0);//start at the origin
     r.dir = Vec3(point_x,point_y,-1.0f);
