@@ -21,6 +21,10 @@ BBox Triangle::bbox() const {
     float maxZ = std::max({p0.z, p1.z, p2.z});
     // Beware of flat/zero-volume boxes! You may need to
     // account for that here, or later on in BBox::intersect.
+    maxX = (minX >= maxX) ? (minX + 1.0f) :(maxX);
+    maxY = (minY >= maxY) ? (minY + 1.0f) :(maxY);
+    maxZ = (minZ >= maxZ) ? (minZ + 1.0f) :(maxZ);
+
     BBox box(Vec3(minX, minY, minZ), Vec3(maxX, maxY, maxZ)); // min max
     return box;
 }
