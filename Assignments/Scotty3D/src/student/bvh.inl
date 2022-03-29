@@ -5,50 +5,13 @@
 
 namespace PT {
 
-// template<typename Primitive>
-// int partition(std::vector<Primitive>& nums, int left, int right, int pivot_index) {
-//     int pivot = nums[pivot_index].bbox().center();
-
-//     std::swap(nums[pivot_index], nums[right]);
-//     int store_index = left;
-
-//     for (int i = left; i <= right; i++) {
-//         if (nums[i].bbox().center() < pivot) {
-//             std::swap(nums[store_index], nums[i]);
-//             store_index++;
-//         }
-//     }
-//     std::swap(nums[store_index], nums[right]);
-//     return store_index;
-// }
-
-// template<typename Primitive>
-// int quickselect(std::vector<Primitive>& nums, int left, int right, int k_smallest) {
-//     if (left == right) return nums[left];
-
-//     srand(time(0));
-//     int pivot_index = left + (rand() % (right - left));
-//     pivot_index = partition(nums, left, right, pivot_index);
-
-//     if (k_smallest == pivot_index) return nums[k_smallest];
-
-//     else if (k_smallest < pivot_index) return quickselect(nums, left, pivot_index - 1,
-//     k_smallest);
-
-//     return quickselect(nums, pivot_index + 1, right, k_smallest);
-// }
-
-// template<typename Primitive>
-// bool comp_center(Primitive& prim1, Primitive& prim2, int axis){
-//     return (prim1.bbox().center()[axis] < prim2.bbox().center()[axis]);
-// }
-
 struct Bucket {
     BBox bbox;
     int prim_count = 0;
 };
 
 struct Partition {
+    int axis = 0;
     BBox b_left, b_right;
     int left_prim_count = 0, right_prim_count = 0;
 };
@@ -100,7 +63,9 @@ void BVH<Primitive>::build(std::vector<Primitive>&& prims, size_t max_leaf_size)
     // Build the tree in level order
     while(true) {//++root_idx
         if(nodes[root_idx].size <= max_leaf_size) return;
-
+        //primitive start index and end index
+        int start_index = (int)nodes[root_idx].start;
+        int end_index = (int)nodes[root_idx].start + (int)nodes[root_idx].size;
         // For axis x,y,z
         float best_cost = FLT_MAX;
         Vec3 best_cost_ofxyz(FLT_MAX, FLT_MAX, FLT_MAX);
@@ -109,19 +74,20 @@ void BVH<Primitive>::build(std::vector<Primitive>&& prims, size_t max_leaf_size)
         for(int axis = 0; i < 3; i++) {
             Partition best_partition_thisaxis;
             // Sort the primitives in ascending order, override the compare using lambda
-            std::sort(primitives.begin(), primitives.end(),
+            //TODO should based on this sub list
+            std::sort(primitives.begin() + start_index, primitives.begin() + end_index,
                       [](const Primitive& prim1, const Primitive& prim2) {
                           return (prim1.bbox().center()[axis] < prim2.bbox().center()[axis]);
                       });
 
             // Initialize buckets
 
-            float bucket_interval = (box.max[axis] - box.min[axis]) / (float)bucket_number;
-            for(float line = box.min[axis] + bucket_interval; line < box.max[axis]; line += bucket_interval) { // the interval is 1
-                // range: box.min[axis] -> line; line -> box.max[axis];
+            float bucket_interval = (nodes[root_idx].bbox.max[axis] - nodes[root_idx].bbox.min[axis]) / (float)bucket_number;
+            for(float line = nodes[root_idx].bbox.min[axis] + bucket_interval; line < nodes[root_idx].bbox.max[axis]; line += bucket_interval) { // the interval is 1
+                // range: bbox.min[axis] -> line; line -> bbox.max[axis];
                 // from axis = line to (line+1 or box.max[axis](when out of range))
-                Partition p;
-                for(int index = 0; index < primitives.size(); index++) { 
+                Partition p; p.axis = axis;
+                for(int index = start_index; index < end_index; index++) { 
                     // This primitive is on the left
                     if(primitives[index].bbox().center()[axis] < line) {
                         p.b_left.enclose(primitives[index].bbox());
@@ -142,7 +108,7 @@ void BVH<Primitive>::build(std::vector<Primitive>&& prims, size_t max_leaf_size)
             }
 
             best_partition.insert({best_cost_ofxyz[axis], best_partition_thisaxis});
-
+            //TO DO primitives need to sort() based on partition(
             // std::partition(primitives.begin(),primitives.end(),[](){ return bbox().center() < })
         }
         best_cost = std::min(best_cost_ofxyz[0], best_cost_ofxyz[1], best_cost_ofxyz[2]);
@@ -151,14 +117,19 @@ void BVH<Primitive>::build(std::vector<Primitive>&& prims, size_t max_leaf_size)
             // old node
             nodes[root_idx].l = (size_t)nodes.size();
             nodes[root_idx].r = (size_t)nodes.size() + 1;
+            //need to sort primitive to make sure
+            std::sort(primitives.begin() + start_index, primitives.begin() + end_index,
+                      [](const Primitive& prim1, const Primitive& prim2) {
+                          return (prim1.bbox().center()[best_partition_xyz.axis] < prim2.bbox().center()[best_partition_xyz.axis]);
+                      });
             // left
             nodes.push_back(
-                new_node(best_partition_xyz.b_left, nodes.size(), best_partition_xyz.left_prim_count, 0, 0)
+                new_node(best_partition_xyz.b_left, nodes[root_idx].start, best_partition_xyz.left_prim_count, 0, 0)
             );
 
             // right
             nodes.push_back(
-                new_node(best_partition_xyz.b_right, nodes.size(), best_partition_xyz.right_prim_count,0, 0);
+                new_node(best_partition_xyz.b_right, nodes[root_idx].start + best_partition_xyz.left_prim_count, best_partition_xyz.right_prim_count,0, 0);
             );
             
         }
@@ -180,12 +151,49 @@ template<typename Primitive> Trace BVH<Primitive>::hit(const Ray& ray) const {
 
     // The starter code simply iterates through all the primitives.
     // Again, remember you can use hit() on any Primitive value.
-
+    if(nodes.empty())return;
     Trace ret;
-    for(const Primitive& prim : primitives) {
-        Trace hit = prim.hit(ray);
-        ret = Trace::min(ret, hit);
+    // for(const Primitive& prim : primitives) {
+    //     Trace hit = prim.hit(ray);
+    //     ret = Trace::min(ret, hit);//return the mini Trace
+    // }
+
+    //Level order traversal
+    std::queue<Node> q;
+    q.push(nodes[0]);
+    Vec2 times(0,FLT_MAX);
+    while(!q.empty()){
+        //if node is leaf
+        if(node.is_leaf){
+            //Each primitive in this node
+            //size is how many primitives under this node(include sub tree)
+            for(int index = node.start;index < node.size;index++) {
+                Trace hit = primitives[index].hit(ray);
+                ret = Trace::min(ret, hit);//return the mini Trace
+            }
+        }
+        else{
+            //ray.dist_bounds.x
+            Vec2 times1(0,FLT_MAX);
+            Vec2 times2(0,FLT_MAX);
+            bool hit_left = nodes[node.l].bbox.hit(ray, times1);
+            bool hit_right = nodes[node.r].bbox.hit(ray, times2);
+            
+            q.push()
+
+
+        }
     }
+    for(const Node& node : nodes) {
+        
+
+
+        
+    }
+
+
+
+
     return ret;
 }
 

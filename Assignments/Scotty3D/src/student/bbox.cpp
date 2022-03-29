@@ -37,11 +37,12 @@ bool BBox::hit(const Ray& ray, Vec2& times) const {
     // If the ray intersected the bounding box within the range given by
     // [times.x,times.y], update times with the new intersection times.
     //TODO
-    if(tmin >= times.x && tmin <= times.y){
-        //???
-        float interval = times.y-times.x;
-        times.x = tmin; 
-        times.y = tmin + interval; 
+    if( tmin >= times.x && tmin <= times.y){
+        times.x = tmin;
     }
+    if(tmax >= times.x && tmax <= times.y){
+        times.y = tmax;
+    }
+
     return true;
 }
