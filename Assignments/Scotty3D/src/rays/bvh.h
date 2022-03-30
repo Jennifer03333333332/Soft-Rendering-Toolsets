@@ -28,6 +28,8 @@ public:
 
     std::vector<Primitive> destructure();
     void clear();
+    
+
 
 private:
     class Node {
@@ -44,6 +46,9 @@ private:
     std::vector<Node> nodes;
     std::vector<Primitive> primitives;
     size_t root_idx = 0;
+
+    //Jennifer
+    //void find_closest_hit(const Ray& ray, Node& node, Trace& ret) const;//, Vec2& times
 };
 
 } // namespace PT

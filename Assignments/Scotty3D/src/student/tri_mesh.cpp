@@ -38,36 +38,45 @@ Trace Triangle::hit(const Ray& ray) const {
     // (void)v_0;
     // (void)v_1;
     // (void)v_2;
-
+    //Trace ret;
+    // ret.origin = ray.point;
+    // ret.hit = false;       // was there an intersection?
+    // ret.distance = 0.0f;   // at what distance did the intersection occur?
+    // ret.position = Vec3{}; // where was the intersection?
+    // ret.normal = Vec3{};   // what was the surface normal at the intersection?
+    //                        // (this should be interpolated between the three vertex normals)
+    // return ret;
     // TODO (PathTracer): Task 2
     // Intersect the ray with the triangle defined by the three vertices.
 
     // Moller-Trumbore algorithm
     // if ray intersect with this triangle
-    bool hit = true; 
+
+
+    bool result = true; 
     //Store u,v,t
-    Vec3 uvt;
-    float distance;
+    Vec3 uvt = Vec3();
+    float distance = FLT_MIN;
 
     Vec3 p0p1 = v_1.position - v_0.position;      // e1
     Vec3 p0p2 = v_2.position - v_0.position;      // e2
     Vec3 p0_rayOrigin = ray.point - v_0.position; // s
-    float det = dot(cross(p0p1, ray.dir), p0p2) ;
+    float det = dot(cross(p0p1, ray.dir), p0p2);
     if(dot(cross(p0p1, ray.dir), p0p2) != 0) { // if denominator is zero
         Vec3 Temp_vec3(-1.0f * dot(cross(p0_rayOrigin, p0p2), ray.dir),
                        dot(cross(p0p1, ray.dir), p0_rayOrigin),
                        -1.0f * dot(cross(p0_rayOrigin, p0p2), p0p1));
-        uvt = Temp_vec3 / (dot(cross(p0p1, ray.dir), p0p2));
+        uvt = Temp_vec3 / det;
         // How to judge if ray hits the triangle?
         
         // The hit point not in the triangle; t must >= 0
         if(uvt.x < 0 || uvt.y < 0 || (1.0f - uvt.x - uvt.y) < 0 || uvt.z < 0) {
-            hit = false; 
+            result = false; 
         }
         // Also point should be within the ray.dist_bounds
         distance = std::abs((uvt.z * ray.dir).norm());
         if(distance < ray.dist_bounds.x || distance > ray.dist_bounds.y) {
-            hit = false;
+            result = false;
         }
     } else {
         // TODO
@@ -76,7 +85,7 @@ Trace Triangle::hit(const Ray& ray) const {
         // (1) p0p1 X ray.dir == zero: ray is parallel to p0p1
         // (2) cross(p0p1, ray.dir) is vertical to p0p2: ray.dir is in this triangle's plane
         
-        hit = false;//temporary
+        result = false;//temporary
 
         // Vec3 normal_thistriangle = cross(p0p1,p0p2);
         // Vec3 p0_rayO = ray.point - v_0.position;
@@ -87,8 +96,8 @@ Trace Triangle::hit(const Ray& ray) const {
 
     Trace ret;
     ret.origin = ray.point;
-    ret.hit = hit;       // was there an intersection?
-    if(hit){
+    ret.hit = result;       // was there an intersection?
+    if(result){
         ret.distance = distance;   // at what distance did the intersection occur?
         ret.position = ray.at(uvt.z); // where was the intersection? o+td
         // what was the surface normal at the intersection?// (this should be interpolated between the three vertex normals)

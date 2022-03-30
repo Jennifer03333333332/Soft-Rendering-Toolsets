@@ -18,7 +18,7 @@ Trace Sphere::hit(const Ray& ray) const {
 
     // TODO (PathTracer): Task 2
     // Intersect this ray with a sphere of radius Sphere::radius centered at the origin.
-    bool hit = true;
+    bool result = true;
     float t = 0;
     //Quadratic equation
     float a = (ray.dir).norm_squared();
@@ -49,7 +49,7 @@ Trace Sphere::hit(const Ray& ray) const {
             t = std::min(t1,t2);
         }
         else if((!t1_valid) && (!t2_valid)){
-            hit = false;
+            result = false;
         }
         else{
             t = (t1_valid)? t1:t2;
@@ -60,7 +60,7 @@ Trace Sphere::hit(const Ray& ray) const {
         t = ((-2.0f)*dot(ray.point,ray.dir))/(2.0f*(ray.dir).norm_squared());
     }
     else{// No intersection
-        hit = false;
+        result = false;
     }
     // If the ray intersects the sphere twice, ret should
     // represent the first intersection, but remember to respect
@@ -70,11 +70,11 @@ Trace Sphere::hit(const Ray& ray) const {
 
     Trace ret;
     ret.origin = ray.point;
-    ret.hit = hit;       // was there an intersection?
-    if(hit){
+    ret.hit = result;       // was there an intersection?
+    if(result){
         ret.distance = std::abs((ray.at(t) - ray.point).norm());   // at what distance did the intersection occur?
         ret.position = ray.at(t); // where was the intersection?
-        ret.normal = ray.at(t) - Vec3();   // TODO normals should be out-facing.
+        ret.normal = ray.at(t) - Vec3();   // normals should be out-facing.
     }
     return ret;
 }

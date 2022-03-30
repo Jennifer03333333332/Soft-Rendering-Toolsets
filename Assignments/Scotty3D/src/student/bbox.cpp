@@ -7,7 +7,6 @@ bool BBox::hit(const Ray& ray, Vec2& times) const {
     // TODO (PathTracer): Task 3
     // Implement ray - bounding box intersection test
     // Scratchapixel
-    bool result = false;
 
     float tmin, tmax, tymin, tymax, tzmin, tzmax; 
     Vec3 invdir = 1.0f / ray.dir;

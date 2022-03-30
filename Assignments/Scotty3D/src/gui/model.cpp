@@ -307,18 +307,18 @@ void Model::halfedge_viz(Halfedge_Mesh::HalfedgeRef h, Mat4& transform) {
         Vec3 b = base->vertex()->pos;
         base = base->next();
         face_n = cross(b - v0, b - v1);
-    } while(face_n.norm() < EPS_F);
+    } while(face_n.norm() < EPS_F && base != h->face()->halfedge());
 
-    offset += cross(face_n, dir).unit() * s * 0.2f;
+    offset += cross(face_n.unit(), dir).unit() * s * 0.2f;
 
     // Align edge
-    if(dir.y == 1.0f || dir.y == -1.0f) {
+    if(1.0f - std::abs(dir.y) < EPS_F) {
         l *= sign(dir.y);
         transform = Mat4{Vec4{s, 0.0f, 0.0f, 0.0f}, Vec4{0.0f, l, 0.0f, 0.0f},
                          Vec4{0.0f, 0.0f, s, 0.0f}, Vec4{v0 + offset, 1.0f}};
     } else {
-        Vec3 x = cross(dir, Vec3{0.0f, 1.0f, 0.0f});
-        Vec3 z = cross(x, dir);
+        Vec3 x = cross(dir, Vec3{0.0f, 1.0f, 0.0f}).unit();
+        Vec3 z = cross(x, dir).unit();
         transform = Mat4{Vec4{x * s, 0.0f}, Vec4{dir * l, 0.0f}, Vec4{z * s, 0.0f},
                          Vec4{v0 + offset, 1.0f}};
     }

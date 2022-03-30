@@ -5,8 +5,8 @@
       <author>Assimp</author>
       <authoring_tool>Assimp Exporter</authoring_tool>
     </contributor>
-    <created>2022-03-27T18:12:59</created>
-    <modified>2022-03-27T18:12:59</modified>
+    <created>2022-03-29T20:16:04</created>
+    <modified>2022-03-29T20:16:04</modified>
     <unit name="meter" meter="1" />
     <up_axis>Y_UP</up_axis>
   </asset>
@@ -36,41 +36,61 @@
       </optics>
     </camera>
   </library_cameras>
+  <library_images>
+  </library_images>
   <library_effects>
-    <effect id="material_0-fx" name="">
+    <effect id="lambertian-fx" name="lambertian">
       <profile_COMMON>
         <technique sid="standard">
           <phong>
+            <emission>
+              <color sid="emission">1   1   1   1</color>
+            </emission>
+            <diffuse>
+              <color sid="diffuse">1   1   1   1</color>
+            </diffuse>
+            <shininess>
+              <float sid="shininess">1</float>
+            </shininess>
+            <reflective>
+              <color sid="reflective">1   1   1   1</color>
+            </reflective>
+            <transparent>
+              <color sid="transparent">1   1   1   1</color>
+            </transparent>
+            <index_of_refraction>
+              <float sid="index_of_refraction">1.2</float>
+            </index_of_refraction>
           </phong>
         </technique>
       </profile_COMMON>
     </effect>
   </library_effects>
   <library_materials>
-    <material id="material_0" name="">
-      <instance_effect url="#material_0-fx"/>
+    <material id="lambertian" name="lambertian">
+      <instance_effect url="#lambertian-fx"/>
     </material>
   </library_materials>
   <library_geometries>
-    <geometry id="FAKE-S3D-FAKE-MESH_1" name="FAKE-S3D-FAKE-MESH" >
+    <geometry id="Cylinder-S3D-14_1" name="Cylinder-S3D-14" >
       <mesh>
-        <source id="FAKE-S3D-FAKE-MESH_1-positions" name="FAKE-S3D-FAKE-MESH_1-positions">
-          <float_array id="FAKE-S3D-FAKE-MESH_1-positions-array" count="9"> 1 0 0 0 1 0 0 0 1 </float_array>
+        <source id="Cylinder-S3D-14_1-positions" name="Cylinder-S3D-14_1-positions">
+          <float_array id="Cylinder-S3D-14_1-positions-array" count="78"> 0 0 0 0.5 0 0 0.43301269 0 0.25 0.24999999 0 0.43301272 -2.1855694e-08 0 0.5 -0.25000003 0 0.43301269 -0.43301269 0 0.25000003 -0.5 0 7.5497901e-08 -0.43301275 0 -0.2499999 -0.25000015 0 -0.4330126 -2.3245614e-07 0 -0.5 0.24999975 0 -0.43301284 0.43301255 0 -0.2500003 0.43301269 2 0.25 0.5 2 0 0 2 0 0.24999999 2 0.43301272 -2.1855694e-08 2 0.5 -0.25000003 2 0.43301269 -0.43301269 2 0.25000003 -0.5 2 7.5497901e-08 -0.43301275 2 -0.2499999 -0.25000015 2 -0.4330126 -2.3245614e-07 2 -0.5 0.24999975 2 -0.43301284 0.43301255 2 -0.2500003 </float_array>
           <technique_common>
-            <accessor count="3" offset="0" source="#FAKE-S3D-FAKE-MESH_1-positions-array" stride="3">
+            <accessor count="26" offset="0" source="#Cylinder-S3D-14_1-positions-array" stride="3">
               <param name="X" type="float" />
               <param name="Y" type="float" />
               <param name="Z" type="float" />
             </accessor>
           </technique_common>
         </source>
-        <vertices id="FAKE-S3D-FAKE-MESH_1-vertices">
-          <input semantic="POSITION" source="#FAKE-S3D-FAKE-MESH_1-positions" />
+        <vertices id="Cylinder-S3D-14_1-vertices">
+          <input semantic="POSITION" source="#Cylinder-S3D-14_1-positions" />
         </vertices>
-        <polylist count="1" material="defaultMaterial">
-          <input offset="0" semantic="VERTEX" source="#FAKE-S3D-FAKE-MESH_1-vertices" />
-          <vcount>3 </vcount>
-          <p>0 1 2 </p>
+        <polylist count="48" material="defaultMaterial">
+          <input offset="0" semantic="VERTEX" source="#Cylinder-S3D-14_1-vertices" />
+          <vcount>3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 </vcount>
+          <p>2 0 1 3 0 2 4 0 3 5 0 4 6 0 5 7 0 6 8 0 7 9 0 8 10 0 9 11 0 10 12 0 11 1 0 12 15 13 14 15 16 13 15 17 16 15 18 17 15 19 18 15 20 19 15 21 20 15 22 21 15 23 22 15 24 23 15 25 24 15 14 25 14 13 1 1 13 2 13 16 2 2 16 3 16 17 3 3 17 4 17 18 4 4 18 5 18 19 5 5 19 6 19 20 6 6 20 7 20 21 7 7 21 8 21 22 8 8 22 9 22 23 9 9 23 10 23 24 10 10 24 11 24 25 11 11 25 12 25 14 12 12 14 1 </p>
         </polylist>
       </mesh>
     </geometry>
@@ -79,12 +99,12 @@
   </library_controllers>
   <library_visual_scenes>
     <visual_scene id="node" name="">
-      <node id="FAKE-S3D-FAKE-MESH" name="FAKE-S3D-FAKE-MESH" type="NODE">
+      <node id="Cylinder-S3D-14" name="Cylinder-S3D-14" type="NODE">
         <matrix sid="matrix">1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1</matrix>
-        <instance_geometry url="#FAKE-S3D-FAKE-MESH_1">
+        <instance_geometry url="#Cylinder-S3D-14_1">
           <bind_material>
             <technique_common>
-              <instance_material symbol="defaultMaterial" target="#material_0">
+              <instance_material symbol="defaultMaterial" target="#lambertian">
               </instance_material>
             </technique_common>
           </bind_material>

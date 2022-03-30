@@ -5,15 +5,21 @@
 
 namespace PT {
 
-struct Bucket {
-    BBox bbox;
-    int prim_count = 0;
-};
+// struct Bucket {
+//     BBox bbox;
+//     int prim_count = 0;
+// };
 
 struct Partition {
+    
     int axis = 0;
-    BBox b_left, b_right;
+    BBox b_left = {} , b_right = {};
     int left_prim_count = 0, right_prim_count = 0;
+
+    // Partition(){
+    //     axis = 0;
+    //     b_left = BBox(); b_right= BBox();
+    // }
 };
 
 template<typename Primitive>
@@ -41,7 +47,7 @@ void BVH<Primitive>::build(std::vector<Primitive>&& prims, size_t max_leaf_size)
     // Keep these
     nodes.clear();
     primitives = std::move(prims);
-
+    root_idx = 0;
     // TODO (PathTracer): Task 3
     // Construct a BVH from the given vector of primitives and maximum leaf
     // size configuration. The starter code builds a BVH with a
@@ -50,97 +56,135 @@ void BVH<Primitive>::build(std::vector<Primitive>&& prims, size_t max_leaf_size)
     // Replace these
 
     // What I have: primitives, max_leaf_size
-    const int bucket_number = 10;
 
-    BBox box; // bbox for all the primitives
-    for(const Primitive& prim : primitives) {
-        box.enclose(prim.bbox());
-    }
-    nodes.push_back(new_node(box, 0, primitives.size(), 0, 0));//box,start index, size, left
-    // child, right child
-    root_idx = 0;
 
-    // Build the tree in level order
-    while(true) {//++root_idx
-        if(nodes[root_idx].size <= max_leaf_size) return;
-        //primitive start index and end index
-        int start_index = (int)nodes[root_idx].start;
-        int end_index = (int)nodes[root_idx].start + (int)nodes[root_idx].size;
-        // For axis x,y,z
-        float best_cost = FLT_MAX;
-        Vec3 best_cost_ofxyz(FLT_MAX, FLT_MAX, FLT_MAX);
-        std::unordered_map<float, Partition> best_partition; // self-define
-        Partition best_partition_xyz;
-        for(int axis = 0; i < 3; i++) {
-            Partition best_partition_thisaxis;
-            // Sort the primitives in ascending order, override the compare using lambda
-            //TODO should based on this sub list
-            std::sort(primitives.begin() + start_index, primitives.begin() + end_index,
-                      [](const Primitive& prim1, const Primitive& prim2) {
-                          return (prim1.bbox().center()[axis] < prim2.bbox().center()[axis]);
-                      });
+    //start
+    // const int bucket_number = 10;
 
-            // Initialize buckets
+    // BBox box; // bbox for all the primitives
+    // for(const Primitive& prim : primitives) {
+    //     box.enclose(prim.bbox());
+    // }
+    // new_node(box, 0, primitives.size(), 0, 0);//box,start index, size, left
+    // // child, right child
+    // int cur_idx = 0;
 
-            float bucket_interval = (nodes[root_idx].bbox.max[axis] - nodes[root_idx].bbox.min[axis]) / (float)bucket_number;
-            for(float line = nodes[root_idx].bbox.min[axis] + bucket_interval; line < nodes[root_idx].bbox.max[axis]; line += bucket_interval) { // the interval is 1
-                // range: bbox.min[axis] -> line; line -> bbox.max[axis];
-                // from axis = line to (line+1 or box.max[axis](when out of range))
-                Partition p; p.axis = axis;
-                for(int index = start_index; index < end_index; index++) { 
-                    // This primitive is on the left
-                    if(primitives[index].bbox().center()[axis] < line) {
-                        p.b_left.enclose(primitives[index].bbox());
-                        p.left_prim_count++;
-                    } else { // on the right
-                        p.b_right.enclose(primitives[index].bbox());
-                        p.right_prim_count++;
-                    }
-                }
-                // end of one partition
-                // SAH Cost(for this axis)
-                float cost = b_left.bbox.surface_area() / box.surface_area() * (float)b_left.size +
-                             b_right.bbox.surface_area() / box.surface_area() * (float)b_right.size;
-                if(cost < best_cost_ofxyz[axis]) {
-                    best_cost_ofxyz[axis] = cost;
-                    best_partition_thisaxis = p;
-                }
-            }
+    // // Build the tree in level order
+    // while(true) {//++root_idx
+    //     if(nodes[root_idx].size <= max_leaf_size) return;
+    //     //primitive start index and end index
+    //     int start_index = (int)nodes[root_idx].start;
+    //     int end_index = (int)nodes[root_idx].start + (int)nodes[root_idx].size;
+    //     // For axis x,y,z
+    //     float best_cost = FLT_MAX;
+    //     Vec3 best_cost_ofxyz(FLT_MAX, FLT_MAX, FLT_MAX);
+    //     std::vector< Partition> best_partition; // self-define
+    //     Partition best_partition_xyz;
+    //     for(int axis = 0; axis < 3; axis++) {
+    //         Partition best_partition_thisaxis;
+    //         // Sort the primitives in ascending order, override the compare using lambda
+    //         //based on this sub list
+    //         std::sort(primitives.begin() + start_index, primitives.begin() + end_index,
+    //                   [&axis](const Primitive& prim1, const Primitive& prim2) {
+    //                       return (prim1.bbox().center()[axis] < prim2.bbox().center()[axis]);
+    //                   });
 
-            best_partition.insert({best_cost_ofxyz[axis], best_partition_thisaxis});
-            //TO DO primitives need to sort() based on partition(
-            // std::partition(primitives.begin(),primitives.end(),[](){ return bbox().center() < })
-        }
-        best_cost = std::min(best_cost_ofxyz[0], best_cost_ofxyz[1], best_cost_ofxyz[2]);
-        if(best_partition[best_cost]) {
-            best_partition_xyz = best_partition[best_cost];
-            // old node
-            nodes[root_idx].l = (size_t)nodes.size();
-            nodes[root_idx].r = (size_t)nodes.size() + 1;
-            //need to sort primitive to make sure
-            std::sort(primitives.begin() + start_index, primitives.begin() + end_index,
-                      [](const Primitive& prim1, const Primitive& prim2) {
-                          return (prim1.bbox().center()[best_partition_xyz.axis] < prim2.bbox().center()[best_partition_xyz.axis]);
-                      });
-            // left
-            nodes.push_back(
-                new_node(best_partition_xyz.b_left, nodes[root_idx].start, best_partition_xyz.left_prim_count, 0, 0)
-            );
+    //         // Initialize buckets
 
-            // right
-            nodes.push_back(
-                new_node(best_partition_xyz.b_right, nodes[root_idx].start + best_partition_xyz.left_prim_count, best_partition_xyz.right_prim_count,0, 0);
-            );
+    //         float bucket_interval = (nodes[root_idx].bbox.max[axis] - nodes[root_idx].bbox.min[axis]) / (float)bucket_number;
+    //         for(float line = nodes[root_idx].bbox.min[axis] + bucket_interval; line < nodes[root_idx].bbox.max[axis]; line += bucket_interval) { // the interval is 1
+    //             // range: bbox.min[axis] -> line; line -> bbox.max[axis];
+    //             // from axis = line to (line+1 or box.max[axis](when out of range))
+    //             Partition p; p.axis = axis;
+    //             for(int index = start_index; index < end_index; index++) { 
+    //                 // This primitive is on the left
+    //                 if(primitives[index].bbox().center()[axis] < line) {
+    //                     p.b_left.enclose(primitives[index].bbox());
+    //                     p.left_prim_count++;
+    //                 } else { // on the right
+    //                     p.b_right.enclose(primitives[index].bbox());
+    //                     p.right_prim_count++;
+    //                 }
+    //             }
+    //             // end of one partition
+    //             // SAH Cost(for this axis)
+    //             float cost = p.b_left.surface_area() / box.surface_area() * (float)p.left_prim_count +
+    //                          p.b_right.surface_area() / box.surface_area() * (float)p.right_prim_count;
+    //             if(cost < best_cost_ofxyz[axis]) {
+    //                 best_cost_ofxyz[axis] = cost;
+    //                 best_partition_thisaxis = p;
+    //             }
+    //         }
+
+    //         best_partition[axis] = best_partition_thisaxis;
+    //         //TO DO primitives need to sort() based on partition(
+    //         // std::partition(primitives.begin(),primitives.end(),[](){ return bbox().center() < })
+    //     }
+    //     best_cost = std::min(best_cost_ofxyz[0], best_cost_ofxyz[1], best_cost_ofxyz[2]);
+    //     int axis = (best_cost == best_cost_ofxyz[0])?(0):(   (best_cost == best_cost_ofxyz[1])? (1) : (2)  );
+    //         nodes[root_idx].l = (size_t)nodes.size();
+    //         nodes[root_idx].r = (size_t)nodes.size() + 1;
+    //         //need to sort primitive to make sure
+            // std::sort(primitives.begin() + start_index, primitives.begin() + end_index,
+            //           [&axis](const Primitive& prim1, const Primitive& prim2) {
+            //               return (prim1.bbox().center()[axis] < prim2.bbox().center()[axis]);
+            //           });
+    //         // left
+    //         new_node(best_partition[axis].b_left, nodes[root_idx].start, best_partition[axis].left_prim_count, 0, 0);
+    //         // right
+    //         new_node(best_partition[axis].b_right, nodes[root_idx].start + best_partition[axis].left_prim_count, best_partition[axis].right_prim_count,0, 0);
             
-        }
-        root_idx++;
-    }
+
+    //     cur_idx++;
+    // }
 
     // stop rule
     //  while( nodes[nodes.size()-1].size > max_leaf_size){
 
     // }
 }
+
+// template<typename Primitive> //, Vec2& times
+// void BVH<Primitive>::find_closest_hit(const Ray& ray, Node& node, Trace& ret) const{
+//     //if node is leaf
+//     if(node.is_leaf){
+//         //Each primitive in this node
+//         //size is how many primitives under this node(include sub tree)
+//         for(int index = node.start;index < node.size;index++) {
+//             Trace hit = primitives[index].hit(ray);
+//             ret = Trace::min(ret, hit);//return the mini Trace
+//         }
+//     }
+//     else{
+//         //ray.dist_bounds.x
+
+//         //need a ret range
+//         Vec2 times1 = ray.dist_bounds/(ray.dir.norm() );//std::abs((t2 * ray.dir).norm());
+//         Vec2 times2 = times1;
+//         bool hit_left = nodes[node.l].bbox.hit(ray, times1);
+//         bool hit_right = nodes[node.r].bbox.hit(ray, times2);
+//         //if left child bbox is closer thant Right, it doesn't mean that left has the closest primitive
+//         if(!hit_left && !hit_right)continue;
+//         else if(hit_left && hit_right){
+            
+//             float closer_index = (times1.x < times2.x) ? node.l : node.r;
+//             float second_index = (times1.x < times2.x) ? node.r : node.l;
+//             float second_hit_time = (times1.x < times2.x) ? times2.x : times1.x;
+//             float second_hit_distance = std::abs((second_hit_time * ray.dir).norm());
+            
+//             find_closest_hit(ray, nodes[closer_index], ret); 
+//             if(second_hit_distance < ray.dist_bounds.x){
+//                 find_closest_hit(ray, nodes[second_index], ret); 
+//             }
+
+//         }
+            
+            
+
+
+//         }
+// }
+
 
 template<typename Primitive> Trace BVH<Primitive>::hit(const Ray& ray) const {
 
@@ -151,45 +195,37 @@ template<typename Primitive> Trace BVH<Primitive>::hit(const Ray& ray) const {
 
     // The starter code simply iterates through all the primitives.
     // Again, remember you can use hit() on any Primitive value.
-    if(nodes.empty())return;
+    
     Trace ret;
-    // for(const Primitive& prim : primitives) {
-    //     Trace hit = prim.hit(ray);
-    //     ret = Trace::min(ret, hit);//return the mini Trace
-    // }
+    if(nodes.empty())return ret;
+    for(const Primitive& prim : primitives) {
+        Trace hit = prim.hit(ray);
+        ret = Trace::min(ret, hit);//return the mini Trace
+    }
+    
 
+    
+    //find_closest_hit(ray, nodes[0], ret);
+    
+    
+    
+    
+    
     //Level order traversal
-    std::queue<Node> q;
-    q.push(nodes[0]);
-    Vec2 times(0,FLT_MAX);
-    while(!q.empty()){
-        //if node is leaf
-        if(node.is_leaf){
-            //Each primitive in this node
-            //size is how many primitives under this node(include sub tree)
-            for(int index = node.start;index < node.size;index++) {
-                Trace hit = primitives[index].hit(ray);
-                ret = Trace::min(ret, hit);//return the mini Trace
-            }
-        }
-        else{
-            //ray.dist_bounds.x
-            Vec2 times1(0,FLT_MAX);
-            Vec2 times2(0,FLT_MAX);
-            bool hit_left = nodes[node.l].bbox.hit(ray, times1);
-            bool hit_right = nodes[node.r].bbox.hit(ray, times2);
-            
-            q.push()
+    // std::queue<Node> q;
+    // q.push(nodes[0]);
+    // Vec2 times(0,FLT_MAX);
+    // while(!q.empty()){
+    //     auto node = q.front();
+    //     q.pop();
 
-
-        }
-    }
-    for(const Node& node : nodes) {
+    // }
+    // for(const Node& node : nodes) {
         
 
 
         
-    }
+    // }
 
 
 
