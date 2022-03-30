@@ -23,6 +23,19 @@ struct Partition {
 };
 
 template<typename Primitive>
+bool x_cmp(const Primitive& prim1, const Primitive& prim2) {  
+    return (prim1.bbox().center().x < prim2.bbox().center().x);
+}
+template<typename Primitive>
+bool y_cmp(const Primitive& prim1, const Primitive& prim2) {  
+    return (prim1.bbox().center().y < prim2.bbox().center().y);
+}
+template<typename Primitive>
+bool z_cmp(const Primitive& prim1, const Primitive& prim2) {  
+    return (prim1.bbox().center().z < prim2.bbox().center().z);
+}
+
+template<typename Primitive>
 void BVH<Primitive>::build(std::vector<Primitive>&& prims, size_t max_leaf_size) {
 
     // NOTE (PathTracer):
@@ -59,89 +72,85 @@ void BVH<Primitive>::build(std::vector<Primitive>&& prims, size_t max_leaf_size)
 
 
     //start
-    // const int bucket_number = 10;
+    const int bucket_number = 10;
 
-    // BBox box; // bbox for all the primitives
-    // for(const Primitive& prim : primitives) {
-    //     box.enclose(prim.bbox());
-    // }
-    // new_node(box, 0, primitives.size(), 0, 0);//box,start index, size, left
-    // // child, right child
-    // int cur_idx = 0;
+    BBox box; // bbox for all the primitives
+    for(const Primitive& prim : primitives) {
+        box.enclose(prim.bbox());
+    }
+    new_node(box, 0, primitives.size(), 0, 0);//box,start index, size, left
+    // child, right child
+    int cur_idx = 0;
 
-    // // Build the tree in level order
-    // while(true) {//++root_idx
-    //     if(nodes[root_idx].size <= max_leaf_size) return;
-    //     //primitive start index and end index
-    //     int start_index = (int)nodes[root_idx].start;
-    //     int end_index = (int)nodes[root_idx].start + (int)nodes[root_idx].size;
-    //     // For axis x,y,z
-    //     float best_cost = FLT_MAX;
-    //     Vec3 best_cost_ofxyz(FLT_MAX, FLT_MAX, FLT_MAX);
-    //     std::vector< Partition> best_partition; // self-define
-    //     Partition best_partition_xyz;
-    //     for(int axis = 0; axis < 3; axis++) {
-    //         Partition best_partition_thisaxis;
-    //         // Sort the primitives in ascending order, override the compare using lambda
-    //         //based on this sub list
-    //         std::sort(primitives.begin() + start_index, primitives.begin() + end_index,
-    //                   [&axis](const Primitive& prim1, const Primitive& prim2) {
-    //                       return (prim1.bbox().center()[axis] < prim2.bbox().center()[axis]);
-    //                   });
-
-    //         // Initialize buckets
-
-    //         float bucket_interval = (nodes[root_idx].bbox.max[axis] - nodes[root_idx].bbox.min[axis]) / (float)bucket_number;
-    //         for(float line = nodes[root_idx].bbox.min[axis] + bucket_interval; line < nodes[root_idx].bbox.max[axis]; line += bucket_interval) { // the interval is 1
-    //             // range: bbox.min[axis] -> line; line -> bbox.max[axis];
-    //             // from axis = line to (line+1 or box.max[axis](when out of range))
-    //             Partition p; p.axis = axis;
-    //             for(int index = start_index; index < end_index; index++) { 
-    //                 // This primitive is on the left
-    //                 if(primitives[index].bbox().center()[axis] < line) {
-    //                     p.b_left.enclose(primitives[index].bbox());
-    //                     p.left_prim_count++;
-    //                 } else { // on the right
-    //                     p.b_right.enclose(primitives[index].bbox());
-    //                     p.right_prim_count++;
-    //                 }
-    //             }
-    //             // end of one partition
-    //             // SAH Cost(for this axis)
-    //             float cost = p.b_left.surface_area() / box.surface_area() * (float)p.left_prim_count +
-    //                          p.b_right.surface_area() / box.surface_area() * (float)p.right_prim_count;
-    //             if(cost < best_cost_ofxyz[axis]) {
-    //                 best_cost_ofxyz[axis] = cost;
-    //                 best_partition_thisaxis = p;
-    //             }
-    //         }
-
-    //         best_partition[axis] = best_partition_thisaxis;
-    //         //TO DO primitives need to sort() based on partition(
-    //         // std::partition(primitives.begin(),primitives.end(),[](){ return bbox().center() < })
-    //     }
-    //     best_cost = std::min(best_cost_ofxyz[0], best_cost_ofxyz[1], best_cost_ofxyz[2]);
-    //     int axis = (best_cost == best_cost_ofxyz[0])?(0):(   (best_cost == best_cost_ofxyz[1])? (1) : (2)  );
-    //         nodes[root_idx].l = (size_t)nodes.size();
-    //         nodes[root_idx].r = (size_t)nodes.size() + 1;
-    //         //need to sort primitive to make sure
-            // std::sort(primitives.begin() + start_index, primitives.begin() + end_index,
-            //           [&axis](const Primitive& prim1, const Primitive& prim2) {
-            //               return (prim1.bbox().center()[axis] < prim2.bbox().center()[axis]);
-            //           });
-    //         // left
-    //         new_node(best_partition[axis].b_left, nodes[root_idx].start, best_partition[axis].left_prim_count, 0, 0);
-    //         // right
-    //         new_node(best_partition[axis].b_right, nodes[root_idx].start + best_partition[axis].left_prim_count, best_partition[axis].right_prim_count,0, 0);
+    // Build the tree in level order
+    while(true) {//++root_idx
+        if(nodes[root_idx].size <= max_leaf_size) return;
+        //primitive start index and end index
+        int start_index = (int)nodes[root_idx].start;
+        int end_index = (int)nodes[root_idx].start + (int)nodes[root_idx].size;
+        // For axis x,y,z
+        float best_cost = FLT_MAX;
+        Vec3 best_cost_ofxyz(FLT_MAX, FLT_MAX, FLT_MAX);
+        std::vector< Partition> best_partition; // self-define
+        Partition best_partition_xyz;
+        for(int axis = 0; axis < 3; axis++) {
+            Partition best_partition_thisaxis;
+            // Sort the primitives in ascending order, override the compare using lambda
+            //based on this sub list
             
 
-    //     cur_idx++;
-    // }
+            // Initialize buckets
 
-    // stop rule
-    //  while( nodes[nodes.size()-1].size > max_leaf_size){
+            float bucket_interval = (nodes[root_idx].bbox.max[axis] - nodes[root_idx].bbox.min[axis]) / (float)bucket_number;
+            for(float line = nodes[root_idx].bbox.min[axis] + bucket_interval; line < nodes[root_idx].bbox.max[axis]; line += bucket_interval) { // the interval is 1
+                // range: bbox.min[axis] -> line; line -> bbox.max[axis];
+                // from axis = line to (line+1 or box.max[axis](when out of range))
+                //it : the first one of the right part
+                auto it = std::partition(primitives.begin(), primitives.end(), [](const Primitives&a){
+                    return a.bbox().center() < line;
+                });
+                int index_intervel = it - primitives.begin();
+                Partition p; p.axis = axis;
+                for(int index = start_index; index < end_index; index++) { 
+                    if(index >= index_intervel + start_index){//right
+                        p.b_right.enclose(primitives[index].bbox());
+                        p.right_prim_count++;
+                    }
+                    else{
+                        p.b_left.enclose(primitives[index].bbox());
+                        p.left_prim_count++;
+                    }
+                }
+                // end of one partition
+                // SAH Cost(for this axis)
+                float cost = p.b_left.surface_area() / box.surface_area() * (float)p.left_prim_count +
+                             p.b_right.surface_area() / box.surface_area() * (float)p.right_prim_count;
+                if(cost < best_cost_ofxyz[axis]) {
+                    best_cost_ofxyz[axis] = cost;
+                    best_partition_thisaxis = p;
+                }
+            }
 
-    // }
+            best_partition[axis] = best_partition_thisaxis;
+            //TO DO primitives need to sort() based on partition(
+            // std::partition(primitives.begin(),primitives.end(),[](){ return bbox().center() < })
+        }
+        best_cost = std::min(best_cost_ofxyz[0], best_cost_ofxyz[1], best_cost_ofxyz[2]);
+        int axis = (best_cost == best_cost_ofxyz[0])?(0):(   (best_cost == best_cost_ofxyz[1])? (1) : (2)  );
+            nodes[root_idx].l = (size_t)nodes.size();
+            nodes[root_idx].r = (size_t)nodes.size() + 1;
+            
+            //need to sort primitive to make sure
+            
+            // left
+            new_node(best_partition[axis].b_left, nodes[root_idx].start, best_partition[axis].left_prim_count, 0, 0);
+            // right
+            new_node(best_partition[axis].b_right, nodes[root_idx].start + best_partition[axis].left_prim_count, best_partition[axis].right_prim_count,0, 0);
+            
+
+        cur_idx++;
+    }
+
 }
 
 // template<typename Primitive> //, Vec2& times
