@@ -80,7 +80,7 @@ void BVH<Primitive>::build(std::vector<Primitive>&& prims, size_t max_leaf_size)
 
     // Build the tree in level order
     while(true) {//++cur_idx
-        if(cur_idx >= nodes.size()) return;
+        if(cur_idx >= (int)nodes.size()) return;
         if(nodes[cur_idx].size <= max_leaf_size) {
             cur_idx++;
             continue;
@@ -145,7 +145,7 @@ void BVH<Primitive>::build(std::vector<Primitive>&& prims, size_t max_leaf_size)
         nodes[cur_idx].r = (size_t)nodes.size() + 1;//right child index in nodes
         float line = best_partition[bestaxis].line;
             //need to sort primitive to make sure
-            auto best_it = std::partition(primitives.begin() + start_index, primitives.begin() + end_index, [bestaxis, line](auto& a){//const Primitive &  ,&axis
+            std::partition(primitives.begin() + start_index, primitives.begin() + end_index, [bestaxis, line](auto& a){// auto best_it = //const Primitive &  ,&axis
                     float center = a.bbox().center()[bestaxis];
                     return center < line;
             });
@@ -213,7 +213,7 @@ Trace BVH<Primitive>::find_closest_hit(const Ray& ray, size_t root, Vec2 &times)
             //first_hit_distance = std::abs(( first_hit_time * ray.dir).norm());
             //ray.dist_bounds = cur_close_t;//first_hit_distance;
             ret = find_closest_hit(ray, closer_index, cur_close_t); 
-            if(cur_far_t.x < ray.dist_bounds.y ){ //&& hitboth cur_far_t.x < ray.dist_bounds.y
+            if(cur_far_t.x < ray.dist_bounds.y && hitboth){ // cur_far_t.x < ray.dist_bounds.y
                 Trace hit  = find_closest_hit(ray, second_index, cur_far_t); 
                 ret = Trace::min(ret,hit);
             }
