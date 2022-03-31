@@ -21,7 +21,7 @@ public:
     BVH& operator=(const BVH& src) = delete;
 
     BBox bbox() const;
-    Trace hit(const Ray& ray) const;
+    Trace hit(const Ray& ray) const ;//
 
     BVH copy() const;
     size_t visualize(GL::Lines& lines, GL::Lines& active, size_t level, const Mat4& trans) const;
@@ -48,7 +48,7 @@ private:
     size_t root_idx = 0;
 
     //Jennifer
-    //void find_closest_hit(const Ray& ray, Node& node, Trace& ret) const;//, Vec2& times
+    Trace find_closest_hit(const Ray& ray, int root, Vec2 times, Trace& ret) const;//
 };
 
 } // namespace PT

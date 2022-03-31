@@ -5,35 +5,31 @@
 
 namespace PT {
 
-// struct Bucket {
-//     BBox bbox;
-//     int prim_count = 0;
-// };
 
 struct Partition {
     
     int axis = 0;
     BBox b_left = {} , b_right = {};
     int left_prim_count = 0, right_prim_count = 0;
-
+    float line = 0;
     // Partition(){
     //     axis = 0;
     //     b_left = BBox(); b_right= BBox();
     // }
 };
 
-template<typename Primitive>
-bool x_cmp(const Primitive& prim1, const Primitive& prim2) {  
-    return (prim1.bbox().center().x < prim2.bbox().center().x);
-}
-template<typename Primitive>
-bool y_cmp(const Primitive& prim1, const Primitive& prim2) {  
-    return (prim1.bbox().center().y < prim2.bbox().center().y);
-}
-template<typename Primitive>
-bool z_cmp(const Primitive& prim1, const Primitive& prim2) {  
-    return (prim1.bbox().center().z < prim2.bbox().center().z);
-}
+// template<typename Primitive>
+// bool x_cmp(const Primitive& prim1, const Primitive& prim2) {  
+//     return (prim1.bbox().center().x < prim2.bbox().center().x);
+// }
+// template<typename Primitive>
+// bool y_cmp(const Primitive& prim1, const Primitive& prim2) {  
+//     return (prim1.bbox().center().y < prim2.bbox().center().y);
+// }
+// template<typename Primitive>
+// bool z_cmp(const Primitive& prim1, const Primitive& prim2) {  
+//     return (prim1.bbox().center().z < prim2.bbox().center().z);
+// }
 
 template<typename Primitive>
 void BVH<Primitive>::build(std::vector<Primitive>&& prims, size_t max_leaf_size) {
@@ -83,16 +79,15 @@ void BVH<Primitive>::build(std::vector<Primitive>&& prims, size_t max_leaf_size)
     int cur_idx = 0;
 
     // Build the tree in level order
-    while(true) {//++root_idx
-        if(nodes[root_idx].size <= max_leaf_size) return;
+    while(true) {//++cur_idx
+        if(nodes[cur_idx].size <= max_leaf_size) return;
         //primitive start index and end index
-        int start_index = (int)nodes[root_idx].start;
-        int end_index = (int)nodes[root_idx].start + (int)nodes[root_idx].size;
+        int start_index = (int)nodes[cur_idx].start;
+        int end_index = (int)nodes[cur_idx].start + (int)nodes[cur_idx].size;
         // For axis x,y,z
         float best_cost = FLT_MAX;
         Vec3 best_cost_ofxyz(FLT_MAX, FLT_MAX, FLT_MAX);
-        std::vector< Partition> best_partition; // self-define
-        Partition best_partition_xyz;
+        std::vector<Partition> best_partition(3); // self-define
         for(int axis = 0; axis < 3; axis++) {
             Partition best_partition_thisaxis;
             // Sort the primitives in ascending order, override the compare using lambda
@@ -101,18 +96,22 @@ void BVH<Primitive>::build(std::vector<Primitive>&& prims, size_t max_leaf_size)
 
             // Initialize buckets
 
-            float bucket_interval = (nodes[root_idx].bbox.max[axis] - nodes[root_idx].bbox.min[axis]) / (float)bucket_number;
-            for(float line = nodes[root_idx].bbox.min[axis] + bucket_interval; line < nodes[root_idx].bbox.max[axis]; line += bucket_interval) { // the interval is 1
+            float bucket_interval = (nodes[cur_idx].bbox.max[axis] - nodes[cur_idx].bbox.min[axis]) / (float)bucket_number;
+            for(float median = nodes[cur_idx].bbox.min[axis] + bucket_interval; median < nodes[cur_idx].bbox.max[axis]; median += bucket_interval) { // the interval is 1
                 // range: bbox.min[axis] -> line; line -> bbox.max[axis];
                 // from axis = line to (line+1 or box.max[axis](when out of range))
-                //it : the first one of the right part
-                auto it = std::partition(primitives.begin(), primitives.end(), [](const Primitives&a){
-                    return a.bbox().center() < line;
+                // it : the first one of the right part
+
+                auto it = std::partition(primitives.begin() + start_index, primitives.begin() + end_index, [median, axis](auto& a){//const Primitive &  ,&axis
+                    float center = a.bbox().center()[axis];
+                    return center < median;
                 });
-                int index_intervel = it - primitives.begin();
-                Partition p; p.axis = axis;
+                int median_index = (int)(it - (primitives.begin() ));//first index of right part + start_index 
+
+                //index_intervel could be primitive.end() out of range
+                Partition p; p.line = median;
                 for(int index = start_index; index < end_index; index++) { 
-                    if(index >= index_intervel + start_index){//right
+                    if(index >= median_index){//right 
                         p.b_right.enclose(primitives[index].bbox());
                         p.right_prim_count++;
                     }
@@ -122,30 +121,36 @@ void BVH<Primitive>::build(std::vector<Primitive>&& prims, size_t max_leaf_size)
                     }
                 }
                 // end of one partition
-                // SAH Cost(for this axis)
-                float cost = p.b_left.surface_area() / box.surface_area() * (float)p.left_prim_count +
-                             p.b_right.surface_area() / box.surface_area() * (float)p.right_prim_count;
+                // SAH Cost(for this axis) 
+                float cost = p.b_left.surface_area() / nodes[cur_idx].bbox.surface_area() * (float)p.left_prim_count +
+                             p.b_right.surface_area() / nodes[cur_idx].bbox.surface_area() * (float)p.right_prim_count
+                             + 1.0f;
                 if(cost < best_cost_ofxyz[axis]) {
                     best_cost_ofxyz[axis] = cost;
                     best_partition_thisaxis = p;
                 }
             }
-
+            //best_partition.insert( best_partition.begin() + axis, best_partition_thisaxis);
             best_partition[axis] = best_partition_thisaxis;
             //TO DO primitives need to sort() based on partition(
             // std::partition(primitives.begin(),primitives.end(),[](){ return bbox().center() < })
         }
-        best_cost = std::min(best_cost_ofxyz[0], best_cost_ofxyz[1], best_cost_ofxyz[2]);
-        int axis = (best_cost == best_cost_ofxyz[0])?(0):(   (best_cost == best_cost_ofxyz[1])? (1) : (2)  );
-            nodes[root_idx].l = (size_t)nodes.size();
-            nodes[root_idx].r = (size_t)nodes.size() + 1;
-            
+        best_cost = std::min(best_cost_ofxyz[0], std::min(best_cost_ofxyz[1], best_cost_ofxyz[2]));
+        int bestaxis = (best_cost == best_cost_ofxyz[0])?(0):(   (best_cost == best_cost_ofxyz[1])? (1) : (2)  );
+        nodes[cur_idx].l = (size_t)nodes.size();//left child index in nodes
+        nodes[cur_idx].r = (size_t)nodes.size() + 1;//right child index in nodes
+        float line = best_partition[bestaxis].line;
             //need to sort primitive to make sure
-            
+            auto best_it = std::partition(primitives.begin() + start_index, primitives.begin() + end_index, [bestaxis, line](auto& a){//const Primitive &  ,&axis
+                    float center = a.bbox().center()[bestaxis];
+                    return center < line;
+            });
             // left
-            new_node(best_partition[axis].b_left, nodes[root_idx].start, best_partition[axis].left_prim_count, 0, 0);
+            //bbox, start index in primitives, size_t size, size_t l, size_t r
+        new_node(best_partition[bestaxis].b_left, nodes[cur_idx].start, best_partition[bestaxis].left_prim_count, 0, 0);
+        //new_node(best_partition[bestaxis].b_left, nodes[cur_idx].start, (int)(best_it - (primitives.begin() + start_index)), 0, 0);
             // right
-            new_node(best_partition[axis].b_right, nodes[root_idx].start + best_partition[axis].left_prim_count, best_partition[axis].right_prim_count,0, 0);
+        new_node(best_partition[bestaxis].b_right, nodes[cur_idx].start + best_partition[bestaxis].left_prim_count, best_partition[bestaxis].right_prim_count,0, 0);
             
 
         cur_idx++;
@@ -153,49 +158,70 @@ void BVH<Primitive>::build(std::vector<Primitive>&& prims, size_t max_leaf_size)
 
 }
 
-// template<typename Primitive> //, Vec2& times
-// void BVH<Primitive>::find_closest_hit(const Ray& ray, Node& node, Trace& ret) const{
-//     //if node is leaf
-//     if(node.is_leaf){
-//         //Each primitive in this node
-//         //size is how many primitives under this node(include sub tree)
-//         for(int index = node.start;index < node.size;index++) {
-//             Trace hit = primitives[index].hit(ray);
-//             ret = Trace::min(ret, hit);//return the mini Trace
-//         }
-//     }
-//     else{
-//         //ray.dist_bounds.x
+template<typename Primitive>
+Trace BVH<Primitive>::find_closest_hit(const Ray& ray, int root, Vec2 times, Trace& ret) const{
+    //if node is leaf
+    if(nodes[root].is_leaf()){
+        //Each primitive in this node
+        //size is how many primitives under this node(include sub tree)
+        Trace result = ret;
+        for(int index = (int)nodes[root].start;index < (int)nodes[root].start + (int)nodes[root].size;index++) {
+            Trace hit = primitives[index].hit(ray);
+            result = Trace::min(result, hit);//return the mini Trace
+        }
+        return result;
+    }
+    else{
+        //need a ret range
+        Vec2 times1 = ray.dist_bounds;//times;//ray.dist_bounds/(ray.dir.norm() );//std::abs((t2 * ray.dir).norm());
+        Vec2 times2 = ray.dist_bounds;//times;
+        bool hit_left = nodes[nodes[root].l].bbox.hit(ray, times1);
+        bool hit_right = nodes[nodes[root].r].bbox.hit(ray, times2);
+        //if left child bbox is closer thant Right, it doesn't mean that left has the closest primitive
+        if(!hit_left && !hit_right) return ret;
+        else{
+            int closer_index, second_index;
+            bool hitboth = false;
+            if(root >= 14){
+                times1 = ray.dist_bounds;
+            }
+            //float first_hit_time, second_hit_time;//, first_hit_distance, second_hit_distance;
+            Vec2 cur_close_t = ray.dist_bounds;
+            Vec2 cur_far_t = ray.dist_bounds;
+            if(hit_left && hit_right){
+                hitboth = true;
+                if(times1.x < times2.x){
+                    closer_index = (int)nodes[root].l; second_index = (int)nodes[root].r; //first_hit_time = times1.x; second_hit_time = times2.x;
+                    cur_close_t = times1;cur_far_t = times2;
+                }
+                else{
+                    closer_index = (int)nodes[root].r; second_index = (int)nodes[root].l; //first_hit_time = times2.x; second_hit_time = times1.x;
+                    cur_close_t = times2;cur_far_t = times1;
+                }
+            }
+            else if (hit_left){
+                closer_index = (int)nodes[root].l; second_index = (int)nodes[root].r; //first_hit_time = times1.x; second_hit_time = times2.y;
+                cur_close_t = times1;
+            }
+            else{
+                closer_index = (int)nodes[root].r; second_index = (int)nodes[root].l; //first_hit_time = times2.x; second_hit_time = times1.y;
+                cur_close_t = times2;
+            }
+            //second_hit_distance = std::abs((second_hit_time * ray.dir).norm());
+            //first_hit_distance = std::abs(( first_hit_time * ray.dir).norm());
+            ray.dist_bounds = cur_close_t;//first_hit_distance;
+            Trace result_f = find_closest_hit(ray, closer_index, cur_close_t, ret); 
+            if(cur_far_t.x < ray.dist_bounds.x && hitboth){
+                result_f  = find_closest_hit(ray, second_index, cur_far_t, result_f); 
+            }
+            return result_f;
+        }
+    }
+}
 
-//         //need a ret range
-//         Vec2 times1 = ray.dist_bounds/(ray.dir.norm() );//std::abs((t2 * ray.dir).norm());
-//         Vec2 times2 = times1;
-//         bool hit_left = nodes[node.l].bbox.hit(ray, times1);
-//         bool hit_right = nodes[node.r].bbox.hit(ray, times2);
-//         //if left child bbox is closer thant Right, it doesn't mean that left has the closest primitive
-//         if(!hit_left && !hit_right)continue;
-//         else if(hit_left && hit_right){
-            
-//             float closer_index = (times1.x < times2.x) ? node.l : node.r;
-//             float second_index = (times1.x < times2.x) ? node.r : node.l;
-//             float second_hit_time = (times1.x < times2.x) ? times2.x : times1.x;
-//             float second_hit_distance = std::abs((second_hit_time * ray.dir).norm());
-            
-//             find_closest_hit(ray, nodes[closer_index], ret); 
-//             if(second_hit_distance < ray.dist_bounds.x){
-//                 find_closest_hit(ray, nodes[second_index], ret); 
-//             }
 
-//         }
-            
-            
-
-
-//         }
-// }
-
-
-template<typename Primitive> Trace BVH<Primitive>::hit(const Ray& ray) const {
+template<typename Primitive>
+Trace BVH<Primitive>::hit(const Ray& ray) const {//const;
 
     // TODO (PathTracer): Task 3
     // Implement ray - BVH intersection test. A ray intersects
@@ -207,14 +233,17 @@ template<typename Primitive> Trace BVH<Primitive>::hit(const Ray& ray) const {
     
     Trace ret;
     if(nodes.empty())return ret;
-    for(const Primitive& prim : primitives) {
-        Trace hit = prim.hit(ray);
-        ret = Trace::min(ret, hit);//return the mini Trace
-    }
-    
 
+    // for(const Primitive& prim : primitives) {
+    //     Trace hit = prim.hit(ray);
+    //     ret = Trace::min(ret, hit);
+    // }
     
-    //find_closest_hit(ray, nodes[0], ret);
+    int root = 0;
+    Vec2 time_initial = ray.dist_bounds/(ray.dir.norm() );
+    //Node *node = nodes[0];
+    Trace result;
+    result = find_closest_hit(ray, root, time_initial, ret);
     
     
     
@@ -239,7 +268,7 @@ template<typename Primitive> Trace BVH<Primitive>::hit(const Ray& ray) const {
 
 
 
-    return ret;
+    return result;
 }
 
 template<typename Primitive>
