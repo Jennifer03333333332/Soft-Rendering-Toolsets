@@ -1,8 +1,61 @@
 For checkpoint:
 
-Fully Implement EdgeFlip, EdgeSplit, EdgeCollapse and FaceBevel 
+Fully Task1-3;
 
 
-For final:
+Task1:Generate Camera Ray 
+Pathtracer::trace_pixel: 
+	Get normalized sample position ([0,1],[0,1])       
+	(xy + sample_pos) / wh 
+Rect::sample(): 
+	Generate a uniformly random point on a rectangle of size size.x * size.y     
+	In this case, size = vec2(1.0f,1.0f) Camera::generate_ray: 
+	1 calculate the screen's height and width by aspect_ratio and vert_fov     
+	2 Calculate the sample's coords in camera space     
+	3 Transform from camera space -> world space checking what your implementation of Camera::generate_ray does with rays at the center of the screen (0.5,0.5)(0.5,0.5) and at the corners of the image.     
 
-Fully Implement Triangulation, LinearSubdivision, and CatmullClarkSubdivision
+
+Task2: Intersecting Objects ray-object intersection (for triangles and spheres) 
+Part 1 triangles Triangle::hit(const Ray& ray) 
+	Using Moller-Trumbore algorithm. Calculate a Vec3 uvt to store the u,v,t. 
+	Edge cases(ret.hit should be false) here: 
+		u<0 || v <0 || (1.0f-u-v)<0         t<0         
+		distance out of dist_bounds ret.normal = verteices' normal intepolate based on barycentric coord   I
+
+Task3 
+Step 0: Bounding Box Calculation & Intersection 
+	BBox::hit   
+		see scratchapixel     
+	Triangle::bbox()       
+		Calculate this triangle's bounding box 
+Step1:BVH Construction 
+	void BVH<Primitive>::build           
+	First set the bucket_number = 10;
+	Then generate a bbox for the root node
+	then traversal in level order
+		current index out of range: return;
+		node's size < max leaf size: current index++; return;   
+		start_index = currentNode start index
+		end_index =     currentNode start index +       currentNode start size
+		
+		for each axis:
+			Calculate best cost for each axis, record the partition info
+		find the mini cost -> best partition, split it
+		add child nodes to this vector
+Step 2: Ray-BVH Intersection
+	Trace BVH<Primitive>::hit(const Ray& ray) 
+		call recursive function find_closest_hit(const Ray& ray, int root, Vec2 times)
+	find_closest_hit(const Ray& ray, int root, Vec2 times)
+		if node is leaf
+			as normal, traversal all primitives in this leaf
+		else
+			call bbox:hit for left and right(ray dist_bounds as limits)
+			same things in slids
+			if secondtime < closest_time_in_firstbox
+				return min of first and second
+
+
+
+Meet many syntax errors. Takes a lot of time
+
+

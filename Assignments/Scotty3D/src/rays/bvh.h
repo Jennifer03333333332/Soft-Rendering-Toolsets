@@ -48,7 +48,8 @@ private:
     size_t root_idx = 0;
 
     //Jennifer
-    Trace find_closest_hit(const Ray& ray, int root, Vec2 times, Trace& ret) const;//
+    //Trace find_closest_hit(const Ray& ray, int root, Vec2 times, Trace& ret) const;//
+    Trace find_closest_hit(const Ray& ray, size_t node, Vec2& times) const;//
 };
 
 } // namespace PT

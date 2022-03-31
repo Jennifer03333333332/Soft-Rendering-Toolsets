@@ -9,7 +9,7 @@ namespace PT {
 struct Partition {
     
     int axis = 0;
-    BBox b_left = {} , b_right = {};
+    BBox b_left, b_right;
     int left_prim_count = 0, right_prim_count = 0;
     float line = 0;
     // Partition(){
@@ -80,7 +80,11 @@ void BVH<Primitive>::build(std::vector<Primitive>&& prims, size_t max_leaf_size)
 
     // Build the tree in level order
     while(true) {//++cur_idx
-        if(nodes[cur_idx].size <= max_leaf_size) return;
+        if(cur_idx >= nodes.size()) return;
+        if(nodes[cur_idx].size <= max_leaf_size) {
+            cur_idx++;
+            continue;
+        }
         //primitive start index and end index
         int start_index = (int)nodes[cur_idx].start;
         int end_index = (int)nodes[cur_idx].start + (int)nodes[cur_idx].size;
@@ -159,22 +163,23 @@ void BVH<Primitive>::build(std::vector<Primitive>&& prims, size_t max_leaf_size)
 }
 
 template<typename Primitive>
-Trace BVH<Primitive>::find_closest_hit(const Ray& ray, int root, Vec2 times, Trace& ret) const{
+Trace BVH<Primitive>::find_closest_hit(const Ray& ray, size_t root, Vec2 &times) const{
+    Trace ret;
     //if node is leaf
     if(nodes[root].is_leaf()){
         //Each primitive in this node
         //size is how many primitives under this node(include sub tree)
-        Trace result = ret;
-        for(int index = (int)nodes[root].start;index < (int)nodes[root].start + (int)nodes[root].size;index++) {
+        for(size_t index = (size_t)nodes[root].start;index < (size_t)nodes[root].start + (size_t)nodes[root].size;index++) {
             Trace hit = primitives[index].hit(ray);
-            result = Trace::min(result, hit);//return the mini Trace
+            ret = Trace::min(ret, hit);//return the mini Trace
         }
-        return result;
+        times.x = ret.distance;
+        return ret;
     }
     else{
         //need a ret range
-        Vec2 times1 = ray.dist_bounds;//times;//ray.dist_bounds/(ray.dir.norm() );//std::abs((t2 * ray.dir).norm());
-        Vec2 times2 = ray.dist_bounds;//times;
+        Vec2 times1 = times;//ray.dist_bounds/(ray.dir.norm() );//std::abs((t2 * ray.dir).norm());
+        Vec2 times2 = times;
         bool hit_left = nodes[nodes[root].l].bbox.hit(ray, times1);
         bool hit_right = nodes[nodes[root].r].bbox.hit(ray, times2);
         //if left child bbox is closer thant Right, it doesn't mean that left has the closest primitive
@@ -182,9 +187,6 @@ Trace BVH<Primitive>::find_closest_hit(const Ray& ray, int root, Vec2 times, Tra
         else{
             int closer_index, second_index;
             bool hitboth = false;
-            if(root >= 14){
-                times1 = ray.dist_bounds;
-            }
             //float first_hit_time, second_hit_time;//, first_hit_distance, second_hit_distance;
             Vec2 cur_close_t = ray.dist_bounds;
             Vec2 cur_far_t = ray.dist_bounds;
@@ -209,12 +211,13 @@ Trace BVH<Primitive>::find_closest_hit(const Ray& ray, int root, Vec2 times, Tra
             }
             //second_hit_distance = std::abs((second_hit_time * ray.dir).norm());
             //first_hit_distance = std::abs(( first_hit_time * ray.dir).norm());
-            ray.dist_bounds = cur_close_t;//first_hit_distance;
-            Trace result_f = find_closest_hit(ray, closer_index, cur_close_t, ret); 
-            if(cur_far_t.x < ray.dist_bounds.x && hitboth){
-                result_f  = find_closest_hit(ray, second_index, cur_far_t, result_f); 
+            //ray.dist_bounds = cur_close_t;//first_hit_distance;
+            ret = find_closest_hit(ray, closer_index, cur_close_t); 
+            if(cur_far_t.x < ray.dist_bounds.y ){ //&& hitboth cur_far_t.x < ray.dist_bounds.y
+                Trace hit  = find_closest_hit(ray, second_index, cur_far_t); 
+                ret = Trace::min(ret,hit);
             }
-            return result_f;
+            return ret;
         }
     }
 }
@@ -239,11 +242,12 @@ Trace BVH<Primitive>::hit(const Ray& ray) const {//const;
     //     ret = Trace::min(ret, hit);
     // }
     
-    int root = 0;
+    size_t root = 0;
     Vec2 time_initial = ray.dist_bounds/(ray.dir.norm() );
     //Node *node = nodes[0];
     Trace result;
-    result = find_closest_hit(ray, root, time_initial, ret);
+    //result = find_closest_hit(ray, root, time_initial, ret);
+    result = find_closest_hit(ray, root, time_initial);
     
     
     
