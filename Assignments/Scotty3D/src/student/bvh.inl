@@ -213,7 +213,7 @@ Trace BVH<Primitive>::find_closest_hit(const Ray& ray, size_t root, Vec2 &times)
             //first_hit_distance = std::abs(( first_hit_time * ray.dir).norm());
             //ray.dist_bounds = cur_close_t;//first_hit_distance;
             ret = find_closest_hit(ray, closer_index, cur_close_t); 
-            if(cur_far_t.x < ray.dist_bounds.y && hitboth){ // cur_far_t.x < ray.dist_bounds.y
+            if(cur_far_t.x < ret.distance || (!ret.hit && hitboth)){ // 
                 Trace hit  = find_closest_hit(ray, second_index, cur_far_t); 
                 ret = Trace::min(ret,hit);
             }
