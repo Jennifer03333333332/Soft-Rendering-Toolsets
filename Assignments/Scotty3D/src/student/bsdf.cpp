@@ -29,6 +29,8 @@ static Vec3 refract(Vec3 out_dir, float index_of_refraction, bool& was_internal)
     return Vec3{};
 }
 
+
+//Given out_dir:input, generates a ramdom sample for in_dir:output
 Scatter BSDF_Lambertian::scatter(Vec3 out_dir) const {
 
     // TODO (PathTracer): Task 4
@@ -42,12 +44,13 @@ Scatter BSDF_Lambertian::scatter(Vec3 out_dir) const {
     return ret;
 }
 
+//the ratio of incoming to outgoing radiance
+//! out_dir is the input
 Spectrum BSDF_Lambertian::evaluate(Vec3 out_dir, Vec3 in_dir) const {
 
     // TODO (PathTracer): Task 4
 
-    // Compute the ratio of reflected/incoming radiance when light from in_dir
-    // is reflected through out_dir: albedo * cos(theta).
+    // Compute the ratio of reflected/incoming radiance when light from in_dir is reflected through out_dir: albedo * cos(theta).
 
     return Spectrum{};
 }

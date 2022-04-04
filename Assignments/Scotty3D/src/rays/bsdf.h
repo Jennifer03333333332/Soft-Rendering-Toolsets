@@ -23,7 +23,7 @@ struct Scatter {
 
 struct BSDF_Lambertian {
 
-    BSDF_Lambertian(Spectrum albedo) : albedo(albedo / PI_F) {
+    BSDF_Lambertian(Spectrum albedo) : albedo(albedo / PI_F) {//Lambertian reflection's BRDF
     }
 
     Scatter scatter(Vec3 out_dir) const;
