@@ -40,13 +40,6 @@ Spectrum Pathtracer::trace_pixel(size_t x, size_t y) {
 }
 
 Spectrum Pathtracer::sample_indirect_lighting(const Shading_Info& hit) {
-    // struct Shading_Info {
-    //     const BSDF& bsdf;
-    //     Mat4 world_to_object, object_to_world;
-    //     Vec3 pos, out_dir, normal;
-    //     size_t depth;
-    // };
-
     // TODO (PathTrace): Task 4
 
     // This function computes a single-sample Monte Carlo estimate of the _indirect_
@@ -98,12 +91,12 @@ Spectrum Pathtracer::sample_direct_lighting(const Shading_Info& hit) {
 
     Spectrum direct_light = trace(world_ray).first;
     
-
+    float pdf;
     if(hit.bsdf.is_discrete()){
         direct_light *= input.attenuation;
     }
     else{//continuous: divided by pdf
-        float pdf = hit.bsdf.pdf(hit.out_dir,input.direction);
+        pdf = hit.bsdf.pdf(hit.out_dir,input.direction);
         direct_light = direct_light*input.attenuation*(1.0f/pdf); 
     }
 
@@ -116,7 +109,7 @@ Spectrum Pathtracer::sample_direct_lighting(const Shading_Info& hit) {
     // want emissive, we can trace a ray with depth = 0.
 
 #if TASK_4 == 1
-    return radiance
+    return radiance;
 #endif
 
     // TODO (PathTrace): Task 6
@@ -126,22 +119,49 @@ Spectrum Pathtracer::sample_direct_lighting(const Shading_Info& hit) {
 
     // (1) If the BSDF is discrete, we don't need to bother sampling lights: the behavior
     // should be the same as task 4.
-
+    if(hit.bsdf.is_discrete()){
+        return radiance;
+    }
+    radiance = radiance - direct_light;
     // (2) Otherwise, we should randomly choose whether we get our sample from `BSDF::scatter`
     // or `Pathtracer::sample_area_lights`. Note that `Pathtracer::sample_area_lights` returns
     // a world-space direction pointing toward an area light. Choose between the strategies 
     // with equal probability.
+    Vec3 random_in_dir;
+
+    Vec3 sample_arealight_inworld = sample_area_lights(hit.pos);//hit.pos ->an area light
+    if(RNG::coin_flip(0.5)){
+        //use BSDF::Scatter
+        random_in_dir = world_in_dir;//world_in_dir is from the task 4's: in_dir in world space
+    }else{
+        //use sample_area_light
+        random_in_dir = sample_arealight_inworld;
+    }
 
     // (3) Create a new world-space ray and call Pathtracer::trace() to get incoming light. You
     // should modify time_bounds so that the ray does not intersect at time = 0. We are again
     // only interested in the emissive component, so the ray depth can be zero.
-
+    Ray world_ray_task6(hit.pos,random_in_dir,Vec2(EPS_F,FLT_MAX),0);
     // (4) Add estimate of incoming light scaled by BSDF attenuation. Given a sample,
     // we don't know whether it came from the BSDF or the light, so you should use BSDF::evaluate(),
     // BSDF::pdf(), and Pathtracer::area_lights_pdf() to compute the proper weighting.
     // What is the PDF of our sample, given it could have been produced from either source?
+    Spectrum direct_light_task6 = trace(world_ray_task6).first;
+    //weighted pdf
+
+    //world space
+    float pdf_area_light = area_lights_pdf(hit.pos,world_in_dir);//area_lights_pdf(hit.pos,world_in_dir);
+    //local space
+    float pdf_task4 = hit.bsdf.pdf(hit.out_dir, hit.world_to_object.rotate(sample_arealight_inworld));//bsdf:local
+    pdf = (pdf_task4 + pdf_area_light)/2;
+    //evaluate: local space
+    Spectrum attenuation_task6 = hit.bsdf.evaluate(hit.out_dir,hit.world_to_object.rotate(random_in_dir));
+    
+    direct_light_task6 = direct_light_task6*attenuation_task6*(1.0f/pdf); 
+    
+    radiance += direct_light_task6;
 #if TASK_6 == 1
-    return radiance
+    return radiance;
 #endif
 
     return radiance;

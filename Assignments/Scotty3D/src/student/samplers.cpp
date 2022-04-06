@@ -20,8 +20,9 @@ Vec3 Sphere::Uniform::sample() const {
 
     // Generate a uniformly random point on the unit sphere.
     // Tip: start with Hemisphere::Uniform
-
-    return Vec3{};
+    Hemisphere::Uniform u;
+    Vec3 hemi_uni = u.sample();
+    return hemi_uni;
 }
 
 Sphere::Image::Image(const HDR_Image& image) {

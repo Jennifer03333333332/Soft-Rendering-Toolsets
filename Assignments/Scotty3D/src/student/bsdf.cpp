@@ -136,11 +136,6 @@ Scatter BSDF_Glass::scatter(Vec3 out_dir) const {
     // TODO (PathTracer): Task 5
     Scatter ret;
     // (1) Compute Fresnel coefficient. Tip: Schlick's approximation.
-    // Vec3 normal(0,1,0);
-    // float cos_i = dot(out_dir,normal);
-    
-
-    
     // (2) Reflect or refract probabilistically based on Fresnel coefficient. Tip: RNG::coin_flip
     bool was_internal = false;
     Vec3 refr = refract(out_dir,index_of_refraction, was_internal);
@@ -161,10 +156,6 @@ Scatter BSDF_Glass::scatter(Vec3 out_dir) const {
 
     // Be wary of your eta1/eta2 ratio - are you entering or leaving the surface?
     // What happens upon total internal reflection?
-
-    
-    // ret.direction = Vec3();
-    // ret.attenuation = Spectrum{};
     return ret;
 }
 
