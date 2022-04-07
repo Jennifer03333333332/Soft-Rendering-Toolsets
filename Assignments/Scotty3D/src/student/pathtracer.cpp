@@ -122,7 +122,7 @@ Spectrum Pathtracer::sample_direct_lighting(const Shading_Info& hit) {
     if(hit.bsdf.is_discrete()){
         return radiance;
     }
-    radiance = radiance - direct_light;
+    radiance = radiance - direct_light;//?
     // (2) Otherwise, we should randomly choose whether we get our sample from `BSDF::scatter`
     // or `Pathtracer::sample_area_lights`. Note that `Pathtracer::sample_area_lights` returns
     // a world-space direction pointing toward an area light. Choose between the strategies 
@@ -148,14 +148,13 @@ Spectrum Pathtracer::sample_direct_lighting(const Shading_Info& hit) {
     // What is the PDF of our sample, given it could have been produced from either source?
     Spectrum direct_light_task6 = trace(world_ray_task6).first;
     //weighted pdf
-
     //world space
-    float pdf_area_light = area_lights_pdf(hit.pos,world_in_dir);//area_lights_pdf(hit.pos,world_in_dir);
+    float pdf_area_light = area_lights_pdf(hit.pos,sample_arealight_inworld);//area_lights_pdf(hit.pos,world_in_dir);??random_indir hit.world_to_object.rotate(sample_arealight_inworld)
     //local space
-    float pdf_task4 = hit.bsdf.pdf(hit.out_dir, hit.world_to_object.rotate(sample_arealight_inworld));//bsdf:local
-    pdf = (pdf_task4 + pdf_area_light)/2;
+    float pdf_task4 = hit.bsdf.pdf(hit.out_dir, hit.world_to_object.rotate(world_in_dir));//bsdf:local
+    pdf = (pdf_task4 + pdf_area_light)/2.0f;
     //evaluate: local space
-    Spectrum attenuation_task6 = hit.bsdf.evaluate(hit.out_dir,hit.world_to_object.rotate(random_in_dir));
+    Spectrum attenuation_task6 = hit.bsdf.evaluate(hit.out_dir,hit.world_to_object.rotate(random_in_dir));//input.attenuation;
     
     direct_light_task6 = direct_light_task6*attenuation_task6*(1.0f/pdf); 
     

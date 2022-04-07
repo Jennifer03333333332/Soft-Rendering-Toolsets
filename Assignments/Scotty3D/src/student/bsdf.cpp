@@ -37,35 +37,33 @@ static Vec3 refract(Vec3 out_dir, float index_of_refraction, bool& was_internal)
     Vec3 normal(0,1,0); 
     
     //to test: just let cos_t = dot(out_dir,normal)
-    float cos_t = out_dir.y; 
-    float sin_t = out_dir.x;//(-1.0f)* reflect??
+    //theta : input out_dir; i: output in_dir
+    float cos_i = out_dir.y; //ok
+    //float sin_t = out_dir.x;//(-1.0f)* reflect??
 
     // float sin_i = sqrt(1.0f - pow(cos_i,2));
     // float sin_t = sin_i / index_of_refraction;
     // float cos_t = sqrt(1.0f - pow(sin_t,2));
-    
     Vec3 indir;
-    
-    
     float ni,nt;
-    if(cos_t> 0){//cos theta_t >0
-        //out_dir corresponds to a ray exiting the surface into vaccum (ior = 1)
-        //But "entering"
+    //change 3
+    if(cos_i > 0){//out_dir corresponds to a ray exiting the surface into vaccum (ior = 1)But "entering"
         nt = index_of_refraction;
         ni = 1.0f;
     }
     else{
         nt = 1.0f;
         ni = index_of_refraction;
-        
     }
-    float sin_i = (nt/ni)*sin_t;
-    float cos_i = (float)sqrt(1.0f - pow(sin_i,2));
-    was_internal = ((1.0f - pow(ni/nt,2))*(1-pow(cos_i,2)) < 0);//was_internal
-
-    indir.x = (-1.0f)*sin_i;
-    indir.y = std::abs(cos_t);
-    indir.z = (-1.0f)*sin_i;
+    //float sin_i = (nt/ni)*sin_t;
+    float cos_t_squared = (1.0f - (float)pow(ni/nt,2))*(1.0f-(float)pow(cos_i,2));
+    was_internal = (cos_t_squared < 0);//was_internal
+    if(was_internal) return reflect(out_dir); 
+    float cos_t = ( cos_i > 0 ) ? (-1.0f)*sqrt(cos_t_squared): sqrt(cos_t_squared); // cos_i =  (float)sqrt(1.0f - pow(sin_i,2));//was_internal
+    
+    indir.x = (-1.0f)*out_dir.x * (ni/nt); 
+    indir.y = cos_t; //std::abs(cos_i);
+    indir.z = (-1.0f)*out_dir.z * (ni/nt);
     return indir;
 }
 
@@ -139,9 +137,9 @@ Scatter BSDF_Glass::scatter(Vec3 out_dir) const {
     // (2) Reflect or refract probabilistically based on Fresnel coefficient. Tip: RNG::coin_flip
     bool was_internal = false;
     Vec3 refr = refract(out_dir,index_of_refraction, was_internal);
-    //if(was_internal):reflect
-    float fresnel = (float)Schlick_Approximation(std::abs(refr.y), index_of_refraction);
-    if(RNG::coin_flip(fresnel) || was_internal){
+    
+    float fresnel = (float)Schlick_Approximation(std::abs(out_dir.y), index_of_refraction);
+    if(RNG::coin_flip(fresnel) || was_internal){ // 
         //reflect
         ret.direction = reflect(out_dir);
         ret.attenuation = reflectance;
@@ -149,11 +147,10 @@ Scatter BSDF_Glass::scatter(Vec3 out_dir) const {
     else{
         // refract/transmit
         ret.direction = refr;
-        float ratio = (refr.y > 0)? (1.0f/index_of_refraction):index_of_refraction;
+        float ratio = (out_dir.y > 0)? (1.0f / index_of_refraction):index_of_refraction ;//change 2 refr.y > 0
         ret.attenuation = transmittance * (float)pow(ratio,2);
     }
     // (3) Compute attenuation based on reflectance or transmittance
-
     // Be wary of your eta1/eta2 ratio - are you entering or leaving the surface?
     // What happens upon total internal reflection?
     return ret;

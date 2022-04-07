@@ -1,6 +1,15 @@
 For checkpoint:
 
-Fully Task1-3;
+Fully implemented Task1-3;
+
+For Final:
+
+Fully implemented A4,6
+Implement A5 materials, mirror is good, glass loses the refraction (But in the OH hours even TA couln't find out where is the problem:(
+Implement A7; Step one is good and fast, Step 2 somehow is slow with some noises;
+
+
+
 
 
 Task1:Generate Camera Ray 
@@ -57,5 +66,23 @@ Step 2: Ray-BVH Intersection
 
 
 Meet many syntax errors. Takes a lot of time
+
+For final:
+Task 4:path tracing
+	Step 1: Pathtracer::trace
+		split to 2 componests
+	Step 2: BSDF_Lambertian
+		albedo
+			ratio of incoming/outgoing, the base color of the Lambertian material
+		scatter
+			returns a Scatter object, with direction and attenuation components.
+		evaluation
+			computes the ratio of incoming to outgoing radiance
+
+
+
+
+
+
 
 
