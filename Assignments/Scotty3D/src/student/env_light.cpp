@@ -15,8 +15,7 @@ Vec3 Env_Map::sample() const {
     //Step one:
     return uniform_sampler.sample();
 
-    //Steo two:
-    //return image_sampler.sample();
+    //Steo two://return image_sampler.sample();
 }
 
 float Env_Map::pdf(Vec3 dir) const {
@@ -28,8 +27,7 @@ float Env_Map::pdf(Vec3 dir) const {
     return 1.0f/ (4*PI_F);
 
 
-    // Steo two:
-    //return image_sampler.pdf(dir);
+    // Steo two://return image_sampler.pdf(dir);
 }
 
 
@@ -58,9 +56,7 @@ Spectrum Env_Map::evaluate(Vec3 dir) const {
     
     float h = (float)image.dimension().second;
     float w = (float)image.dimension().first;
-    //Big change: u and v
-    
-     
+  
     float u = phi * w;//w, u is x
     float v = theta * h;//h, v is y
 
@@ -87,9 +83,11 @@ Spectrum Env_Map::evaluate(Vec3 dir) const {
     u1 = clamp(u1, 0.f, w - 1.f);
     v0 = clamp(v0, 0.f, h - 1.f);
     v1 = clamp(v1, 0.f, h - 1.f);
-    Spectrum horizontal1 = lerpSpectrum((u-u0 + 0.5f)/(u1-u0), image.at((int)u0,(int)v0), image.at((int)u1,(int)v0) );
-    Spectrum horizontal2 = lerpSpectrum((u-u0 + 0.5f)/(u1-u0), image.at((int)u0,(int)v1), image.at((int)u1,(int)v1) );
-    Spectrum vertical =  lerpSpectrum((v-v0 + 0.5f)/(v1-v0), horizontal1, horizontal2);
+    //ratio horizontal1 = (u-u0 - 0.5f)/(u1-u0), bc u1-u0 = 1
+    //Test 1 -0.5f -> + 0.5f
+    Spectrum horizontal1 = lerpSpectrum(clamp(u-u0 - 0.5f,0.f,1.f), image.at((int)u0,(int)v0), image.at((int)u1,(int)v0) );
+    Spectrum horizontal2 = lerpSpectrum(clamp(u-u0 - 0.5f,0.f,1.f), image.at((int)u0,(int)v1), image.at((int)u1,(int)v1) );
+    Spectrum vertical =  lerpSpectrum(clamp(v-v0 - 0.5f,0.f,1.f), horizontal1, horizontal2);
     return vertical;
 }
 
