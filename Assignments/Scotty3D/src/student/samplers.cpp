@@ -25,13 +25,13 @@ Vec3 Sphere::Uniform::sample() const {
     return hemi_uni;
 }
 //Calculate index of _pdf, _cdf
-size_t image_coor_to_index(size_t row,size_t col,size_t w){
-    return col*w + row;
+inline size_t image_coor_to_index(size_t row,size_t col,size_t w){
+    return row * w + col;
 }
-Vec2 index_to_image_coor(size_t index,size_t w,size_t h){
-    Vec2 xy;//row-col
-    xy.x = (float)(int)(index % w);
-    xy.y = (float)(int)(index / w);
+inline Vec2 index_to_image_coor(size_t index,size_t w,size_t h){
+    Vec2 xy;//col-row
+    xy.x = (float)(int)(index % w);//col
+    xy.y = (float)(int)(index / w);//row
     return xy;
 }
 Sphere::Image::Image(const HDR_Image& image) {
@@ -43,25 +43,34 @@ Sphere::Image::Image(const HDR_Image& image) {
     const auto [_w, _h] = image.dimension();
     w = _w;
     h = _h;
-    //(row,col)
     _pdf.resize(w*h,0);
     _cdf.resize(w*h,0);
 
-    for(size_t col = 0;col<h;col++){
-        for(size_t row = 0;row<w;row++){
-            float theta = PI_F * (float)row / (float)h;//!! could be error
-            //float phi = 2.f*PI_F *(float)col / (float)w;
-            
-            _pdf[image_coor_to_index(row,col,w)] = image.at(row,col).luma() * std::abs(std::sin(theta));
-            total+= image.at(row,col).luma() * std::abs(std::sin(theta));
+    for(size_t row = 0;row<h;row++){// y
+        for(size_t col = 0;col<w;col++){// x
+            //Problem: which theta? the one in a texture map[pi, 0], or the one we get by calculation [0,pi]? 
+            float theta = PI_F - PI_F * (float)row / (float)h;  //try PI_F -  then
+            size_t index = image_coor_to_index(row,col,w);
+            float Lsintheta = image.at(col,row).luma() * std::abs(std::sin(theta));
+
+            _pdf[index] = Lsintheta;
+            total+= Lsintheta;
+            _cdf[index] = total;
         }
     }
-    float pre_pdf = 0;
-    for(size_t i = 0;i < w*h;i++){
-        _pdf[i] = _pdf[i] / total;//normalize
-        _cdf[i] = _pdf[i] + pre_pdf;
-        pre_pdf += _pdf[i];
+
+    for(auto& p: _pdf){
+        p /= total;
     }
+    for(auto& c: _cdf){
+        c /= total;
+    }
+    // float pre_pdf = 0;
+    // for(size_t i = 0;i < w*h;i++){
+    //     _pdf[i] = _pdf[i] / total;//normalize
+    //     _cdf[i] = _pdf[i] + pre_pdf;
+    //     pre_pdf += _pdf[i];
+    // }
     //row-major
     //_pdf, _cdf, and total
 
@@ -77,34 +86,30 @@ Vec3 Sphere::Image::sample() const {//importance sampler
     // Tip: std::upper_bound
     // Generate a weighted random phi and theta coordinate pair, convert to xyz coordinates (Vec3) 
     float unit_sample = RNG::unit();
-    Vec2 row_col;
-    //size_t index_of_cdf;
-    for(size_t i = 0;i < w*h ; i++){
-    //for(size_t i = w*h - 1;i >= 0; i--){
-        //should use some algorhitm, nvm
-        if(_cdf[i] > unit_sample){
-            row_col = index_to_image_coor(i,w,h);
-            //index_of_cdf = i;
-            break;
-        }
-    }
+    
+    auto upper = std::upper_bound(_cdf.begin(),_cdf.end(),unit_sample);
+    size_t index = upper - _cdf.begin();
+    Vec2 col_row = index_to_image_coor(index,w,h);
+    // for(size_t i = 0;i < w*h ; i++){
+    // //for(size_t i = w*h - 1;i >= 0; i--){//should use some algorhitm, nvm
+    //     if(_cdf[i] > unit_sample){
+    //         row_col = index_to_image_coor(i,w,h);
+    //         break;
+    //     }
+    // }
     //now I have x,y(in screen coords), how to get xyz?
+    //Problem again: should phi in [0,2pi], or [-pi,pi]?
     Vec3 dir;
-    float phi = (2.0f*PI_F) * row_col.x / w;
-    float theta = PI_F * row_col.y / h;
-    if(phi >= PI_F)phi = phi - 2.f * PI_F;
+    float theta = PI_F - PI_F * col_row.y / (float)h;//Change 2
+    float phi = (2.0f*PI_F) * col_row.x / (float)w;
+    //if(phi >= PI_F)phi = phi - 2.f * PI_F;
 
-    //dir.y = cos(PI_F - theta);
-    //float x_squared = (1 - pow(dir.y,2)) / (1.f + pow(std::tan(phi),2));
+    theta = std::clamp(theta, 0.f, PI_F); 
+    phi = std::clamp(phi, 0.f, 2.0f*PI_F);  
 
-    //dir.z = std::tan(phi)*dir.x;
-    //float phi = std::atan2(dir.z, dir.x); 
-    //Try use this
     dir.x = sin(theta)*cos(phi);
     dir.y = cos(theta);
     dir.z = sin(theta)*sin(phi);
-    
-
     return dir;
 }
 
@@ -114,18 +119,21 @@ float Sphere::Image::pdf(Vec3 dir) const {
 
     // What is the PDF of this distribution at a particular direction?
     //use Jacobian
-    float r = dir.norm();// Is dir unit-vector? Yes
-    float theta = PI_F - std::acos(dir.y / r);
+    //float r = dir.norm();// Is dir unit-vector? Yes
+    float theta = PI_F - std::acos(dir.y );/// r
     float phi = std::atan2(dir.z, dir.x); 
     // You should bi-linearly interpolate the value between the 4 nearest pixels.
     // theta [0, Π], phi [0,2Π] 
     if (phi < 0) phi = phi + 2.f * PI_F;
     theta = std::clamp(theta / PI_F,0.f,1.f); 
     phi = std::clamp(phi / (2.0f * PI_F),0.f,1.f);  
-    size_t y = (size_t)theta * h;//h, u is y
-    size_t x = (size_t)phi * w;//w, v is x
-
-    return _pdf[image_coor_to_index(x,y,w)];
+    size_t y = (size_t)(theta * (float)h);//h, u is y  Get the cood y, now I need the index y
+    size_t x = (size_t)(phi * (float)w);//w, v is x
+    if(y > h - 1)y = h - 1;
+    if(x > w - 1)x = w - 1;
+    //the right-top index should be (w-1,h-1)
+    float Jacobian = (float)w * (float)h / (2.f * PI_F * PI_F *sin(theta));
+    return Jacobian * _pdf[image_coor_to_index(y,x,w)];
 }
 
 Vec3 Point::sample() const {

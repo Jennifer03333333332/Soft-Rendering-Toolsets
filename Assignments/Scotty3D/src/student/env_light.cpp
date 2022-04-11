@@ -47,8 +47,8 @@ Spectrum Env_Map::evaluate(Vec3 dir) const {
     //Vec3 dir -> r, theta, phi -> u,v 
 
     //Get the coordinate from dir
-    //float r = dir.norm();// Is dir unit-vector? Yes
-    float theta = PI_F - std::acos(dir.y);// / r
+    float r = dir.norm();// Is dir unit-vector? Yes
+    float theta = PI_F - std::acos(dir.y / r);// / r
     float phi = std::atan2(dir.z, dir.x); 
     // You should bi-linearly interpolate the value between the 4 nearest pixels.
     //Theta [0, Π], phi [0,2Π] 

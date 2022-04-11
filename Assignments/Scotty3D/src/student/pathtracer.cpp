@@ -143,7 +143,7 @@ Spectrum Pathtracer::sample_direct_lighting(const Shading_Info& hit) {
     // only interested in the emissive component, so the ray depth can be zero.
     Ray world_ray_task6(hit.pos,random_in_dir,Vec2(EPS_F,FLT_MAX),0);
 
-    //if(RNG::coin_flip(0.00005f)) log_ray(world_ray_task6, 5.0f);
+    if(RNG::coin_flip(0.0005f)) log_ray(world_ray_task6, 5.0f);
 
     // (4) Add estimate of incoming light scaled by BSDF attenuation. Given a sample,
     // we don't know whether it came from the BSDF or the light, so you should use BSDF::evaluate(),
