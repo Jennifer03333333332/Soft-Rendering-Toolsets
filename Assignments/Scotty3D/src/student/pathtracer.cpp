@@ -33,7 +33,7 @@ Spectrum Pathtracer::trace_pixel(size_t x, size_t y) {
     Ray ray = camera.generate_ray((xy + sample_pos) / wh);
     ray.depth = max_depth;
     //debug: 10.0f means show the ray until time become 10.0f
-    if(RNG::coin_flip(0.0005f)) log_ray(ray, 10.0f);
+    //if(RNG::coin_flip(0.0005f)) log_ray(ray, 10.0f);
     // Pathtracer::trace() returns the incoming light split into emissive and reflected components.
     auto [emissive, reflected] = trace(ray);
     return emissive + reflected;
@@ -142,6 +142,9 @@ Spectrum Pathtracer::sample_direct_lighting(const Shading_Info& hit) {
     // should modify time_bounds so that the ray does not intersect at time = 0. We are again
     // only interested in the emissive component, so the ray depth can be zero.
     Ray world_ray_task6(hit.pos,random_in_dir,Vec2(EPS_F,FLT_MAX),0);
+
+    //if(RNG::coin_flip(0.00005f)) log_ray(world_ray_task6, 5.0f);
+
     // (4) Add estimate of incoming light scaled by BSDF attenuation. Given a sample,
     // we don't know whether it came from the BSDF or the light, so you should use BSDF::evaluate(),
     // BSDF::pdf(), and Pathtracer::area_lights_pdf() to compute the proper weighting.

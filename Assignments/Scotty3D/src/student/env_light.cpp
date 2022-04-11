@@ -13,10 +13,10 @@ Vec3 Env_Map::sample() const {
     // Second, implement Samplers::Sphere::Image and swap to image_sampler
 
     //Step one:
-    //return uniform_sampler.sample();
+    return uniform_sampler.sample();
 
     //Steo two:
-    return image_sampler.sample();
+    //return image_sampler.sample();
 }
 
 float Env_Map::pdf(Vec3 dir) const {
@@ -25,14 +25,11 @@ float Env_Map::pdf(Vec3 dir) const {
 
 
     //Step one:
-    //return 1.0f/ (4*PI_F);
+    return 1.0f/ (4*PI_F);
 
 
-    //Steo two:
-    float theta = PI_F - std::acos(dir.y);
-    theta = std::clamp(theta / PI_F,0.f,1.f); 
-    float Jacobian = (float)image.dimension().first * (float)image.dimension().second / (2.f * (float)pow(PI_F,2)*sin(theta));
-    return Jacobian * image_sampler.pdf(dir);
+    // Steo two:
+    //return image_sampler.pdf(dir);
 }
 
 
@@ -50,8 +47,8 @@ Spectrum Env_Map::evaluate(Vec3 dir) const {
     //Vec3 dir -> r, theta, phi -> u,v 
 
     //Get the coordinate from dir
-    float r = dir.norm();// Is dir unit-vector? Yes
-    float theta = PI_F - std::acos(dir.y / r);
+    //float r = dir.norm();// Is dir unit-vector? Yes
+    float theta = PI_F - std::acos(dir.y);// / r
     float phi = std::atan2(dir.z, dir.x); 
     // You should bi-linearly interpolate the value between the 4 nearest pixels.
     //Theta [0, Π], phi [0,2Π] 
@@ -61,10 +58,14 @@ Spectrum Env_Map::evaluate(Vec3 dir) const {
     
     float h = (float)image.dimension().second;
     float w = (float)image.dimension().first;
+    //Big change: u and v
+    
+     
+    float u = phi * w;//w, u is x
+    float v = theta * h;//h, v is y
 
-    float u = theta * h;//h, u is y
-    float v = phi * w;//w, v is x
     //bilinear: (u0,v0),(u0,v1),(u1,v0),(u1,v1)
+    //Error! u0, v0 are bottom-left of pixels, not center
     float u0 = floor(u), v0 = floor(v);
     float u1,v1;
     if(u - u0<0.5f){
@@ -79,16 +80,16 @@ Spectrum Env_Map::evaluate(Vec3 dir) const {
         std::swap(v0,v1);
     }
     else{
-        v1 = v0 + 1;
+        v1 = v0 + 1.f;
     }
     //Range: >=0 <= w-1 or h-1
-    u0 = clamp(u0, 0.f, h - 1.f);
-    u1 = clamp(u1, 0.f, h - 1.f);
-    v0 = clamp(v0, 0.f, w - 1.f);
-    v1 = clamp(v1, 0.f, w - 1.f);
-    Spectrum horizontal1 = lerpSpectrum((u-u0)/(u1-u0), image.at((int)v0,(int)u0), image.at((int)v0,(int)u1) );
-    Spectrum horizontal2 = lerpSpectrum((u-u0)/(u1-u0), image.at((int)v1,(int)u0), image.at((int)v1,(int)u1) );
-    Spectrum vertical =  lerpSpectrum((v-v0)/(v1-v0), horizontal1, horizontal2);
+    u0 = clamp(u0, 0.f, w - 1.f);
+    u1 = clamp(u1, 0.f, w - 1.f);
+    v0 = clamp(v0, 0.f, h - 1.f);
+    v1 = clamp(v1, 0.f, h - 1.f);
+    Spectrum horizontal1 = lerpSpectrum((u-u0 + 0.5f)/(u1-u0), image.at((int)u0,(int)v0), image.at((int)u1,(int)v0) );
+    Spectrum horizontal2 = lerpSpectrum((u-u0 + 0.5f)/(u1-u0), image.at((int)u0,(int)v1), image.at((int)u1,(int)v1) );
+    Spectrum vertical =  lerpSpectrum((v-v0 + 0.5f)/(v1-v0), horizontal1, horizontal2);
     return vertical;
 }
 
