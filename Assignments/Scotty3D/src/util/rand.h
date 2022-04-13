@@ -5,7 +5,7 @@
 
 namespace RNG {
 
-// Generate random float in the range [0,1]
+// Generate random float in the range [0,1)
 float unit();
 
 // Generate random integer in the range [min,max)

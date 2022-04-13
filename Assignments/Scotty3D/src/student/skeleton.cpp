@@ -1,19 +1,11 @@
 
 #include "../scene/skeleton.h"
 
-Vec3 closest_on_line_segment(Vec3 start, Vec3 end, Vec3 point) {
-
-    // TODO(Animation): Task 3
-
-    // Return the closest point to 'point' on the line segment from start to end
-    return Vec3{};
-}
-
 Mat4 Joint::joint_to_bind() const {
 
     // TODO(Animation): Task 2
 
-    // Return a matrix transforming points in the space of this joint
+    // Return a matrix transforming points in the joint space of this joint 
     // to points in skeleton space in bind position.
 
     // Bind position implies that all joints have pose = Vec3{0.0f}
@@ -27,8 +19,11 @@ Mat4 Joint::joint_to_posed() const {
 
     // TODO(Animation): Task 2
 
-    // Return a matrix transforming points in the space of this joint
-    // to points in skeleton space, taking into account joint poses.
+    // Return a matrix transforming points in the joint space of this joint
+    // to points in skeleton space in posed position.
+
+    // Posed position implies that you should take into account the joint 
+    // poses along with the extents.
 
     // You will need to traverse the joint heirarchy. This should
     // not take into account Skeleton::base_pos
@@ -39,7 +34,7 @@ Vec3 Skeleton::end_of(Joint* j) {
 
     // TODO(Animation): Task 2
 
-    // Return the bind position of the endpoint of joint j in object space.
+    // Return the bind position of the endpoint of joint j in world space.
     // This should take into account Skeleton::base_pos.
     return Vec3{};
 }
@@ -48,7 +43,7 @@ Vec3 Skeleton::posed_end_of(Joint* j) {
 
     // TODO(Animation): Task 2
 
-    // Return the posed position of the endpoint of joint j in object space.
+    // Return the posed position of the endpoint of joint j in world space.
     // This should take into account Skeleton::base_pos.
     return Vec3{};
 }
@@ -57,7 +52,7 @@ Mat4 Skeleton::joint_to_bind(const Joint* j) const {
 
     // TODO(Animation): Task 2
 
-    // Return a matrix transforming points in joint j's space to object space in
+    // Return a matrix transforming points in joint j's space to world space in
     // bind position. This should take into account Skeleton::base_pos.
     return Mat4::I;
 }
@@ -66,9 +61,36 @@ Mat4 Skeleton::joint_to_posed(const Joint* j) const {
 
     // TODO(Animation): Task 2
 
-    // Return a matrix transforming points in joint j's space to object space with
+    // Return a matrix transforming points in joint j's space to world space with
     // poses. This should take into account Skeleton::base_pos.
     return Mat4::I;
+}
+
+void Joint::compute_gradient(Vec3 target, Vec3 current) {
+
+    // TODO(Animation): Task 2
+
+    // Computes the gradient of IK energy for this joint and, should be called
+    // recursively upward in the heirarchy. Each call should storing the result
+    // in the angle_gradient for this joint.
+
+    // Target is the target position of the IK handle in skeleton space.
+    // Current is the end position of the IK'd joint in skeleton space.
+}
+
+void Skeleton::step_ik(std::vector<IK_Handle*> active_handles) {
+
+    // TODO(Animation): Task 2
+
+    // Do several iterations of Jacobian Transpose gradient descent for IK
+}
+
+Vec3 closest_on_line_segment(Vec3 start, Vec3 end, Vec3 point) {
+
+    // TODO(Animation): Task 3
+
+    // Return the closest point to 'point' on the line segment from start to end
+    return Vec3{};
 }
 
 void Skeleton::find_joints(const GL::Mesh& mesh, std::vector<std::vector<Joint*>>& map) {
@@ -111,23 +133,4 @@ void Skeleton::skin(const GL::Mesh& input, GL::Mesh& output,
 
     std::vector<GL::Mesh::Index> idxs = input.indices();
     output.recreate(std::move(verts), std::move(idxs));
-}
-
-void Joint::compute_gradient(Vec3 target, Vec3 current) {
-
-    // TODO(Animation): Task 2
-
-    // Computes the gradient of IK energy for this joint and, should be called
-    // recursively upward in the heirarchy. Each call should storing the result
-    // in the angle_gradient for this joint.
-
-    // Target is the position of the IK handle in skeleton space.
-    // Current is the end position of the IK'd joint in skeleton space.
-}
-
-void Skeleton::step_ik(std::vector<IK_Handle*> active_handles) {
-
-    // TODO(Animation): Task 2
-
-    // Do several iterations of Jacobian Transpose gradient descent for IK
 }

@@ -126,7 +126,9 @@ Spectrum Pathtracer::sample_direct_lighting(const Shading_Info& hit) {
     // (2) Otherwise, we should randomly choose whether we get our sample from `BSDF::scatter`
     // or `Pathtracer::sample_area_lights`. Note that `Pathtracer::sample_area_lights` returns
     // a world-space direction pointing toward an area light. Choose between the strategies 
-    // with equal probability.
+    // with equal probability. Pay attention to the inputs and outputs of the area light functions -
+    // they are in world space, while BSDF::scatter() is in local space. Use the attributes of the
+    // Pathtracer::Shading_Info object to make sure spaces are consistent when you create a ray to trace.
     Vec3 random_in_dir;
 
     Vec3 sample_arealight_inworld = sample_area_lights(hit.pos);//hit.pos ->an area light
