@@ -11,7 +11,7 @@
 #include "../geometry/spline.h"
 #include "../lib/mathlib.h"
 #include "../platform/gl.h"
-
+//Both joints and bones in class Joint
 class Joint {
 public:
     Joint(unsigned int id);

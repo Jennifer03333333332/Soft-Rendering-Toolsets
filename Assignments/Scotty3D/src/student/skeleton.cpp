@@ -9,10 +9,15 @@ Mat4 Joint::joint_to_bind() const {
     // to points in skeleton space in bind position.
 
     // Bind position implies that all joints have pose = Vec3{0.0f}
-
-    // You will need to traverse the joint heirarchy. This should
-    // not take into account Skeleton::base_pos
-    return Mat4::I;
+    Vec3 bind_position(0.0f,0.0f,0.0f);
+    Mat4 iter = Mat4::I;
+    if(is_root() && parent){
+        //translate origin to the extent of the parents
+        
+        iter = iter.translate(-1.0f*parent->extent);
+    }
+    // You will need to traverse the joint heirarchy. This should not take into account Skeleton::base_pos
+    return iter;//Mat4::I;
 }
 
 Mat4 Joint::joint_to_posed() const {
@@ -24,10 +29,17 @@ Mat4 Joint::joint_to_posed() const {
 
     // Posed position implies that you should take into account the joint 
     // poses along with the extents.
-
-    // You will need to traverse the joint heirarchy. This should
-    // not take into account Skeleton::base_pos
-    return Mat4::I;
+    Vec3 pose_position = pose;
+    Mat4 iter = Mat4::I;
+    if(is_root() && parent){
+        //question: rotate first or translate first?
+        //because rotate must around the origin, so translate first?
+        iter = iter.translate(-1.0f*parent->extent);
+        //R:=Rz⋅Ry⋅Rx
+        iter = iter.euler(pose);
+    }
+    return iter;//Mat4::I;
+    // You will need to traverse the joint heirarchy. This should not take into account Skeleton::base_pos
 }
 
 Vec3 Skeleton::end_of(Joint* j) {
