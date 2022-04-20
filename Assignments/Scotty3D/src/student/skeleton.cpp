@@ -165,7 +165,7 @@ void Skeleton::step_ik(std::vector<IK_Handle*> active_handles) {
     //float cost_func = 0;
 
     //stop after 
-    float steps = 50.0f;
+    float steps = 100.0f;
     float tau = 1/steps;//timestep
     while(steps--){
             //one joint could be used in many IK_Handle
