@@ -1,6 +1,6 @@
 
 #include "../scene/skeleton.h"
-
+//bind position:joint space -> skeleton space
 Mat4 Joint::joint_to_bind() const {
 
     // TODO(Animation): Task 2
@@ -9,17 +9,20 @@ Mat4 Joint::joint_to_bind() const {
     // to points in skeleton space in bind position.
 
     // Bind position implies that all joints have pose = Vec3{0.0f}
-    Vec3 bind_position(0.0f,0.0f,0.0f);
+
     Mat4 iter = Mat4::I;
-    if(is_root() && parent){
+    //? should I consider the current extent?
+
+    Joint* cur = parent;
+    while(cur){// !cur->is_root()
         //translate origin to the extent of the parents
-        
-        iter = iter.translate(-1.0f*parent->extent);
+        iter = Mat4::translate(cur->extent)*iter;
+        cur = cur->parent;
     }
-    // You will need to traverse the joint heirarchy. This should not take into account Skeleton::base_pos
-    return iter;//Mat4::I;
+    return iter;
 }
 
+//pose: joint space -> skeleton space
 Mat4 Joint::joint_to_posed() const {
 
     // TODO(Animation): Task 2
@@ -29,53 +32,89 @@ Mat4 Joint::joint_to_posed() const {
 
     // Posed position implies that you should take into account the joint 
     // poses along with the extents.
-    Vec3 pose_position = pose;
-    Mat4 iter = Mat4::I;
-    if(is_root() && parent){
-        //question: rotate first or translate first?
-        //because rotate must around the origin, so translate first?
-        iter = iter.translate(-1.0f*parent->extent);
-        //R:=Rz⋅Ry⋅Rx
-        iter = iter.euler(pose);
-    }
-    return iter;//Mat4::I;
-    // You will need to traverse the joint heirarchy. This should not take into account Skeleton::base_pos
-}
 
+    //why we don't need translate for the current joint?hmmm...
+    Mat4 iter = Mat4::euler(pose);
+
+    //error 1 Mat4 iter = Mat4::euler(pose)*Mat4::translate(extent);
+
+
+    Joint* cur = parent;
+    while(cur){
+        //question: rotate first or translate first?because rotate must around the origin, so translate first?
+        iter = Mat4::translate(cur->extent)*iter;
+        iter = Mat4::euler(cur->pose)*iter;//R:=Rz⋅Ry⋅Rx
+        
+        cur = cur->parent;
+    }
+    return iter;
+}
+//Vec3,endpoint's bind: joint -> world space
 Vec3 Skeleton::end_of(Joint* j) {
 
     // TODO(Animation): Task 2
 
     // Return the bind position of the endpoint of joint j in world space.
     // This should take into account Skeleton::base_pos.
-    return Vec3{};
+    Vec3 world_bindpos = base_pos;
+    //what's the endpoint of joint?
+    Vec3 endpoint = j->extent;
+    Vec3 skeleton_bindpos = j->joint_to_bind()*endpoint;
+
+    //translate equals to add though
+    //Mat4 skeleton2world = Mat4::translate(base_pos);
+    //world_bindpos = skeleton2world*skeleton_bindpos;
+
+    world_bindpos += skeleton_bindpos;
+    return world_bindpos;
 }
 
+//Vec3, pose: joint -> world space
 Vec3 Skeleton::posed_end_of(Joint* j) {
 
     // TODO(Animation): Task 2
 
     // Return the posed position of the endpoint of joint j in world space.
     // This should take into account Skeleton::base_pos.
-    return Vec3{};
+    Vec3 world_posepos = base_pos;
+
+    Vec3 endpoint = j->extent;
+    Vec3 skeleton_posepos = j->joint_to_posed()*endpoint;
+
+    //translate equals to add though
+    // Mat4 skeleton2world = Mat4::translate(base_pos);
+    // world_posepos = skeleton2world*skeleton_posepos;
+    world_posepos += skeleton_posepos;
+    return world_posepos;
 }
 
+//Matrix: bindpos from joint space ->world space
 Mat4 Skeleton::joint_to_bind(const Joint* j) const {
 
     // TODO(Animation): Task 2
 
     // Return a matrix transforming points in joint j's space to world space in
     // bind position. This should take into account Skeleton::base_pos.
-    return Mat4::I;
-}
+    
+    // Calculate skeleton2world matrix
+    Mat4 skeleton2world = Mat4::I;
+    skeleton2world = skeleton2world.translate(base_pos);
 
+    return skeleton2world*j->joint_to_bind();
+}
+//Matrix: pose from joint space ->world space
 Mat4 Skeleton::joint_to_posed(const Joint* j) const {
 
     // TODO(Animation): Task 2
 
     // Return a matrix transforming points in joint j's space to world space with
     // poses. This should take into account Skeleton::base_pos.
-    return Mat4::I;
+    Mat4 skeleton2world = Mat4::I;
+    skeleton2world = skeleton2world.translate(base_pos);
+
+
+    return skeleton2world*j->joint_to_posed();
+
 }
 
 void Joint::compute_gradient(Vec3 target, Vec3 current) {
