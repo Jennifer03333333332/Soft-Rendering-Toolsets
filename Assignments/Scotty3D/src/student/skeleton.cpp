@@ -161,23 +161,28 @@ void Joint::compute_gradient(Vec3 target, Vec3 current) {
 void Skeleton::step_ik(std::vector<IK_Handle*> active_handles) {
 
     // TODO(Animation): Task 2
-    float tau = 0.02;//timestep
+    
     //float cost_func = 0;
 
-    //one joint could be used in many IK_Handle
-    for(size_t i = 0; i<active_handles.size();i++){
-        Joint* cur_joint = active_handles[i]->joint;
-        Vec3 end_pos_thisjoint = cur_joint->joint_to_posed()*cur_joint->extent;//should in skeleton space
-        cur_joint->compute_gradient(active_handles[i]->target, end_pos_thisjoint);
-        
+    //stop after 
+    float steps = 50.0f;
+    float tau = 1/steps;//timestep
+    while(steps--){
+            //one joint could be used in many IK_Handle
+        for(size_t i = 0; i<active_handles.size();i++){
+            Joint* cur_joint = active_handles[i]->joint;
+            Vec3 end_pos_thisjoint = cur_joint->joint_to_posed()*cur_joint->extent;//should in skeleton space
+            cur_joint->compute_gradient(active_handles[i]->target, end_pos_thisjoint);
+        }
+        //for_joints
+        for_joints([&](Joint* cur_joint) {
+            //get the angle_gradient
+            cur_joint->pose = cur_joint->pose - tau*cur_joint->angle_gradient;//Mat4::euler(cur_joint->angle_gradient)*cur_joint->pose
+            //finally clean the angle_gradient
+            cur_joint->angle_gradient = Vec3();
+        });
     }
-    //for_joints
-    for_joints([&](Joint* cur_joint) {
-        //get the angle_gradient
-        cur_joint->pose = cur_joint->pose - tau*cur_joint->angle_gradient;//Mat4::euler(cur_joint->angle_gradient)*cur_joint->pose
-        //finally clean the angle_gradient
-        cur_joint->angle_gradient = Vec3();
-    });
+
 
 
         
