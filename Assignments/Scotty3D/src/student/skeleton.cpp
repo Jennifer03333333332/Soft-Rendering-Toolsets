@@ -124,12 +124,13 @@ void Joint::compute_gradient(Vec3 target, Vec3 current) {
 
     // 1 jacobian of θ = r x p
     // r is the axis of rotation in the current joint space.
-    Vec3 x_axis = Vec3(1,0,0);//joint_to_posed()*??
-    Vec3 y_axis = Vec3(0,1,0);
-    Vec3 z_axis = Vec3(0,0,1);
+    Vec3 x_axis = joint_to_posed()*Vec3(1,0,0);//joint_to_posed()*??
+    Vec3 y_axis = joint_to_posed()*Vec3(0,1,0);
+    Vec3 z_axis = joint_to_posed()*Vec3(0,0,1);
 
     // p is the vector from the base of joint i to the end point of the target joint.
-    Vec3 p = target - joint_to_posed() * Vec3(0,0,0);//in skeleton space //error ! current - joint_to_posed() * Vec3(0,0,0);
+    // joint_to_posed() * Vec3(0,0,0) is the base of joint i
+    Vec3 p = current - joint_to_posed() * Vec3(0,0,0);//in skeleton space //error ! current - joint_to_posed() * Vec3(0,0,0);
     Vec3 Jacobian_x = cross(x_axis,p);//for this joint, this rotation axis
     Vec3 Jacobian_y = cross(y_axis,p);
     Vec3 Jacobian_z = cross(z_axis,p);
@@ -142,9 +143,12 @@ void Joint::compute_gradient(Vec3 target, Vec3 current) {
     //how to find all my parents?
     Joint* cur = parent;
     while(cur){
+        x_axis = cur->joint_to_posed()*Vec3(1,0,0);//joint_to_posed()*??
+        y_axis = cur->joint_to_posed()*Vec3(0,1,0);
+        z_axis = cur->joint_to_posed()*Vec3(0,0,1);
         // p is the vector from the base of joint i to the end point of the target joint.
         //? target or current
-        p = target - cur->joint_to_posed() * Vec3(0,0,0);//in skeleton space 
+        p = current - cur->joint_to_posed() * Vec3(0,0,0);//in skeleton space 
         Jacobian_x = cross(x_axis,p);//for this joint, this rotation axis
         Jacobian_y = cross(y_axis,p);
         Jacobian_z = cross(z_axis,p);
@@ -153,6 +157,7 @@ void Joint::compute_gradient(Vec3 target, Vec3 current) {
         cur->angle_gradient.x += dot(Jacobian_x,current - target);//delta_f
         cur->angle_gradient.y += dot(Jacobian_y,current - target);
         cur->angle_gradient.z += dot(Jacobian_z,current - target);
+        cur = cur->parent;
     }
     // q: Target is the target position of the IK handle in skeleton space.
     // p(theta t): Current is the end position of the IK'd joint in skeleton space.
@@ -165,8 +170,9 @@ void Skeleton::step_ik(std::vector<IK_Handle*> active_handles) {
     //float cost_func = 0;
 
     //stop after 
-    float steps = 100.0f;
+    float steps = 50.0f;
     float tau = 1/steps;//timestep
+    //where is the alpha though
     while(steps--){
             //one joint could be used in many IK_Handle
         for(size_t i = 0; i<active_handles.size();i++){
@@ -182,14 +188,6 @@ void Skeleton::step_ik(std::vector<IK_Handle*> active_handles) {
             cur_joint->angle_gradient = Vec3();
         });
     }
-
-
-
-        
-    
-
-
-
     // Do several iterations of Jacobian Transpose gradient descent for IK
 }
 
