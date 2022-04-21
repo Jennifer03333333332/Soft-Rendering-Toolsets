@@ -1,88 +1,38 @@
 For checkpoint:
 
-Fully implemented Task1-3;
-
-For Final:
-
-Fully implemented A4,6
-Implement A5 materials, mirror is good, glass loses the refraction (But in the OH hours even TA couln't find out where is the problem:(
-Implement A7; Step one is good and fast, Step 2 somehow is slow with some noises;
+Fully implemented Task1，2;
 
 
+Task1
 
+Spline::cubic_unit_spline()
+	evaluates a spline defined over the time interval [0,1] given a pair of endpoints and tangents at endpoints.
 
+Task 1B: Evaluation of a Catmull-Rom spline
+Make Hermite Curve from interpolation between 2 points，to smooth splines between a sequence of points
+	Task: find the interval closest to the query time, and evaluate its endpoints and tangents.
+Spline::at()
+	evaluates a general Catmull-Romspline at the specified time in a sequence of points (called “knots”).
 
-Task1:Generate Camera Ray 
-Pathtracer::trace_pixel: 
-	Get normalized sample position ([0,1],[0,1])       
-	(xy + sample_pos) / wh 
-Rect::sample(): 
-	Generate a uniformly random point on a rectangle of size size.x * size.y     
-	In this case, size = vec2(1.0f,1.0f) Camera::generate_ray: 
-	1 calculate the screen's height and width by aspect_ratio and vert_fov     
-	2 Calculate the sample's coords in camera space     
-	3 Transform from camera space -> world space checking what your implementation of Camera::generate_ray does with rays at the center of the screen (0.5,0.5)(0.5,0.5) and at the corners of the image.     
+Attention：when calling Spline::cubic_unit_spline()，t need to be normalized to [0,1]（divide by the length of the current interval）
+A transformation is necessary for both the tangents that you feed in to specify the unit spline. 
 
+Spline: <knot time, knot values>
+use map::upper_bound() 
 
-Task2: Intersecting Objects ray-object intersection (for triangles and spheres) 
-Part 1 triangles Triangle::hit(const Ray& ray) 
-	Using Moller-Trumbore algorithm. Calculate a Vec3 uvt to store the u,v,t. 
-	Edge cases(ret.hit should be false) here: 
-		u<0 || v <0 || (1.0f-u-v)<0         t<0         
-		distance out of dist_bounds ret.normal = verteices' normal intepolate based on barycentric coord   I
+My error: thought lower_bound() means the < value to current value. actually it's >=
 
-Task3 
-Step 0: Bounding Box Calculation & Intersection 
-	BBox::hit   
-		see scratchapixel     
-	Triangle::bbox()       
-		Calculate this triangle's bounding box 
-Step1:BVH Construction 
-	void BVH<Primitive>::build           
-	First set the bucket_number = 10;
-	Then generate a bbox for the root node
-	then traversal in level order
-		current index out of range: return;
-		node's size < max leaf size: current index++; return;   
-		start_index = currentNode start index
-		end_index =     currentNode start index +       currentNode start size
-		
-		for each axis:
-			Calculate best cost for each axis, record the partition info
-		find the mini cost -> best partition, split it
-		add child nodes to this vector
-Step 2: Ray-BVH Intersection
-	Trace BVH<Primitive>::hit(const Ray& ray) 
-		call recursive function find_closest_hit(const Ray& ray, int root, Vec2 times)
-	find_closest_hit(const Ray& ray, int root, Vec2 times)
-		if node is leaf
-			as normal, traversal all primitives in this leaf
-		else
-			call bbox:hit for left and right(ray dist_bounds as limits)
-			same things in slids
-			if secondtime < closest_time_in_firstbox
-				return min of first and second
+Task2
+step_ik:
+  in each frame:
+	loop the joint and target in active_handles
+		(one joint could be used in many IK_Handle)
+		call compute_gradient, attention: need to compute_gradient upward until reach the root
+	then for all joints 
+		rotate a little bit
+		clean the gradient
 
-
-
-Meet many syntax errors. Takes a lot of time
-
-For final:
-Task 4:path tracing
-	Step 1: Pathtracer::trace
-		split to 2 componests
-	Step 2: BSDF_Lambertian
-		albedo
-			ratio of incoming/outgoing, the base color of the Lambertian material
-		scatter
-			returns a Scatter object, with direction and attenuation components.
-		evaluation
-			computes the ratio of incoming to outgoing radiance
-
-
-
-
-
-
-
-
+compute_gradient:
+	compute Jacobian for each axies, each joints
+	add to gradients
+	iterate upward until reach the root

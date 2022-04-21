@@ -153,7 +153,6 @@ void Joint::compute_gradient(Vec3 target, Vec3 current) {
         Jacobian_y = cross(y_axis,p);
         Jacobian_z = cross(z_axis,p);
 
-
         cur->angle_gradient.x += dot(Jacobian_x,current - target);//delta_f
         cur->angle_gradient.y += dot(Jacobian_y,current - target);
         cur->angle_gradient.z += dot(Jacobian_z,current - target);
@@ -170,11 +169,11 @@ void Skeleton::step_ik(std::vector<IK_Handle*> active_handles) {
     //float cost_func = 0;
 
     //stop after 
-    float steps = 50.0f;
-    float tau = 1/steps;//timestep
-    //where is the alpha though
-    while(steps--){
-            //one joint could be used in many IK_Handle
+    float frames = 50.0f;
+    float tau = 1 / frames;//timestep
+    //where is the alpha?
+    while(frames--){
+        //one joint could be used in many IK_Handle
         for(size_t i = 0; i<active_handles.size();i++){
             Joint* cur_joint = active_handles[i]->joint;
             Vec3 end_pos_thisjoint = cur_joint->joint_to_posed()*cur_joint->extent;//should in skeleton space
