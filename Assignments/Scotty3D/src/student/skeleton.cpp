@@ -41,7 +41,7 @@ Mat4 Joint::joint_to_posed() const {
 
     Joint* cur = parent;
     while(cur){
-        //question: rotate first or translate first?because rotate must around the origin, so translate first?
+        //question: rotate first or translate first? because rotate must around the origin, so translate first?
         iter = Mat4::translate(cur->extent)*iter;
         iter = Mat4::euler(cur->pose)*iter;//R:=Rz⋅Ry⋅Rx
         
@@ -179,7 +179,7 @@ void Skeleton::step_ik(std::vector<IK_Handle*> active_handles) {
             Vec3 end_pos_thisjoint = cur_joint->joint_to_posed()*cur_joint->extent;//should in skeleton space
             cur_joint->compute_gradient(active_handles[i]->target, end_pos_thisjoint);
         }
-        //for_joints
+        //for_joints, add a little to pose
         for_joints([&](Joint* cur_joint) {
             //get the angle_gradient
             cur_joint->pose = cur_joint->pose - tau*cur_joint->angle_gradient;//Mat4::euler(cur_joint->angle_gradient)*cur_joint->pose
@@ -190,12 +190,30 @@ void Skeleton::step_ik(std::vector<IK_Handle*> active_handles) {
     // Do several iterations of Jacobian Transpose gradient descent for IK
 }
 
+
+//All in joint space? Depends
 Vec3 closest_on_line_segment(Vec3 start, Vec3 end, Vec3 point) {
 
     // TODO(Animation): Task 3
 
     // Return the closest point to 'point' on the line segment from start to end
-    return Vec3{};
+
+    // project to this line, see where's the point
+    // if out, return the start/end
+
+    Vec3 start_p = point - start;
+    Vec3 start_end = end - start;
+    //Situation 1: < start
+    if(dot(start_p,start_end) <= 0)return start;
+
+    //proj = Length * direction
+    Vec3 proj = dot(start_p,start_end) / start_end.norm() * start_end / start_end.norm();//From start -> project point
+
+    //Situation 2: > end
+    if(proj.norm_squared() > start_end.norm_squared())return end;
+
+
+    return proj;
 }
 
 void Skeleton::find_joints(const GL::Mesh& mesh, std::vector<std::vector<Joint*>>& map) {
@@ -203,9 +221,8 @@ void Skeleton::find_joints(const GL::Mesh& mesh, std::vector<std::vector<Joint*>
     // TODO(Animation): Task 3
 
     // Construct a mapping: vertex index -> list of joints that should effect the vertex.
-    // A joint should effect a vertex if it is within Joint::radius distance of the
-    // bone's line segment in bind position.
-
+    // A joint should effect a vertex if it is within Joint::radius distance of the bone's line segment in bind position.
+    // ? the verts is in skeleton space or world space?try world space
     const std::vector<GL::Mesh::Vert>& verts = mesh.verts();
     map.resize(verts.size());
 
@@ -213,7 +230,19 @@ void Skeleton::find_joints(const GL::Mesh& mesh, std::vector<std::vector<Joint*>
     // effect vertex i. Note that i is NOT Vert::id! i is the index in verts.
 
     for_joints([&](Joint* j) {
-        // What vertices does joint j effect?
+        // Judge the vertex's position - projection point's position
+        for(size_t i = 0; i< verts.size(); i++){
+            //How to find j's skeleton: nvm
+            //bind world space -> bind joint space
+            Vec3 vpos_in_jointspace = Mat4::inverse(joint_to_bind(j))  * (verts[i].pos);
+            Vec3 proj = closest_on_line_segment(Vec3{0}, Vec3{0} + j->extent, vpos_in_jointspace);
+            //joint j should effect this v:
+            if((verts[i].pos - proj).norm() <= j->radius){
+                map[i].push_back(j);
+            }
+        }
+        
+
     });
 }
 
@@ -223,7 +252,7 @@ void Skeleton::skin(const GL::Mesh& input, GL::Mesh& output,
     // TODO(Animation): Task 3
 
     // Apply bone poses & weights to the vertices of the input (bind position) mesh
-    // and store the result in the output mesh. See the task description for details.
+    // and store the result in the output mesh. 
     // map was computed by find_joints, hence gives a mapping from vertex index to
     // the list of bones the vertex should be effected by.
 
@@ -234,6 +263,33 @@ void Skeleton::skin(const GL::Mesh& input, GL::Mesh& output,
     for(size_t i = 0; i < verts.size(); i++) {
 
         // Skin vertex i. Note that its position is given in object bind space.
+        float sum_of_inv_dis = 0;
+        std::vector<float> inv_dist;
+        //Try to save the performance
+        //inv_dist.resize(map[i].size());//joint's quantity
+        //for(auto j:map[i]){
+        for(size_t j = 0; j < map[i].size(); j++){
+            
+            //Try All in world space
+            //float distance_ij = (closest_on_line_segment(joint_to_bind(map[i][j])*Vec3{0}, end_of(map[i][j]), verts[i].pos) - verts[i].pos).norm();
+            //Try All in joint space
+           
+            Mat4 world2jointspace_bind = Mat4::inverse(joint_to_bind(map[i][j]));
+            Vec3 vpos_inJoint = world2jointspace_bind*verts[i].pos;
+            float distance_ij = (closest_on_line_segment(Vec3{0}, Vec3{0} + map[i][j]->extent, vpos_inJoint) - vpos_inJoint).norm();
+            //what if distance_ij == 0? the vertex's is exactly on this joint
+            inv_dist.emplace_back(1.0f/distance_ij);//inv_dist[j] = 1.0f/distance_ij;
+            sum_of_inv_dis += inv_dist[j];
+        }
+        if(inv_dist.empty()) continue;
+        Vec3 sum_of_pos{0};
+        for(size_t j = 0; j < map[i].size(); j++){
+            Mat4 world2jointspace_bind = Mat4::inverse(joint_to_bind(map[i][j]));
+            Vec3 v_ij = world2jointspace_bind*verts[i].pos;
+            sum_of_pos += inv_dist[j]/sum_of_inv_dis * v_ij;// w_ij * v_ij
+
+        }
+        verts[i].pos = sum_of_pos;
     }
 
     std::vector<GL::Mesh::Index> idxs = input.indices();

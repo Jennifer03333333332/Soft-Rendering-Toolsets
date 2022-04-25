@@ -15,7 +15,8 @@ Vec3 Env_Map::sample() const {
     //Step one:
     return uniform_sampler.sample();
 
-    //Steo two://return image_sampler.sample();
+    //Steo two:
+    //return image_sampler.sample();
 }
 
 float Env_Map::pdf(Vec3 dir) const {

@@ -102,7 +102,7 @@ Halfedge_Mesh& Scene_Object::get_mesh() {
 const Halfedge_Mesh& Scene_Object::get_mesh() const {
     return halfedge;
 }
-
+//Where A4 T7 was called
 void Scene_Object::sync_anim_mesh() {
     sync_mesh();
     if(skel_dirty && armature.has_bones()) {

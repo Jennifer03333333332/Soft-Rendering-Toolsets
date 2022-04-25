@@ -36,3 +36,23 @@ compute_gradient:
 	compute Jacobian for each axies, each joints
 	add to gradients
 	iterate upward until reach the root
+
+Task3: Linear Blend skinning
+
+In Skeleton::find_joints
+	Build a map, stores <vertex's index, a list of Joint* that could effect this vertex>
+		How to judge this joint should effect this vertex:closest_on_line_segment()
+			find it's closest point on this line segment
+			Judge (verts[i].pos - projection point).norm() <= j->radius
+
+In closest_on_line_segment
+	 Return the closest point to 'point' on the line segment from start to end
+
+In Skeleton::skin
+	After build the map in Skeleton::find_joints
+	
+
+
+
+
+
