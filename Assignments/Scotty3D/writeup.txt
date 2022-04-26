@@ -50,9 +50,25 @@ In closest_on_line_segment
 
 In Skeleton::skin
 	After build the map in Skeleton::find_joints
-	
+	for each vertex's joints'
+		calculate dist_ij in joint space
+		store to calculate this weighted combination
+		v_ij is the posed position in world space
 
+Task4: Particles
 
-
-
-
+bool Particle::update(const PT::BVH<PT::Object>& scene, float dt, float radius)
+	float remain_timestep = dt;
+	while(remain_timestep > 0)
+		Create Ray ,call hit(ray), 
+		Calculate the hit point - interval
+		Notice: Surface normal could be in 2 ways
+			cos_theta could < 0
+			radius / interval = cos_theta
+		When not hit or hit_time > remain time step or cos_theta == 0
+			x = x+ v*remain time step; v = v+a*remain time step
+		Else hit
+			reflect the velocity
+			remain time step -= hit_time
+	age-=dt;
+    	return age > 0;

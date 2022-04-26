@@ -238,7 +238,7 @@ void Skeleton::find_joints(const GL::Mesh& mesh, std::vector<std::vector<Joint*>
             //proj is in joint space
             Vec3 proj = closest_on_line_segment(Vec3{0}, Vec3{0} + j->extent, vpos_in_jointspace);
             //joint j should effect this v:
-            if((vpos_in_jointspace - proj).norm() <= j->radius){//verts[i].pos
+            if((vpos_in_jointspace - proj).norm() <= j->radius){//Error1, all should in joint space: verts[i].pos
                 map[i].push_back(j);
             }
 
@@ -293,19 +293,12 @@ void Skeleton::skin(const GL::Mesh& input, GL::Mesh& output,
         if(inv_dist.empty()) continue;
         Vec3 sum_of_pos{0};
         for(size_t j = 0; j < map[i].size(); j++){
-            //Try this 
-            //Mat4 world2jointspace_bind = Mat4::inverse(joint_to_bind(map[i][j]));
-            //Vec3 v_ij = world2jointspace_bind*verts[i].pos;
-
             //what's the joint's transformation......
-            //v_ij is the posed world position
+            //Error2: v_ij is the posed position in world space
             Vec3 v_ij = joint_to_posed(map[i][j])*Mat4::inverse(joint_to_bind(map[i][j]))*verts[i].pos;
-
-
             sum_of_pos += inv_dist[j]/sum_of_inv_dis * v_ij;// w_ij * v_ij
 
         }
-        //sum_of_pos is in joint space?? back to world space
         verts[i].pos = sum_of_pos;
     }
 

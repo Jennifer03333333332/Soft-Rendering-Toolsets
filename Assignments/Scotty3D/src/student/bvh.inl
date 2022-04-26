@@ -161,7 +161,7 @@ void BVH<Primitive>::build(std::vector<Primitive>&& prims, size_t max_leaf_size)
     }
 
 }
-
+//Start from the root of BVH, find the closest hit point in it
 template<typename Primitive>
 Trace BVH<Primitive>::find_closest_hit(const Ray& ray, size_t root, Vec2 &times) const{
     Trace ret;
