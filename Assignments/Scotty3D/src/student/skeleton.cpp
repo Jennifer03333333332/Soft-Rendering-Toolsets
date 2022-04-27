@@ -49,7 +49,7 @@ Mat4 Joint::joint_to_posed() const {
     }
     return iter;
 }
-//Vec3,endpoint's bind: joint -> world space
+//Vec3,endpoint's bind position: joint -> world space
 Vec3 Skeleton::end_of(Joint* j) {
 
     // TODO(Animation): Task 2
@@ -69,7 +69,7 @@ Vec3 Skeleton::end_of(Joint* j) {
     return world_bindpos;
 }
 
-//Vec3, pose: joint -> world space
+//Vec3, posed position: joint -> world space
 Vec3 Skeleton::posed_end_of(Joint* j) {
 
     // TODO(Animation): Task 2
