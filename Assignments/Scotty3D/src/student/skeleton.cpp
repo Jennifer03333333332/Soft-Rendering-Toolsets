@@ -237,7 +237,7 @@ void Skeleton::find_joints(const GL::Mesh& mesh, std::vector<std::vector<Joint*>
             Vec3 vpos_in_jointspace = Mat4::inverse(joint_to_bind(j))  * (verts[i].pos);
             //proj is in joint space
             Vec3 proj = closest_on_line_segment(Vec3{0}, Vec3{0} + j->extent, vpos_in_jointspace);
-            //joint j should effect this v:
+            //joint j should effect this v: Capsule radius
             if((vpos_in_jointspace - proj).norm() <= j->radius){//Error1, all should in joint space: verts[i].pos
                 map[i].push_back(j);
             }
