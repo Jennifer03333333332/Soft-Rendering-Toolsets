@@ -49,7 +49,7 @@ bool Scene_Particles::Particle::update(const PT::Object& scene, float dt, float 
         Vec3 reflect = velocity - 2.0f* dot(velocity,surface_normal)*surface_normal;
         velocity = reflect;
         // (3) Account for acceleration due to gravity.
-        //velocity = velocity + acceleration*hit_time;
+        velocity = velocity + acceleration*hit_time;
         remain_timestep -= hit_time;
     }
     // (4) Repeat until the entire time step has been consumed.
