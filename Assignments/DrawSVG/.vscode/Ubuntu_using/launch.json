@@ -8,7 +8,7 @@
             "name": "Release",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build_rel/drawsvg",//DrawSVG
+            "program": "${workspaceFolder}/build_rel/drawsvg",//"${workspaceFolder}/build_rel/DrawSVG",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}/svg",
@@ -29,7 +29,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/build_dbg/drawsvg",//DrawSVG
-            "args": ["./basic/"],//NULL
+            "args": ["basic/"],//null
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}/svg",
             "environment": [],
