@@ -1,6 +1,7 @@
 #Lecutres
 *.pdf
 Lecture/
+Screenshots/
 .vs/
 *.mp4
 # from drawsvg gitignore
