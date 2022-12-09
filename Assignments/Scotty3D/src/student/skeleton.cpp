@@ -124,13 +124,13 @@ void Joint::compute_gradient(Vec3 target, Vec3 current) {
 
     // 1 jacobian of θ = r x p
     // r is the axis of rotation in the current joint space.
-    Vec3 x_axis = joint_to_posed()*Vec3(1,0,0);//joint_to_posed()*??
+    Vec3 x_axis = joint_to_posed()*Vec3(1,0,0);//joint_to_posed():  pose: joint space -> skeleton space
     Vec3 y_axis = joint_to_posed()*Vec3(0,1,0);
     Vec3 z_axis = joint_to_posed()*Vec3(0,0,1);
 
     // p is the vector from the base of joint i to the end point of the target joint.
     // joint_to_posed() * Vec3(0,0,0) is the base of joint i
-    Vec3 p = current - joint_to_posed() * Vec3(0,0,0);//in skeleton space //error ! current - joint_to_posed() * Vec3(0,0,0);
+    Vec3 p = current - joint_to_posed() * Vec3(0,0,0);//in skeleton space 
     Vec3 Jacobian_x = cross(x_axis,p);//for this joint, this rotation axis
     Vec3 Jacobian_y = cross(y_axis,p);
     Vec3 Jacobian_z = cross(z_axis,p);

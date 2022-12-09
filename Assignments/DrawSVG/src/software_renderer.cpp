@@ -567,8 +567,6 @@ namespace CMU462
               fill_sample(x, y, c);
           }
       }
-
-
   }
 
   // resolve samples to render target
